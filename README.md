@@ -18,11 +18,11 @@ go get github.com/jessevdk/go-flags
 cd src/code.cloudfoundry.org/veritas
 
 # Build for Linux
-GOOS=linux go build -o veritas.linux ./cmd/veritas/
+GOOS=linux go build ./cmd/veritas/
 
 # Build for Mac
-GOOS=darwin go build -o veritas.darwin ./cmd/veritas/
+GOOS=darwin go build ./cmd/veritas/
 
 # Build for Windows
-GOOS=windows go build -o veritas.exe ./cmd/veritas/
+GOOS=windows go build ./cmd/veritas/
 ```
