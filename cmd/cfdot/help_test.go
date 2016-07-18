@@ -11,18 +11,18 @@ import (
 
 var _ = Describe("help", func() {
 
-	var veritasCmd *exec.Cmd
+	var cfdotCmd *exec.Cmd
 
 	itPrintsHelp := func() {
 		It("prints help", func() {
 
-			sess, err := gexec.Start(veritasCmd, GinkgoWriter, GinkgoWriter)
+			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
 			<-sess.Exited
 			Expect(sess.ExitCode()).To(Equal(0))
 
-			Expect(sess.Out).To(gbytes.Say("veritas"))
+			Expect(sess.Out).To(gbytes.Say("cfdot"))
 			Expect(sess.Out).To(gbytes.Say("Help Options:"))
 			Expect(sess.Out).To(gbytes.Say("Available commands:"))
 		})
@@ -30,28 +30,28 @@ var _ = Describe("help", func() {
 
 	Context("called with no command", func() {
 		BeforeEach(func() {
-			veritasCmd = exec.Command(veritasPath, "help")
+			cfdotCmd = exec.Command(cfdotPath, "help")
 		})
 		itPrintsHelp()
 	})
 
 	Context("called with help option", func() {
 		BeforeEach(func() {
-			veritasCmd = exec.Command(veritasPath, "help")
+			cfdotCmd = exec.Command(cfdotPath, "help")
 		})
 		itPrintsHelp()
 	})
 
 	Context("called with -h", func() {
 		BeforeEach(func() {
-			veritasCmd = exec.Command(veritasPath, "help")
+			cfdotCmd = exec.Command(cfdotPath, "help")
 		})
 		itPrintsHelp()
 	})
 
 	Context("called with --help", func() {
 		BeforeEach(func() {
-			veritasCmd = exec.Command(veritasPath, "help")
+			cfdotCmd = exec.Command(cfdotPath, "help")
 		})
 		itPrintsHelp()
 	})

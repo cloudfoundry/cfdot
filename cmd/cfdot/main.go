@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"code.cloudfoundry.org/bbs"
-	"code.cloudfoundry.org/lager"
-	"code.cloudfoundry.org/veritas/commands"
-
 	"github.com/jessevdk/go-flags"
+
+	"code.cloudfoundry.org/bbs"
+	"code.cloudfoundry.org/cfdot/commands"
+	"code.cloudfoundry.org/lager"
 )
 
 func main() {
@@ -20,14 +20,14 @@ func main() {
 		bbsClient = bbs.NewClient(commands.BBSOptions.BBSURL)
 	}
 
-	parser := flags.NewParser(&commands.Veritas, flags.HelpFlag|flags.PassDoubleDash)
-	logger := lager.NewLogger("veritas")
+	parser := flags.NewParser(&commands.CFdot, flags.HelpFlag|flags.PassDoubleDash)
+	logger := lager.NewLogger("cfdot")
 	commands.Configure(logger, os.Stdout, bbsClient)
 
 	retargs, err := parser.Parse()
 	if err != nil {
 		if err == commands.ErrShowHelpMessage || (len(retargs) == 1 && retargs[0] == "") {
-			helpParser := flags.NewParser(&commands.Veritas, flags.IgnoreUnknown|flags.HelpFlag)
+			helpParser := flags.NewParser(&commands.CFdot, flags.IgnoreUnknown|flags.HelpFlag)
 			helpParser.NamespaceDelimiter = "-"
 			helpParser.ParseArgs([]string{"-h"})
 			helpParser.WriteHelp(os.Stdout)

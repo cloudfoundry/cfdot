@@ -3,8 +3,8 @@ package commands_test
 import (
 	"code.cloudfoundry.org/bbs/fake_bbs"
 	"code.cloudfoundry.org/bbs/models"
+	"code.cloudfoundry.org/cfdot/commands"
 	"code.cloudfoundry.org/lager/lagertest"
-	"code.cloudfoundry.org/veritas/commands"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

@@ -9,19 +9,19 @@ import (
 	"testing"
 )
 
-var veritasPath string
+var cfdotPath string
 
 var bbsServer *ghttp.Server
 
 const targetName = "testserver"
 
 var _ = SynchronizedBeforeSuite(func() []byte {
-	binPath, err := gexec.Build("code.cloudfoundry.org/veritas/cmd/veritas")
+	binPath, err := gexec.Build("code.cloudfoundry.org/cfdot/cmd/cfdot")
 	Expect(err).NotTo(HaveOccurred())
 
 	return []byte(binPath)
 }, func(data []byte) {
-	veritasPath = string(data)
+	cfdotPath = string(data)
 })
 
 var _ = SynchronizedAfterSuite(func() {
@@ -39,5 +39,5 @@ var _ = AfterEach(func() {
 
 func TestIntegration(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Veritas CMD Suite")
+	RunSpecs(t, "Cfdot CMD Suite")
 }

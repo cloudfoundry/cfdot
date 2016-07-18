@@ -1,4 +1,4 @@
-# veritas
+# cfdot
 
 ## Building from source
 
@@ -12,17 +12,17 @@ export GOPATH=$PWD
 export PATH=$GOPATH/bin:$PATH
 ./scripts/update
 
-# Get veritas and required dependency
-go get code.cloudfoundry.org/veritas
+# Get cfdot and required dependency
+go get code.cloudfoundry.org/cfdot
 go get github.com/jessevdk/go-flags
-cd src/code.cloudfoundry.org/veritas
+cd src/code.cloudfoundry.org/cfdot
 
 # Build for Linux
-GOOS=linux go build ./cmd/veritas/
+GOOS=linux go build ./cmd/cfdot/
 
 # Build for Mac
-GOOS=darwin go build ./cmd/veritas/
+GOOS=darwin go build ./cmd/cfdot/
 
 # Build for Windows
-GOOS=windows go build ./cmd/veritas/
+GOOS=windows go build ./cmd/cfdot/
 ```

@@ -8,13 +8,13 @@ import (
 type DomainsCommand struct{}
 
 func (command *DomainsCommand) Execute([]string) error {
-	logger := Veritas.logger.Session("domains")
-	encoder := json.NewEncoder(Veritas.output)
-	if Veritas.bbsClient == nil {
+	logger := CFdot.logger.Session("domains")
+	encoder := json.NewEncoder(CFdot.output)
+	if CFdot.bbsClient == nil {
 		return errors.New("error: the required flag `--bbsURL' was not specified")
 	}
 
-	domains, err := Veritas.bbsClient.Domains(logger)
+	domains, err := CFdot.bbsClient.Domains(logger)
 	if err != nil {
 		return err
 	}

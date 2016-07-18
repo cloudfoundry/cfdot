@@ -28,9 +28,9 @@ var _ = Describe("domains", func() {
 		})
 
 		It("prints a json stream of all the domains", func() {
-			veritasCmd := exec.Command(veritasPath, "--bbsURL", bbsServer.URL(), "domains")
+			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "domains")
 
-			sess, err := gexec.Start(veritasCmd, GinkgoWriter, GinkgoWriter)
+			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
 			<-sess.Exited
@@ -42,9 +42,9 @@ var _ = Describe("domains", func() {
 
 	Context("when the server doesn't respond", func() {
 		It("fails with a relevant error message", func() {
-			veritasCmd := exec.Command(veritasPath, "--bbsURL", "http://127.1.1.1:1", "domains")
+			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", "http://127.1.1.1:1", "domains")
 
-			sess, err := gexec.Start(veritasCmd, GinkgoWriter, GinkgoWriter)
+			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
 			<-sess.Exited
@@ -65,9 +65,9 @@ var _ = Describe("domains", func() {
 		})
 
 		It("fails when not specifying a bbs URL", func() {
-			veritasCmd := exec.Command(veritasPath, "domains")
+			cfdotCmd := exec.Command(cfdotPath, "domains")
 
-			sess, err := gexec.Start(veritasCmd, GinkgoWriter, GinkgoWriter)
+			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
 			<-sess.Exited
@@ -80,9 +80,9 @@ var _ = Describe("domains", func() {
 			os.Setenv("BBS_URL", bbsServer.URL())
 			defer os.Unsetenv("BBS_URL")
 
-			veritasCmd := exec.Command(veritasPath, "domains")
+			cfdotCmd := exec.Command(cfdotPath, "domains")
 
-			sess, err := gexec.Start(veritasCmd, GinkgoWriter, GinkgoWriter)
+			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
 			<-sess.Exited
@@ -90,9 +90,9 @@ var _ = Describe("domains", func() {
 		})
 
 		It("works with a --bbsURL flag specified before domains", func() {
-			veritasCmd := exec.Command(veritasPath, "--bbsURL", bbsServer.URL(), "domains")
+			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "domains")
 
-			sess, err := gexec.Start(veritasCmd, GinkgoWriter, GinkgoWriter)
+			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
 			<-sess.Exited
@@ -100,9 +100,9 @@ var _ = Describe("domains", func() {
 		})
 
 		It("works with a --bbsURL flag specified after domains", func() {
-			veritasCmd := exec.Command(veritasPath, "domains", "--bbsURL", bbsServer.URL())
+			cfdotCmd := exec.Command(cfdotPath, "domains", "--bbsURL", bbsServer.URL())
 
-			sess, err := gexec.Start(veritasCmd, GinkgoWriter, GinkgoWriter)
+			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
 			<-sess.Exited
@@ -113,9 +113,9 @@ var _ = Describe("domains", func() {
 			os.Setenv("BBS_URL", "broken url")
 			defer os.Unsetenv("BBS_URL")
 
-			veritasCmd := exec.Command(veritasPath, "--bbsURL", bbsServer.URL(), "domains")
+			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "domains")
 
-			sess, err := gexec.Start(veritasCmd, GinkgoWriter, GinkgoWriter)
+			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
 			<-sess.Exited
