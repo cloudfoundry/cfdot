@@ -50,7 +50,7 @@ var _ = Describe("domains", func() {
 			<-sess.Exited
 			Expect(sess.ExitCode()).To(Equal(1))
 
-			Expect(sess.Err).To(gbytes.Say("connection refused"))
+			Expect(sess.Err).To(gbytes.Say("(error)|(connection refused)"))
 		})
 	})
 
