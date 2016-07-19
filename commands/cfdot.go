@@ -9,8 +9,8 @@ import (
 
 type CFdotCommand struct {
 	BBSOptions BBSOptionsGroup `group:"BBS Options"`
-	Domains    DomainsCommand  `command:"domains" description:"List all domains from BBS"`
-	Help       HelpCommand     `command:"help" description:"Print help message"`
+	Domains    DomainsCommand  `command:"domains" description:"List all fresh domains."`
+	Help       HelpCommand     `command:"help" description:"Show usage information for commands."`
 
 	logger    lager.Logger
 	output    io.Writer
