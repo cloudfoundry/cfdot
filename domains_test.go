@@ -73,20 +73,7 @@ var _ = Describe("domains", func() {
 			<-sess.Exited
 			Expect(sess.ExitCode()).To(Equal(1))
 
-			Expect(sess.Err).To(gbytes.Say("error: the required flag `--bbsURL' was not specified"))
-		})
-
-		It("works with a BBS_URL environment variable", func() {
-			os.Setenv("BBS_URL", bbsServer.URL())
-			defer os.Unsetenv("BBS_URL")
-
-			cfdotCmd := exec.Command(cfdotPath, "domains")
-
-			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-
-			<-sess.Exited
-			Expect(sess.ExitCode()).To(Equal(0))
+			Expect(sess.Err).To(gbytes.Say("error: the required flag '--bbsURL' was not specified"))
 		})
 
 		It("works with a --bbsURL flag specified before domains", func() {

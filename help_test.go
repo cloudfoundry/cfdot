@@ -22,9 +22,10 @@ var _ = Describe("help", func() {
 			<-sess.Exited
 			Expect(sess.ExitCode()).To(Equal(0))
 
+			Expect(sess.Out).To(gbytes.Say("A command-line tool to interact with a Cloud Foundry Diego deployment"))
+			Expect(sess.Out).To(gbytes.Say("Usage:"))
 			Expect(sess.Out).To(gbytes.Say("cfdot"))
-			Expect(sess.Out).To(gbytes.Say("Help Options:"))
-			Expect(sess.Out).To(gbytes.Say("Available commands:"))
+			Expect(sess.Out).To(gbytes.Say("Available Commands:"))
 		})
 	}
 

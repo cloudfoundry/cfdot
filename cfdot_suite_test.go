@@ -16,7 +16,7 @@ var bbsServer *ghttp.Server
 const targetName = "testserver"
 
 var _ = SynchronizedBeforeSuite(func() []byte {
-	binPath, err := gexec.Build("code.cloudfoundry.org/cfdot/cmd/cfdot")
+	binPath, err := gexec.Build("code.cloudfoundry.org/cfdot")
 	Expect(err).NotTo(HaveOccurred())
 
 	return []byte(binPath)

@@ -4,25 +4,22 @@ import (
 	"code.cloudfoundry.org/bbs/fake_bbs"
 	"code.cloudfoundry.org/bbs/models"
 	"code.cloudfoundry.org/cfdot/commands"
-	"code.cloudfoundry.org/lager/lagertest"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 )
 
-var _ = Describe("DomainsCommand", func() {
+var _ = Describe("Domains", func() {
 	var (
-		fakeBBSClient *fake_bbs.FakeClient
-		command       commands.DomainsCommand
-		buffer        *gbytes.Buffer
+		fakeBBSClient  *fake_bbs.FakeClient
+		stdout, stderr *gbytes.Buffer
 	)
 
 	BeforeEach(func() {
-		buffer = gbytes.NewBuffer()
+		stdout = gbytes.NewBuffer()
+		stderr = gbytes.NewBuffer()
 		fakeBBSClient = &fake_bbs.FakeClient{}
-		logger := lagertest.NewTestLogger("test")
-		commands.Configure(logger, buffer, fakeBBSClient)
 	})
 
 	Context("when the bbs responds with domains", func() {
@@ -31,9 +28,9 @@ var _ = Describe("DomainsCommand", func() {
 		})
 
 		It("prints a json stream of all the domains", func() {
-			err := command.Execute(nil)
+			err := commands.Domains(stdout, stderr, fakeBBSClient, nil)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(buffer).To(gbytes.Say(`"domain-1"\n"domain-2"\n`))
+			Expect(stdout).To(gbytes.Say(`"domain-1"\n"domain-2"\n`))
 		})
 	})
 
@@ -43,9 +40,9 @@ var _ = Describe("DomainsCommand", func() {
 		})
 
 		It("returns an empty response", func() {
-			err := command.Execute(nil)
+			err := commands.Domains(stdout, stderr, fakeBBSClient, nil)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(buffer.Contents()).To(BeEmpty())
+			Expect(stdout.Contents()).To(BeEmpty())
 		})
 	})
 
@@ -55,7 +52,7 @@ var _ = Describe("DomainsCommand", func() {
 		})
 
 		It("fails with a relevant error", func() {
-			err := command.Execute(nil)
+			err := commands.Domains(stdout, stderr, fakeBBSClient, nil)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(Equal(models.ErrUnknownError))
 		})
