@@ -13,7 +13,7 @@ export PATH=$GOPATH/bin:$PATH
 ./scripts/update
 
 # Get cfdot and required dependency
-go get code.cloudfoundry.org/cfdot
+go get code.cloudfoundry.org/cfdot/...
 go get github.com/jessevdk/go-flags
 cd src/code.cloudfoundry.org/cfdot
 
