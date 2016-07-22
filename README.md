@@ -14,7 +14,6 @@ export PATH=$GOPATH/bin:$PATH
 
 # Get cfdot and required dependency
 go get code.cloudfoundry.org/cfdot/...
-go get github.com/jessevdk/go-flags
 cd src/code.cloudfoundry.org/cfdot
 
 # Build for Linux
