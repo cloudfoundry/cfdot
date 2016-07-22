@@ -2,7 +2,6 @@ package commands
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 
 	"code.cloudfoundry.org/bbs"
@@ -23,15 +22,10 @@ var domainsCmd = &cobra.Command{
 }
 
 func domains(cmd *cobra.Command, args []string) {
-	if bbsURL == "" {
-		reportErr(cmd.OutOrStderr(), errors.New("the required flag '--bbsURL' was not specified"))
-	}
-
-	bbsClient := bbs.NewClient(bbsURL)
-
+	bbsClient := newBBSClient(cmd)
 	err := Domains(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, args)
 	if err != nil {
-		reportErr(cmd.OutOrStderr(), err)
+		reportErr(cmd, err)
 	}
 }
 

@@ -1,10 +1,11 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
-	"io"
 	"os"
 
+	"code.cloudfoundry.org/bbs"
 	"code.cloudfoundry.org/lager"
 	"github.com/spf13/cobra"
 )
@@ -23,7 +24,15 @@ func addBBSFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&bbsURL, "bbsURL", "", "", "BBS URL")
 }
 
-func reportErr(stderr io.Writer, err error) {
-	fmt.Fprintf(stderr, "error: %s\n", err.Error())
+func newBBSClient(cmd *cobra.Command) bbs.Client {
+	if bbsURL == "" {
+		reportErr(cmd, errors.New("the required flag '--bbsURL' was not specified"))
+	}
+	return bbs.NewClient(bbsURL)
+}
+
+func reportErr(cmd *cobra.Command, err error) {
+	fmt.Fprintf(cmd.OutOrStderr(), "error: %s\n\n", err.Error())
+	cmd.Help()
 	os.Exit(1)
 }
