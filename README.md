@@ -2,26 +2,21 @@
 
 ## Building from source
 
-To get the compatible version of the BBS client, it is best to follow the `GOPATH` structure of [diego-release](code.cloudfoundry.org/diego-release). If you already have a working diego-release directory, you can `cd` into there and skip the "Get diego-release" step. Run the following:
+`cfdot` requires the BBS client library from diego-release, so if you already a cloned diego-release,
+you can run the following commands using that diego-release directory as your GOPATH. Alternatively, run
+these commands with any other GOPATH and `go get` will automatically fetch the latest BBS code from diego-release.
 
 ```bash
-# Get diego-release
-git clone https://github.com/cloudfoundry/diego-release
-cd diego-release
-export GOPATH=$PWD
-export PATH=$GOPATH/bin:$PATH
-./scripts/update
-
-# Get cfdot and required dependency
-go get code.cloudfoundry.org/cfdot/...
+# Get cfdot and required dependencies
+go get code.cloudfoundry.org/cfdot
 cd src/code.cloudfoundry.org/cfdot
 
 # Build for Linux
-GOOS=linux go build ./cmd/cfdot/
+GOOS=linux go build .
 
 # Build for Mac
-GOOS=darwin go build ./cmd/cfdot/
+GOOS=darwin go build .
 
 # Build for Windows
-GOOS=windows go build ./cmd/cfdot/
+GOOS=windows go build .
 ```
