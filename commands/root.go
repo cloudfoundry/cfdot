@@ -22,12 +22,14 @@ var bbsURL string
 
 func addBBSFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&bbsURL, "bbsURL", "", "", "BBS URL")
+	cmd.PreRun = func(cmd *cobra.Command, args []string) {
+		if cmd.Flag("bbsURL").Value.String() == "" {
+			reportErr(cmd, errors.New("the required flag '--bbsURL' was not specified"))
+		}
+	}
 }
 
 func newBBSClient(cmd *cobra.Command) bbs.Client {
-	if bbsURL == "" {
-		reportErr(cmd, errors.New("the required flag '--bbsURL' was not specified"))
-	}
 	return bbs.NewClient(bbsURL)
 }
 
