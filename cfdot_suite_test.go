@@ -39,5 +39,5 @@ var _ = AfterEach(func() {
 
 func TestIntegration(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Cfdot CMD Suite")
+	RunSpecs(t, "Cfdot Suite")
 }

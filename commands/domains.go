@@ -17,7 +17,7 @@ func init() {
 var domainsCmd = &cobra.Command{
 	Use:   "domains",
 	Short: "List domains",
-	Long:  "List the available domains",
+	Long:  "List fresh domains from the BBS",
 	Run:   domains,
 }
 
