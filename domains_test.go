@@ -64,6 +64,38 @@ var _ = Describe("domains", func() {
 			)
 		})
 
+		It("fails when the URL is not HTTP or HTTPS", func() {
+			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", "nohttp.com", "domains")
+
+			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+
+			<-sess.Exited
+			Expect(sess.ExitCode()).To(Equal(3))
+
+			Expect(sess.Err).To(gbytes.Say(
+				"The URL 'nohttp.com' does not have an 'http' or 'https' scheme. Please specify one with the '--bbsURL' flag or the 'BBS_URL' environment variable.",
+			))
+			Expect(sess.Err).To(gbytes.Say("List fresh domains"))
+			Expect(sess.Err).To(gbytes.Say("Usage:"))
+		})
+
+		It("fails when specifying a non-empty, invalid bbsURL", func() {
+			cfdotCmd := exec.Command(cfdotPath, "domains", "--bbsURL", ":")
+
+			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+
+			<-sess.Exited
+			Expect(sess.ExitCode()).To(Equal(3))
+
+			Expect(sess.Err).To(gbytes.Say(
+				"The value ':' is not a valid BBS URL. Please specify one with the '--bbsURL' flag or the 'BBS_URL' environment variable.",
+			))
+			Expect(sess.Err).To(gbytes.Say("List fresh domains"))
+			Expect(sess.Err).To(gbytes.Say("Usage:"))
+		})
+
 		It("fails when not specifying a bbs URL", func() {
 			cfdotCmd := exec.Command(cfdotPath, "domains")
 
@@ -71,9 +103,13 @@ var _ = Describe("domains", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			<-sess.Exited
-			Expect(sess.ExitCode()).To(Equal(1))
+			Expect(sess.ExitCode()).To(Equal(3))
 
-			Expect(sess.Err).To(gbytes.Say("error: the required flag '--bbsURL' was not specified"))
+			Expect(sess.Err).To(gbytes.Say(
+				"BBS URL not set. Please specify one with the '--bbsURL' flag or the 'BBS_URL' environment variable.",
+			))
+			Expect(sess.Err).To(gbytes.Say("List fresh domains"))
+			Expect(sess.Err).To(gbytes.Say("Usage:"))
 		})
 
 		It("works with a --bbsURL flag specified before domains", func() {

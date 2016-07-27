@@ -25,7 +25,7 @@ func domains(cmd *cobra.Command, args []string) {
 	bbsClient := newBBSClient(cmd)
 	err := Domains(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, args)
 	if err != nil {
-		reportErr(cmd, err)
+		reportErr(cmd, err, 1)
 	}
 }
 
