@@ -24,25 +24,27 @@ var bbsURL string
 func addBBSFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&bbsURL, "bbsURL", "", "", "URL of BBS server to target, can also be specified with BBS_URL environment variable")
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
-		bbsURLFlag := cmd.Flag("bbsURL").Value.String()
+		if bbsURL == "" {
+			bbsURL = os.Getenv("BBS_URL")
+		}
 
-		if bbsURLFlag == "" {
+		if bbsURL == "" {
 			reportErr(cmd, errors.New(
 				"BBS URL not set. Please specify one with the '--bbsURL' flag or the "+
 					"'BBS_URL' environment variable.",
 			), 3)
-		} else if parsedURL, err := url.Parse(bbsURLFlag); err != nil {
+		} else if parsedURL, err := url.Parse(bbsURL); err != nil {
 			reportErr(cmd, errors.New(fmt.Sprintf(
 				"The value '%s' is not a valid BBS URL. Please specify one with the "+
 					"'--bbsURL' flag or the 'BBS_URL' environment variable.",
-				bbsURLFlag,
+				bbsURL,
 			)), 3)
 		} else if parsedURL.Scheme != "https" && parsedURL.Scheme != "http" {
 			reportErr(cmd, errors.New(fmt.Sprintf(
 				"The URL '%s' does not have an 'http' or 'https' scheme. Please "+
 					"specify one with the '--bbsURL' flag or the 'BBS_URL' environment "+
 					"variable.",
-				bbsURLFlag,
+				bbsURL,
 			)), 3)
 		}
 
