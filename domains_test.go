@@ -96,6 +96,19 @@ var _ = Describe("domains", func() {
 			Expect(sess.ExitCode()).To(Equal(0))
 		})
 
+		It("works with a BBS_URL environment variable", func() {
+			os.Setenv("BBS_URL", bbsServer.URL())
+			defer os.Unsetenv("BBS_URL")
+
+			cfdotCmd := exec.Command(cfdotPath, "domains")
+
+			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+
+			<-sess.Exited
+			Expect(sess.ExitCode()).To(Equal(0))
+		})
+
 		It("prefers the --bbsURL flag over the environment variable", func() {
 			os.Setenv("BBS_URL", "broken url")
 			defer os.Unsetenv("BBS_URL")

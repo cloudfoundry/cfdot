@@ -21,10 +21,13 @@ var RootCmd = &cobra.Command{
 var bbsURL string
 
 func addBBSFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVarP(&bbsURL, "bbsURL", "", "", "URL of BBS server to target")
+	cmd.Flags().StringVarP(&bbsURL, "bbsURL", "", "", "URL of BBS server to target, can also be specified with BBS_URL environment variable")
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
-		if cmd.Flag("bbsURL").Value.String() == "" {
-			reportErr(cmd, errors.New("the required flag '--bbsURL' was not specified"))
+		if bbsURL == "" {
+			bbsURL = os.Getenv("BBS_URL")
+			if bbsURL == "" {
+				reportErr(cmd, errors.New("the required flag '--bbsURL' was not specified"))
+			}
 		}
 	}
 }
