@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -88,7 +87,8 @@ func AddBBSFlags(cmd *cobra.Command) {
 					return returnErr
 				}
 
-				_, err := ioutil.ReadFile(bbsCACertFile)
+				err := inspectTLSFile(bbsCACertFile)
+
 				if err != nil {
 					returnErr = CFDotError{
 						fmt.Sprintf("CA cert file '"+bbsCACertFile+"' doesn't exist or is not readable: %s", err.Error()),
@@ -105,7 +105,8 @@ func AddBBSFlags(cmd *cobra.Command) {
 			}
 
 			if bbsKeyFile != "" {
-				_, err := ioutil.ReadFile(bbsKeyFile)
+				err := inspectTLSFile(bbsKeyFile)
+
 				if err != nil {
 					returnErr = CFDotError{
 						fmt.Sprintf("key file '"+bbsKeyFile+"' doesn't exist or is not readable: %s", err.Error()),
@@ -115,7 +116,8 @@ func AddBBSFlags(cmd *cobra.Command) {
 			}
 
 			if bbsCertFile != "" {
-				_, err := ioutil.ReadFile(bbsCertFile)
+				err := inspectTLSFile(bbsCertFile)
+
 				if err != nil {
 					returnErr = CFDotError{
 						fmt.Sprintf("cert file '"+bbsCertFile+"' doesn't exist or is not readable: %s", err.Error()),
@@ -169,4 +171,15 @@ func newBBSClient(cmd *cobra.Command) (bbs.Client, error) {
 	}
 
 	return client, err
+}
+
+func inspectTLSFile(filename string) error {
+	tlsFile, err := os.Open(filename)
+	defer tlsFile.Close()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

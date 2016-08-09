@@ -297,6 +297,31 @@ var _ = Describe("BBS Flags", func() {
 			})
 		})
 
+		Context("when the key file flag points to a file without read permissions", func() {
+			BeforeEach(func() {
+				chmodErr := os.Chmod("fixtures/bbsClient.key", 0300)
+				Expect(chmodErr).NotTo(HaveOccurred())
+				parseFlagsErr := dummyCmd.ParseFlags(buildArgList(validTLSFlags))
+				Expect(parseFlagsErr).NotTo(HaveOccurred())
+			})
+
+			AfterEach(func() {
+				chmodErr := os.Chmod("fixtures/bbsClient.key", 0644)
+				Expect(chmodErr).NotTo(HaveOccurred())
+			})
+
+			It("returns a validation error", func() {
+				keyfile := validTLSFlags["--bbsKeyFile"]
+				Expect(err).To(MatchError(MatchRegexp("^key file '" + keyfile + "' doesn't exist or is not readable: .*")))
+			})
+
+			It("exits with code 3", func() {
+				cfdotError, ok := err.(commands.CFDotError)
+				Expect(ok).To(BeTrue())
+				Expect(cfdotError.ExitCode()).To(Equal(3))
+			})
+		})
+
 		Context("when the cert file flag points to a nonexistent file", func() {
 			BeforeEach(func() {
 				parseFlagsErr := dummyCmd.ParseFlags(replaceFlagValue(validTLSFlags, "--bbsCertFile", "sandwich.crt"))
