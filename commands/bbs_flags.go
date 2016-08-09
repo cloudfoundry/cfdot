@@ -87,7 +87,7 @@ func AddBBSFlags(cmd *cobra.Command) {
 					return returnErr
 				}
 
-				err := inspectTLSFile(bbsCACertFile)
+				err := validateReadableFile(bbsCACertFile)
 
 				if err != nil {
 					returnErr = CFDotError{
@@ -105,7 +105,7 @@ func AddBBSFlags(cmd *cobra.Command) {
 			}
 
 			if bbsKeyFile != "" {
-				err := inspectTLSFile(bbsKeyFile)
+				err := validateReadableFile(bbsKeyFile)
 
 				if err != nil {
 					returnErr = CFDotError{
@@ -116,7 +116,7 @@ func AddBBSFlags(cmd *cobra.Command) {
 			}
 
 			if bbsCertFile != "" {
-				err := inspectTLSFile(bbsCertFile)
+				err := validateReadableFile(bbsCertFile)
 
 				if err != nil {
 					returnErr = CFDotError{
@@ -173,13 +173,9 @@ func newBBSClient(cmd *cobra.Command) (bbs.Client, error) {
 	return client, err
 }
 
-func inspectTLSFile(filename string) error {
-	tlsFile, err := os.Open(filename)
-	defer tlsFile.Close()
+func validateReadableFile(filename string) error {
+	file, err := os.Open(filename)
+	defer file.Close()
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
