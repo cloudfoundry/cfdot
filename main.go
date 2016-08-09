@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"code.cloudfoundry.org/cfdot/commands"
@@ -9,7 +8,10 @@ import (
 
 func main() {
 	if err := commands.RootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		if cfDotError, ok := err.(commands.CFDotError); ok {
+			os.Exit(cfDotError.ExitCode())
+		}
+
 		os.Exit(-1)
 	}
 }
