@@ -26,12 +26,12 @@ const maxIdleConnsPerHost int = 0
 
 func AddBBSFlags(cmd *cobra.Command) {
 	var bbsSkipCertVerifyAsString string
-	cmd.Flags().StringVar(&bbsURL, "bbsURL", "", "URL of BBS server to target, can also be specified with BBS_URL environment variable")
+	cmd.Flags().StringVar(&bbsURL, "bbsURL", "", "URL of BBS server to target [environment variable equivalent: BBS_URL]")
 	// Read this in as a StringVar instead of a BoolVar so we can check whether it was set or not, and use an environment variable if it was not set.
-	cmd.Flags().StringVar(&bbsSkipCertVerifyAsString, "bbsSkipCertVerify", "", "when set to true, skips all SSL/TLS certificate verification")
-	cmd.Flags().StringVar(&bbsCertFile, "bbsCertFile", "", "path to the TLS client certificate to use during mutual-auth TLS")
-	cmd.Flags().StringVar(&bbsKeyFile, "bbsKeyFile", "", "path to the TLS client private key file to use during mutual-auth TLS")
-	cmd.Flags().StringVar(&bbsCACertFile, "bbsCACertFile", "", "path the Certificate Authority (CA) file to use when verifying TLS keypairs")
+	cmd.Flags().StringVar(&bbsSkipCertVerifyAsString, "bbsSkipCertVerify", "", "when set to true, skips all SSL/TLS certificate verification [environment variable equivalent: BBS_SKIP_CERT_VERIFY]")
+	cmd.Flags().StringVar(&bbsCertFile, "bbsCertFile", "", "path to the TLS client certificate to use during mutual-auth TLS [environment variable equivalent: BBS_CERT_FILE]")
+	cmd.Flags().StringVar(&bbsKeyFile, "bbsKeyFile", "", "path to the TLS client private key file to use during mutual-auth TLS [environment variable equivalent: BBS_KEY_FILE]")
+	cmd.Flags().StringVar(&bbsCACertFile, "bbsCACertFile", "", "path the Certificate Authority (CA) file to use when verifying TLS keypairs [environment variable equivalent: BBS_CA_CERT_FILE]")
 
 	cmd.PreRunE = func(cmd *cobra.Command, args []string) error {
 		var returnErr error
