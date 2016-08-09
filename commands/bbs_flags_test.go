@@ -169,23 +169,6 @@ var _ = Describe("BBS Flags", func() {
 			})
 		})
 
-		Context("when bbsSkipCertVerify is not a valid bool", func() {
-			BeforeEach(func() {
-				parseFlagsErr := dummyCmd.ParseFlags(replaceFlagValue(validTLSFlags, "--bbsSkipCertVerify", "42"))
-				Expect(parseFlagsErr).NotTo(HaveOccurred())
-			})
-
-			It("returns a validation error", func() {
-				Expect(err).To(MatchError("The value '42' is not a valid value for bbsSkipCertVerify. Please specify one of the following valid boolean values: 1, t, T, TRUE, true, True, 0, f, F, FALSE, false, False"))
-			})
-
-			It("exits with code 3", func() {
-				cfdotError, ok := err.(commands.CFDotError)
-				Expect(ok).To(BeTrue())
-				Expect(cfdotError.ExitCode()).To(Equal(3))
-			})
-		})
-
 		Context("when a BBS_SKIP_CERT_VERIFY environment variable is specified", func() {
 			AfterEach(func() {
 				os.Unsetenv("BBS_SKIP_CERT_VERIFY")
@@ -193,13 +176,31 @@ var _ = Describe("BBS Flags", func() {
 
 			Context("when the BBS_SKIP_CERT_VERIFY is valid", func() {
 				BeforeEach(func() {
-					parseFlagsErr := dummyCmd.ParseFlags(removeFlag(validTLSFlags, "--bbsSkipCertVerify"))
-					Expect(parseFlagsErr).NotTo(HaveOccurred())
 					os.Setenv("BBS_SKIP_CERT_VERIFY", "true")
 				})
 
-				It("does not error", func() {
-					Expect(err).NotTo(HaveOccurred())
+				Context("when the flag is not present", func() {
+					BeforeEach(func() {
+						delete(validTLSFlags, "--bbsSkipCertVerify")
+						delete(validTLSFlags, "--bbsCACert")
+						parseFlagsErr := dummyCmd.ParseFlags(buildArgList(validTLSFlags))
+						Expect(parseFlagsErr).NotTo(HaveOccurred())
+					})
+
+					It("does not error", func() {
+						Expect(err).NotTo(HaveOccurred())
+					})
+				})
+
+				Context("when the flag is set to false", func() {
+					BeforeEach(func() {
+						parseFlagsErr := dummyCmd.ParseFlags(removeFlag(validTLSFlags, "--bbsCACertFile"))
+						Expect(parseFlagsErr).NotTo(HaveOccurred())
+					})
+
+					It("uses the 'false' value from the flag", func() {
+						Expect(err).To(MatchError("--bbsCACertFile must be specified if using HTTPS and --bbsSkipCertVerify is not set"))
+					})
 				})
 			})
 
@@ -211,15 +212,15 @@ var _ = Describe("BBS Flags", func() {
 				})
 
 				It("returns an error", func() {
-					Expect(err.Error()).To(Equal("The value 'sponge' is not a valid value for bbsSkipCertVerify. Please specify one of the following valid boolean values: 1, t, T, TRUE, true, True, 0, f, F, FALSE, false, False"))
+					Expect(err).To(MatchError("The value 'sponge' is not a valid value for BBS_SKIP_CERT_VERIFY. Please specify one of the following valid boolean values: 1, t, T, TRUE, true, True, 0, f, F, FALSE, false, False"))
 				})
 			})
 
 			Context("when the --bbsSkipCertVerify flag is also specified", func() {
 				BeforeEach(func() {
-					parseFlagsErr := dummyCmd.ParseFlags(buildArgList(validTLSFlags))
+					parseFlagsErr := dummyCmd.ParseFlags(replaceFlagValue(validTLSFlags, "--bbsSkipCertVerify", "true"))
 					Expect(parseFlagsErr).NotTo(HaveOccurred())
-					os.Setenv("BBS_SKIP_CERT_VERIFY", "not a parseable bool")
+					os.Setenv("BBS_SKIP_CERT_VERIFY", "false")
 				})
 
 				It("uses the value from the flag instead of the environment variable", func() {

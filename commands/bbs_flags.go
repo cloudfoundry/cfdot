@@ -25,25 +25,30 @@ const clientSessionCacheSize int = 0
 const maxIdleConnsPerHost int = 0
 
 func AddBBSFlags(cmd *cobra.Command) {
-	var bbsSkipCertVerifyAsString string
 	cmd.Flags().StringVar(&bbsURL, "bbsURL", "", "URL of BBS server to target [environment variable equivalent: BBS_URL]")
 	// Read this in as a StringVar instead of a BoolVar so we can check whether it was set or not, and use an environment variable if it was not set.
-	cmd.Flags().StringVar(&bbsSkipCertVerifyAsString, "bbsSkipCertVerify", "", "when set to true, skips all SSL/TLS certificate verification [environment variable equivalent: BBS_SKIP_CERT_VERIFY]")
+	cmd.Flags().BoolVar(&bbsSkipCertVerify, "bbsSkipCertVerify", false, "when set to true, skips all SSL/TLS certificate verification [environment variable equivalent: BBS_SKIP_CERT_VERIFY]")
 	cmd.Flags().StringVar(&bbsCertFile, "bbsCertFile", "", "path to the TLS client certificate to use during mutual-auth TLS [environment variable equivalent: BBS_CERT_FILE]")
 	cmd.Flags().StringVar(&bbsKeyFile, "bbsKeyFile", "", "path to the TLS client private key file to use during mutual-auth TLS [environment variable equivalent: BBS_KEY_FILE]")
 	cmd.Flags().StringVar(&bbsCACertFile, "bbsCACertFile", "", "path the Certificate Authority (CA) file to use when verifying TLS keypairs [environment variable equivalent: BBS_CA_CERT_FILE]")
 
 	cmd.PreRunE = func(cmd *cobra.Command, args []string) error {
-		var returnErr error
+		var err, returnErr error
 
 		if bbsURL == "" {
 			bbsURL = os.Getenv("BBS_URL")
 		}
 
-		if bbsSkipCertVerifyAsString == "" {
-			bbsSkipCertVerifyAsString = os.Getenv("BBS_SKIP_CERT_VERIFY")
-			if bbsSkipCertVerifyAsString == "" {
-				bbsSkipCertVerifyAsString = "false"
+		// Only look at the environment variable if the flag has not been set.
+		if !cmd.Flags().Lookup("bbsSkipCertVerify").Changed && os.Getenv("BBS_SKIP_CERT_VERIFY") != "" {
+			bbsSkipCertVerify, err = strconv.ParseBool(os.Getenv("BBS_SKIP_CERT_VERIFY"))
+			if err != nil {
+				returnErr = CFDotError{
+					fmt.Sprintf(
+						"The value '%s' is not a valid value for BBS_SKIP_CERT_VERIFY. Please specify one of the following valid boolean values: 1, t, T, TRUE, true, True, 0, f, F, FALSE, false, False",
+						os.Getenv("BBS_SKIP_CERT_VERIFY")),
+					3}
+				return returnErr
 			}
 		}
 
@@ -57,15 +62,6 @@ func AddBBSFlags(cmd *cobra.Command) {
 
 		if bbsCACertFile == "" {
 			bbsCACertFile = os.Getenv("BBS_CA_CERT_FILE")
-		}
-
-		var err error
-		bbsSkipCertVerify, err = strconv.ParseBool(bbsSkipCertVerifyAsString)
-		if err != nil {
-			returnErr = CFDotError{
-				fmt.Sprintf("The value '%s' is not a valid value for bbsSkipCertVerify. Please specify one of the following valid boolean values: 1, t, T, TRUE, true, True, 0, f, F, FALSE, false, False", bbsSkipCertVerifyAsString),
-				3}
-			return returnErr
 		}
 
 		if bbsURL == "" {

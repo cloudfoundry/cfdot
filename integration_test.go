@@ -54,7 +54,7 @@ var _ = Describe("cfdot Integration", func() {
 			<-sess.Exited
 			Expect(sess.ExitCode()).To(Equal(1))
 
-			Expect(sess.Err).To(gbytes.Say("(error)|(connection refused)"))
+			Expect(sess.Err).To(gbytes.Say("Invalid Response with status code: 500"))
 		})
 	})
 
