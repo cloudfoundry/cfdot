@@ -238,7 +238,7 @@ var _ = Describe("BBS Flags", func() {
 			})
 
 			It("returns a validation error", func() {
-				Expect(err).To(MatchError("--bbsCertFile and --bbsKeyFile must both be specified for mutual TLS connections"))
+				Expect(err).To(MatchError("--bbsCertFile and --bbsKeyFile must both be specified for TLS connections."))
 			})
 
 			It("exits with code 3", func() {
@@ -255,27 +255,13 @@ var _ = Describe("BBS Flags", func() {
 			})
 
 			It("returns a validation error", func() {
-				Expect(err).To(MatchError("--bbsCertFile and --bbsKeyFile must both be specified for mutual TLS connections"))
+				Expect(err).To(MatchError("--bbsCertFile and --bbsKeyFile must both be specified for TLS connections."))
 			})
 
 			It("exits with code 3", func() {
 				cfdotError, ok := err.(commands.CFDotError)
 				Expect(ok).To(BeTrue())
 				Expect(cfdotError.ExitCode()).To(Equal(3))
-			})
-		})
-
-		Context("when both the key file and cert file flags are missing", func() {
-			BeforeEach(func() {
-				delete(validTLSFlags, "--bbsCertFile")
-				delete(validTLSFlags, "--bbsKeyFile")
-
-				parseFlagsErr := dummyCmd.ParseFlags(buildArgList(validTLSFlags))
-				Expect(parseFlagsErr).NotTo(HaveOccurred())
-			})
-
-			It("does not return an error", func() {
-				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 

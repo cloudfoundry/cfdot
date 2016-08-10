@@ -97,9 +97,9 @@ func AddBBSFlags(cmd *cobra.Command) {
 				}
 			}
 
-			if (bbsKeyFile == "") != (bbsCertFile == "") {
+			if (bbsKeyFile == "") || (bbsCertFile == "") {
 				returnErr = CFDotError{
-					"--bbsCertFile and --bbsKeyFile must both be specified for mutual TLS connections",
+					"--bbsCertFile and --bbsKeyFile must both be specified for TLS connections.",
 					3}
 				return returnErr
 			}
