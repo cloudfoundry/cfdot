@@ -11,6 +11,7 @@ import (
 
 func init() {
 	AddBBSFlags(domainsCmd)
+	domainsCmd.PreRunE = BBSPrehook
 	RootCmd.AddCommand(domainsCmd)
 }
 

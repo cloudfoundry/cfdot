@@ -26,6 +26,8 @@ var _ = Describe("help", func() {
 			Expect(sess.Out).To(gbytes.Say("Usage:"))
 			Expect(sess.Out).To(gbytes.Say("cfdot"))
 			Expect(sess.Out).To(gbytes.Say("Available Commands:"))
+			Expect(sess.Out).To(gbytes.Say("domains"))
+			Expect(sess.Out).To(gbytes.Say("set-domain"))
 		})
 	}
 
@@ -55,6 +57,32 @@ var _ = Describe("help", func() {
 			cfdotCmd = exec.Command(cfdotPath, "help")
 		})
 		itPrintsHelp()
+	})
+
+	Context("called `cfdot help set-domain`", func() {
+		BeforeEach(func() {
+			cfdotCmd = exec.Command(cfdotPath, "help", "set-domain")
+		})
+		It("displays the set-domain usage message", func() {
+			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+
+			<-sess.Exited
+			Expect(sess.ExitCode()).To(Equal(0))
+
+			Expect(sess.Out).To(gbytes.Say("Mark a domain as fresh"))
+			Expect(sess.Out).To(gbytes.Say("Usage:"))
+			Expect(sess.Out).To(gbytes.Say("cfdot set-domain"))
+			Expect(sess.Out).To(gbytes.Say("Flags:"))
+			Expect(sess.Out).To(gbytes.Say("--bbsCACertFile"))
+			Expect(sess.Out).To(gbytes.Say("--bbsCertFile"))
+			Expect(sess.Out).To(gbytes.Say("--bbsSkipCertVerify"))
+			Expect(sess.Out).To(gbytes.Say("--bbsURL"))
+			Expect(sess.Out).To(gbytes.Say("-t"))
+			Expect(sess.Out).To(gbytes.Say("--ttl"))
+			Expect(sess.Out).To(gbytes.Say("environment variable equivalent: TTL_IN_SECONDS"))
+
+		})
 	})
 
 })
