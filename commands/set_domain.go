@@ -24,7 +24,7 @@ func init() {
 }
 
 var setDomainCmd = &cobra.Command{
-	Use:   "set-domain",
+	Use:   "set-domain <domain>",
 	Short: "Set domain",
 	Long:  "Mark a domain as fresh for ttl seconds, where 0 or non-specified means keep fresh permanently",
 	RunE:  setDomain,
