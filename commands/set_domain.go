@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"fmt"
 	"io"
 	"time"
 
@@ -59,11 +58,6 @@ func SetDomain(stdout, stderr io.Writer, bbsClient bbs.Client, args []string, tt
 	if err != nil {
 		return err
 	}
-
-	io.WriteString(
-		stdout,
-		fmt.Sprintf("Set domain \"%s\" with TTL at %d seconds", domain, ttl),
-	)
 
 	return nil
 }

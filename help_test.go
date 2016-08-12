@@ -80,7 +80,6 @@ var _ = Describe("help", func() {
 			Expect(sess.Out).To(gbytes.Say("--bbsURL"))
 			Expect(sess.Out).To(gbytes.Say("-t"))
 			Expect(sess.Out).To(gbytes.Say("--ttl"))
-			Expect(sess.Out).To(gbytes.Say("environment variable equivalent: TTL_IN_SECONDS"))
 
 		})
 	})

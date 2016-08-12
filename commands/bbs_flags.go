@@ -32,7 +32,6 @@ func AddBBSFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&bbsCACertFile, "bbsCACertFile", "", "path the Certificate Authority (CA) file to use when verifying TLS keypairs [environment variable equivalent: BBS_CA_CERT_FILE]")
 
 }
-
 func BBSPrehook(cmd *cobra.Command, args []string) error {
 	var err, returnErr error
 
@@ -99,7 +98,7 @@ func BBSPrehook(cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		if (bbsKeyFile == "") != (bbsCertFile == "") {
+		if (bbsKeyFile == "") || (bbsCertFile == "") {
 			returnErr = CFDotError{
 				"--bbsCertFile and --bbsKeyFile must both be specified for TLS connections.",
 				3}

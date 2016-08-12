@@ -30,7 +30,6 @@ var _ = Describe("Set Domain", func() {
 		It("prints a success message when a domain is given", func() {
 			err := commands.SetDomain(stdout, stderr, fakeBBSClient, []string{"anything"}, 40)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(stdout).To(gbytes.Say(`Set domain "anything" with TTL at 40 seconds`))
 		})
 	})
 

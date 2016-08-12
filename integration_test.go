@@ -108,7 +108,6 @@ var _ = Describe("cfdot Integration", func() {
 
 				<-sess.Exited
 				Expect(sess.ExitCode()).To(Equal(0))
-				Expect(sess.Out).To(gbytes.Say("Set domain \"anything\" with TTL at 0 seconds"))
 			})
 
 			It("works with a --bbsURL flag specified after set-domain", func() {
@@ -119,7 +118,6 @@ var _ = Describe("cfdot Integration", func() {
 
 				<-sess.Exited
 				Expect(sess.ExitCode()).To(Equal(0))
-				Expect(sess.Out).To(gbytes.Say("Set domain \"anything\" with TTL at 40 seconds"))
 			})
 		})
 	})
@@ -143,7 +141,6 @@ var _ = Describe("cfdot Integration", func() {
 			<-sess.Exited
 			Expect(sess.ExitCode()).To(Equal(0))
 
-			Expect(sess.Out).To(gbytes.Say(`Set domain "any-domain" with TTL at 0 seconds`))
 		})
 
 		It("set-domain works with a TTL specified", func() {
@@ -155,7 +152,6 @@ var _ = Describe("cfdot Integration", func() {
 			<-sess.Exited
 			Expect(sess.ExitCode()).To(Equal(0))
 
-			Expect(sess.Out).To(gbytes.Say(`Set domain "any-domain" with TTL at 40 seconds`))
 		})
 
 		It("set-domain prints to stderr when no domain specified", func() {

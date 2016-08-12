@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -18,7 +17,7 @@ func AddSetDomainFlags(cmd *cobra.Command) {
 	// Read this in as a StringVar so we can check whether it was set or not, and
 	// use an environment variable if not set, and throw our own error instead of
 	// using the error from pflag
-	cmd.Flags().StringVarP(&ttl, "ttl", "t", "", "ttl of domain [environment variable equivalent: TTL_IN_SECONDS]")
+	cmd.Flags().StringVarP(&ttl, "ttl", "t", "", "ttl of domain")
 
 }
 func TTLAsInt() int {
@@ -27,10 +26,6 @@ func TTLAsInt() int {
 
 func SetDomainPrehook(cmd *cobra.Command, args []string) error {
 	var err error
-
-	if ttl == "" {
-		ttl = os.Getenv("TTL_IN_SECONDS")
-	}
 
 	if ttl == "" {
 		ttl = "0"

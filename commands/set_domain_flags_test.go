@@ -1,8 +1,6 @@
 package commands_test
 
 import (
-	"os"
-
 	"code.cloudfoundry.org/cfdot/commands"
 
 	. "github.com/onsi/ginkgo"
@@ -154,73 +152,6 @@ var _ = Describe("Set Domain Flags", func() {
 				})
 			})
 
-			Context("when just the TTL_IN_SECONDS environment variable is specified", func() {
-				BeforeEach(func() {
-					delete(validFlags, "--ttl")
-					delete(validFlags, "-t")
-					parseFlagsErr := dummyCmd.ParseFlags(buildArgList(validFlags))
-					Expect(parseFlagsErr).NotTo(HaveOccurred())
-				})
-				AfterEach(func() {
-					os.Unsetenv("TTL_IN_SECONDS")
-				})
-
-				Context("and when the TTL_IN_SECONDS isn't numeric", func() {
-					BeforeEach(func() {
-						os.Setenv("TTL_IN_SECONDS", "asdf")
-					})
-					itReturnsErrorMessage("ttl is non-numeric")
-					itExitsWithErrorCode(3)
-				})
-
-				Context("and when the TTL_IN_SECONDS is negative", func() {
-					BeforeEach(func() {
-						os.Setenv("TTL_IN_SECONDS", "-1")
-					})
-					itReturnsErrorMessage("ttl is negative")
-					itExitsWithErrorCode(3)
-				})
-
-				Context("and when the TTL_IN_SECONDS is valid", func() {
-					BeforeEach(func() {
-						os.Setenv("TTL_IN_SECONDS", "1")
-					})
-					It("does not error", func() {
-						Expect(err).NotTo(HaveOccurred())
-						Expect(commands.TTLAsInt()).To(Equal(1))
-					})
-				})
-			})
-
-			Context("when both -t flag and TTL_IN_SECONDS are specified", func() {
-				BeforeEach(func() {
-					parseFlagsErr := dummyCmd.ParseFlags(removeFlag(validFlags, "--ttl"))
-					Expect(parseFlagsErr).NotTo(HaveOccurred())
-					os.Setenv("TTL_IN_SECONDS", "invalid_ttl")
-				})
-				AfterEach(func() {
-					os.Unsetenv("TTL_IN_SECONDS")
-				})
-				It("uses the flag value instead of the environment variable", func() {
-					Expect(err).NotTo(HaveOccurred())
-					Expect(commands.TTLAsInt()).To(Equal(40000))
-				})
-			})
-
-			Context("when both --ttl flag and TTL_IN_SECONDS are specified", func() {
-				BeforeEach(func() {
-					parseFlagsErr := dummyCmd.ParseFlags(removeFlag(validFlags, "-t"))
-					Expect(parseFlagsErr).NotTo(HaveOccurred())
-					os.Setenv("TTL_IN_SECONDS", "invalid_ttl")
-				})
-				AfterEach(func() {
-					os.Unsetenv("TTL_IN_SECONDS")
-				})
-				It("uses the flag value instead of the environment variable", func() {
-					Expect(err).NotTo(HaveOccurred())
-					Expect(commands.TTLAsInt()).To(Equal(100))
-				})
-			})
 		})
 
 		Context("when a domain is not given", func() {
