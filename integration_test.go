@@ -13,6 +13,47 @@ import (
 )
 
 var _ = Describe("cfdot Integration", func() {
+	Context("actual-lrp-groups", func() {
+		var (
+			sess *gexec.Session
+		)
+
+		BeforeEach(func() {
+			bbsServer.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/v1/actual_lrp_groups/list"),
+					ghttp.RespondWithProto(200, &models.ActualLRPGroupsResponse{
+						ActualLrpGroups: []*models.ActualLRPGroup{
+							{
+								Instance: &models.ActualLRP{
+									State: "running",
+								},
+							},
+						},
+					}),
+				),
+			)
+		})
+
+		JustBeforeEach(func() {
+			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "actual-lrp-groups")
+
+			var err error
+			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+
+			<-sess.Exited
+		})
+
+		It("exits with status code of 0", func() {
+			Expect(sess.ExitCode()).To(Equal(0))
+		})
+
+		It("returns the json encoding of the actual lrp", func() {
+			Expect(sess.Out).To(gbytes.Say(`"state":"running"`))
+		})
+	})
+
 	Context("when the server responds with domains", func() {
 		BeforeEach(func() {
 			bbsServer.AppendHandlers(
