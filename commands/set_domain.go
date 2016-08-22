@@ -49,7 +49,7 @@ func setDomain(cmd *cobra.Command, args []string) error {
 func SetDomain(stdout, stderr io.Writer, bbsClient bbs.Client, args []string, ttl int) error {
 	logger := globalLogger.Session("set-domain")
 
-	var duration time.Duration = time.Duration(ttl) * time.Second
+	var duration = time.Duration(ttl) * time.Second
 
 	// The prehook catches the case where we don't specify any args
 	domain := args[0]
