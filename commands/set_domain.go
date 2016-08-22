@@ -35,12 +35,12 @@ func setDomain(cmd *cobra.Command, args []string) error {
 
 	bbsClient, err = newBBSClient(cmd)
 	if err != nil {
-		return CFDotError{err.Error(), 1}
+		return NewCFDotError(cmd, err)
 	}
 
 	err = SetDomain(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, args, ttlAsInt)
 	if err != nil {
-		return CFDotError{err.Error(), 1}
+		return NewCFDotError(cmd, err)
 	}
 
 	return nil

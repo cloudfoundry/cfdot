@@ -28,12 +28,12 @@ func domains(cmd *cobra.Command, args []string) error {
 
 	bbsClient, err = newBBSClient(cmd)
 	if err != nil {
-		return CFDotError{err.Error(), 1}
+		return NewCFDotError(cmd, err)
 	}
 
 	err = Domains(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, args)
 	if err != nil {
-		return CFDotError{err.Error(), 1}
+		return NewCFDotError(cmd, err)
 	}
 
 	return nil

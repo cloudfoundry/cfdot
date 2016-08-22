@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -18,6 +19,13 @@ var (
 	bbsCertFile       string
 	bbsKeyFile        string
 	bbsSkipCertVerify bool
+)
+
+// errors
+var (
+	errMissingBBSUrl          = errors.New("BBS URL not set. Please specify one with the '--bbsURL' flag or the 'BBS_URL' environment variable.")
+	errMissingCACertFile      = errors.New("--bbsCACertFile must be specified if using HTTPS and --bbsSkipCertVerify is not set")
+	errMissingCertAndKeyFiles = errors.New("--bbsCertFile and --bbsKeyFile must both be specified for TLS connections.")
 )
 
 const clientSessionCacheSize int = 0
@@ -43,11 +51,12 @@ func BBSPrehook(cmd *cobra.Command, args []string) error {
 	if !cmd.Flags().Lookup("bbsSkipCertVerify").Changed && os.Getenv("BBS_SKIP_CERT_VERIFY") != "" {
 		bbsSkipCertVerify, err = strconv.ParseBool(os.Getenv("BBS_SKIP_CERT_VERIFY"))
 		if err != nil {
-			returnErr = CFDotError{
-				fmt.Sprintf(
+			returnErr = NewCFDotValidationError(
+				cmd,
+				fmt.Errorf(
 					"The value '%s' is not a valid value for BBS_SKIP_CERT_VERIFY. Please specify one of the following valid boolean values: 1, t, T, TRUE, true, True, 0, f, F, FALSE, false, False",
 					os.Getenv("BBS_SKIP_CERT_VERIFY")),
-				3}
+			)
 			return returnErr
 		}
 	}
@@ -65,43 +74,41 @@ func BBSPrehook(cmd *cobra.Command, args []string) error {
 	}
 
 	if bbsURL == "" {
-		returnErr = CFDotError{
-			"BBS URL not set. Please specify one with the '--bbsURL' flag or the 'BBS_URL' environment variable.",
-			3}
+		returnErr = NewCFDotValidationError(cmd, errMissingBBSUrl)
 		return returnErr
 	}
 
 	var parsedURL *url.URL
 	if parsedURL, err = url.Parse(bbsURL); err != nil {
-		returnErr = CFDotError{
-			fmt.Sprintf(
+		returnErr = NewCFDotValidationError(
+			cmd,
+			fmt.Errorf(
 				"The value '%s' is not a valid BBS URL. Please specify one with the '--bbsURL' flag or the 'BBS_URL' environment variable.",
 				bbsURL),
-			3}
+		)
 		return returnErr
 	}
 
 	if parsedURL.Scheme == "https" {
 		if !bbsSkipCertVerify {
 			if bbsCACertFile == "" {
-				returnErr = CFDotError{"--bbsCACertFile must be specified if using HTTPS and --bbsSkipCertVerify is not set", 3}
+				returnErr = NewCFDotValidationError(cmd, errMissingCACertFile)
 				return returnErr
 			}
 
 			err := validateReadableFile(bbsCACertFile)
 
 			if err != nil {
-				returnErr = CFDotError{
-					fmt.Sprintf("CA cert file '"+bbsCACertFile+"' doesn't exist or is not readable: %s", err.Error()),
-					3}
+				returnErr = NewCFDotValidationError(
+					cmd,
+					fmt.Errorf("CA cert file '%s' doesn't exist or is not readable: %s", bbsCACertFile, err.Error()),
+				)
 				return returnErr
 			}
 		}
 
 		if (bbsKeyFile == "") || (bbsCertFile == "") {
-			returnErr = CFDotError{
-				"--bbsCertFile and --bbsKeyFile must both be specified for TLS connections.",
-				3}
+			returnErr = NewCFDotValidationError(cmd, errMissingCertAndKeyFiles)
 			return returnErr
 		}
 
@@ -109,9 +116,10 @@ func BBSPrehook(cmd *cobra.Command, args []string) error {
 			err := validateReadableFile(bbsKeyFile)
 
 			if err != nil {
-				returnErr = CFDotError{
-					fmt.Sprintf("key file '"+bbsKeyFile+"' doesn't exist or is not readable: %s", err.Error()),
-					3}
+				returnErr = NewCFDotValidationError(
+					cmd,
+					fmt.Errorf("key file '%s' doesn't exist or is not readable: %s", bbsKeyFile, err.Error()),
+				)
 				return returnErr
 			}
 		}
@@ -120,9 +128,10 @@ func BBSPrehook(cmd *cobra.Command, args []string) error {
 			err := validateReadableFile(bbsCertFile)
 
 			if err != nil {
-				returnErr = CFDotError{
-					fmt.Sprintf("cert file '"+bbsCertFile+"' doesn't exist or is not readable: %s", err.Error()),
-					3}
+				returnErr = NewCFDotValidationError(
+					cmd,
+					fmt.Errorf("cert file '%s' doesn't exist or is not readable: %s", bbsCertFile, err.Error()),
+				)
 				return returnErr
 			}
 		}
@@ -131,12 +140,13 @@ func BBSPrehook(cmd *cobra.Command, args []string) error {
 	}
 
 	if parsedURL.Scheme != "http" {
-		returnErr = CFDotError{
-			fmt.Sprintf(
+		returnErr = NewCFDotValidationError(
+			cmd,
+			fmt.Errorf(
 				"The URL '%s' does not have an 'http' or 'https' scheme. Please "+
 					"specify one with the '--bbsURL' flag or the 'BBS_URL' environment "+
 					"variable.", bbsURL),
-			3}
+		)
 		return returnErr
 	}
 

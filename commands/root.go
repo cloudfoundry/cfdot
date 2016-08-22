@@ -12,16 +12,3 @@ var RootCmd = &cobra.Command{
 	Short: "Diego operator tooling",
 	Long:  "A command-line tool to interact with a Cloud Foundry Diego deployment",
 }
-
-type CFDotError struct {
-	message  string
-	exitCode int
-}
-
-func (a CFDotError) Error() string {
-	return a.message
-}
-
-func (a CFDotError) ExitCode() int {
-	return a.exitCode
-}

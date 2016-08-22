@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"fmt"
+	"errors"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -24,6 +24,12 @@ func TTLAsInt() int {
 	return ttlAsInt
 }
 
+var (
+	errMissingDomain = errors.New("No domain given")
+	errInvalidTTL    = errors.New("ttl is non-numeric")
+	errNegativeTTL   = errors.New("ttl is negative")
+)
+
 func SetDomainPrehook(cmd *cobra.Command, args []string) error {
 	var err error
 
@@ -34,21 +40,18 @@ func SetDomainPrehook(cmd *cobra.Command, args []string) error {
 	ttlAsInt, err = strconv.Atoi(ttl)
 
 	if err != nil {
-		return CFDotError{
-			fmt.Sprintf("ttl is non-numeric"),
-			3,
-		}
+		return NewCFDotValidationError(cmd, errInvalidTTL)
 	}
 
 	if ttlAsInt < 0 {
 		return CFDotError{
-			fmt.Sprintf("ttl is negative"),
+			errNegativeTTL,
 			3,
 		}
 	}
 
 	if len(args) == 0 || args[0] == "" {
-		return CFDotError{"No domain given", 3}
+		return NewCFDotValidationError(cmd, errMissingDomain)
 	}
 
 	return nil
