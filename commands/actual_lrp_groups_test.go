@@ -19,6 +19,8 @@ var _ = Describe("ActualLRPGroups", func() {
 	)
 
 	BeforeEach(func() {
+		actualLRPGroups = nil
+		returnedError = nil
 		stdout = gbytes.NewBuffer()
 		stderr = gbytes.NewBuffer()
 		fakeBBSClient = &fake_bbs.FakeClient{}
