@@ -286,15 +286,9 @@ var _ = Describe("BBS Flags", func() {
 
 		Context("when the key file flag points to a file without read permissions", func() {
 			BeforeEach(func() {
-				chmodErr := os.Chmod("fixtures/bbsClient.key", 0300)
-				Expect(chmodErr).NotTo(HaveOccurred())
+				replaceFlagValue(validTLSFlags, "--bbsKeyFile", "fixtures/bbsClientBadPermissions.key")
 				parseFlagsErr := dummyCmd.ParseFlags(buildArgList(validTLSFlags))
 				Expect(parseFlagsErr).NotTo(HaveOccurred())
-			})
-
-			AfterEach(func() {
-				chmodErr := os.Chmod("fixtures/bbsClient.key", 0644)
-				Expect(chmodErr).NotTo(HaveOccurred())
 			})
 
 			It("returns a validation error", func() {
