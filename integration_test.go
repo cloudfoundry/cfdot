@@ -18,39 +18,100 @@ var _ = Describe("cfdot Integration", func() {
 			sess *gexec.Session
 		)
 
-		BeforeEach(func() {
-			bbsServer.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/v1/actual_lrp_groups/list"),
-					ghttp.RespondWithProto(200, &models.ActualLRPGroupsResponse{
-						ActualLrpGroups: []*models.ActualLRPGroup{
-							{
-								Instance: &models.ActualLRP{
-									State: "running",
+		Context("when no flags are passed", func() {
+
+			BeforeEach(func() {
+				bbsServer.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/v1/actual_lrp_groups/list"),
+						ghttp.RespondWithProto(200, &models.ActualLRPGroupsResponse{
+							ActualLrpGroups: []*models.ActualLRPGroup{
+								{
+									Instance: &models.ActualLRP{
+										State: "running",
+									},
 								},
 							},
-						},
-					}),
-				),
-			)
+						}),
+					),
+				)
+			})
+
+			JustBeforeEach(func() {
+				cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "actual-lrp-groups")
+
+				var err error
+				sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+				Expect(err).NotTo(HaveOccurred())
+
+				<-sess.Exited
+			})
+
+			It("exits with status code of 0", func() {
+				Expect(sess.ExitCode()).To(Equal(0))
+			})
+
+			It("returns the json encoding of the actual lrp", func() {
+				Expect(sess.Out).To(gbytes.Say(`"state":"running"`))
+			})
 		})
 
-		JustBeforeEach(func() {
-			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "actual-lrp-groups")
+		Context("when passing filters", func() {
+			BeforeEach(func() {
+				bbsServer.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/v1/actual_lrp_groups/list"),
+						ghttp.VerifyProtoRepresenting(&models.ActualLRPGroupsRequest{
+							Domain: "cf-apps",
+							CellId: "cell_z1-0",
+						}),
+						ghttp.RespondWithProto(200, &models.ActualLRPGroupsResponse{
+							ActualLrpGroups: []*models.ActualLRPGroup{
+								{
+									Instance: &models.ActualLRP{
+										State: "running",
+									},
+								},
+							},
+						}),
+					),
+				)
+			})
 
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
+			It("exits with status code of 0", func() {
+				cfdotCmd := exec.Command(
+					cfdotPath,
+					"--bbsURL", bbsServer.URL(),
+					"actual-lrp-groups",
+					"-d", "cf-apps",
+					"-c", "cell_z1-0",
+				)
 
-			<-sess.Exited
-		})
+				var err error
+				sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+				Expect(err).NotTo(HaveOccurred())
 
-		It("exits with status code of 0", func() {
-			Expect(sess.ExitCode()).To(Equal(0))
-		})
+				<-sess.Exited
+				Expect(sess.ExitCode()).To(Equal(0))
+			})
 
-		It("returns the json encoding of the actual lrp", func() {
-			Expect(sess.Out).To(gbytes.Say(`"state":"running"`))
+			It("exits with status code of 0", func() {
+				cfdotCmd := exec.Command(
+					cfdotPath,
+					"--bbsURL", bbsServer.URL(),
+					"actual-lrp-groups",
+					"--domain", "cf-apps",
+					"--cell-id", "cell_z1-0",
+				)
+
+				var err error
+				sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+				Expect(err).NotTo(HaveOccurred())
+
+				<-sess.Exited
+				Expect(sess.ExitCode()).To(Equal(0))
+			})
+
 		})
 	})
 

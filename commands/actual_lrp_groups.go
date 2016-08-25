@@ -10,17 +10,24 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func init() {
-	AddBBSFlags(actualLRPGroupsCmd)
-	actualLRPGroupsCmd.PreRunE = BBSPrehook
-	RootCmd.AddCommand(actualLRPGroupsCmd)
-}
+var (
+	domain string
+	cellId string
+)
 
 var actualLRPGroupsCmd = &cobra.Command{
 	Use:   "actual-lrp-groups",
 	Short: "List actual LRP groups",
 	Long:  "List actual LRP groups from the BBS",
 	RunE:  actualLRPGroups,
+}
+
+func init() {
+	AddBBSFlags(actualLRPGroupsCmd)
+	actualLRPGroupsCmd.PreRunE = BBSPrehook
+	actualLRPGroupsCmd.Flags().StringVarP(&domain, "domain", "d", "", "retrieve only actual lrps for the given domain")
+	actualLRPGroupsCmd.Flags().StringVarP(&cellId, "cell-id", "c", "", "retrieve only actual lrps for the given cell id")
+	RootCmd.AddCommand(actualLRPGroupsCmd)
 }
 
 func actualLRPGroups(cmd *cobra.Command, args []string) error {
@@ -44,7 +51,16 @@ func ActualLRPGroups(stdout, stderr io.Writer, bbsClient bbs.Client, args []stri
 	logger := globalLogger.Session("actualLRPGroups")
 
 	encoder := json.NewEncoder(stdout)
-	actualLRPGroups, err := bbsClient.ActualLRPGroups(logger, models.ActualLRPFilter{})
+	actualLRPFilter := models.ActualLRPFilter{}
+	if domain != "" {
+		actualLRPFilter.Domain = domain
+	}
+
+	if cellId != "" {
+		actualLRPFilter.CellID = cellId
+	}
+
+	actualLRPGroups, err := bbsClient.ActualLRPGroups(logger, actualLRPFilter)
 	if err != nil {
 		return err
 	}
