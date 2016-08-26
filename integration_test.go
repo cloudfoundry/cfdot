@@ -13,13 +13,90 @@ import (
 )
 
 var _ = Describe("cfdot Integration", func() {
+
+	var (
+		sess *gexec.Session
+	)
+
+	Context("actual-lrp-groups-for-guid", func() {
+		JustBeforeEach(func() {
+			cfdotCmd := exec.Command(
+				cfdotPath,
+				"--bbsURL", bbsServer.URL(),
+				"actual-lrp-groups-for-guid", "random-guid",
+			)
+
+			var err error
+			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+
+			<-sess.Exited
+		})
+
+		Context("when the server returns a valid response", func() {
+			BeforeEach(func() {
+				bbsServer.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/v1/actual_lrp_groups/list_by_process_guid"),
+						ghttp.VerifyProtoRepresenting(&models.ActualLRPGroupsByProcessGuidRequest{
+							ProcessGuid: "random-guid",
+						}),
+						ghttp.RespondWithProto(200, &models.ActualLRPGroupsResponse{
+							ActualLrpGroups: []*models.ActualLRPGroup{
+								{
+									Instance: &models.ActualLRP{
+										State: "running",
+									},
+								},
+							},
+						}),
+					),
+				)
+			})
+
+			It("exits with status code of 0", func() {
+				Expect(sess.ExitCode()).To(Equal(0))
+			})
+
+			It("returns the json encoding of the actual lrp", func() {
+				Expect(sess.Out).To(gbytes.Say(`"state":"running"`))
+			})
+		})
+
+		Context("when the server returns an error", func() {
+			BeforeEach(func() {
+				bbsServer.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/v1/actual_lrp_groups/list_by_process_guid"),
+						ghttp.RespondWithProto(500, &models.DomainsResponse{
+							Error: &models.Error{
+								Type:    models.Error_Deadlock,
+								Message: "the request failed due to deadlock",
+							},
+							Domains: nil,
+						}),
+					),
+				)
+			})
+
+			It("exits with status code 4", func() {
+				Expect(sess.ExitCode()).To(Equal(4))
+			})
+
+			It("should print the type and message of the error", func() {
+				Expect(sess.Err).To(gbytes.Say("BBS error"))
+				Expect(sess.Err).To(gbytes.Say("Type 28: Deadlock"))
+				Expect(sess.Err).To(gbytes.Say("Message: the request failed due to deadlock"))
+			})
+
+			It("should not print the usage", func() {
+				Expect(sess.Err).NotTo(gbytes.Say("Usage:"))
+			})
+		})
+	})
+
 	Context("actual-lrp-groups", func() {
-		var (
-			sess *gexec.Session
-		)
-
-		Context("when no flags are passed", func() {
-
+		Context("when no filters are passed", func() {
 			BeforeEach(func() {
 				bbsServer.AppendHandlers(
 					ghttp.CombineHandlers(
@@ -161,10 +238,6 @@ var _ = Describe("cfdot Integration", func() {
 	})
 
 	Context("when the server returns an error", func() {
-		var (
-			sess *gexec.Session
-		)
-
 		BeforeEach(func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
