@@ -48,13 +48,6 @@ var _ = Describe("ActualLrpGroupsGuid", func() {
 		})
 	})
 
-	Context("when there is not argument for the command", func() {
-		It("prints a json stream of the actual lrp for a process id", func() {
-			err := commands.ActualLRPGroupsByProcessGuid(stdout, stderr, fakeBBSClient, []string{})
-			Expect(err).To(HaveOccurred())
-		})
-	})
-
 	Context("when the bbs errors", func() {
 		BeforeEach(func() {
 			returnedError = models.ErrUnknownError

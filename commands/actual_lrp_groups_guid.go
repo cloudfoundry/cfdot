@@ -31,6 +31,10 @@ func actualLRPGroupsByProcessGuid(cmd *cobra.Command, args []string) error {
 	var err error
 	var bbsClient bbs.Client
 
+	if len(args) == 0 || args[0] == "" {
+		return NewCFDotValidationError(cmd, errMissingProcessGuid)
+	}
+
 	bbsClient, err = newBBSClient(cmd)
 	if err != nil {
 		return NewCFDotError(cmd, err)
@@ -47,17 +51,13 @@ func actualLRPGroupsByProcessGuid(cmd *cobra.Command, args []string) error {
 func ActualLRPGroupsByProcessGuid(stdout, stderr io.Writer, bbsClient bbs.Client, args []string) error {
 	logger := globalLogger.Session("actualLRPGroupsByProcessGuid")
 
-	if len(args) == 0 || args[0] == "" {
-		return errMissingProcessGuid
-	}
 	processGuid := args[0]
-
-	encoder := json.NewEncoder(stdout)
 	actualLRPGroups, err := bbsClient.ActualLRPGroupsByProcessGuid(logger, processGuid)
 	if err != nil {
 		return err
 	}
 
+	encoder := json.NewEncoder(stdout)
 	for _, actualLRPGroup := range actualLRPGroups {
 		encoder.Encode(actualLRPGroup)
 	}
