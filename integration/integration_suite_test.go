@@ -1,4 +1,4 @@
-package main_test
+package integration_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -39,5 +39,5 @@ var _ = AfterEach(func() {
 
 func TestIntegration(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Cfdot Suite")
+	RunSpecs(t, "Integration Suite")
 }

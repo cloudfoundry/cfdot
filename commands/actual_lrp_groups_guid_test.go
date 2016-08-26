@@ -59,5 +59,4 @@ var _ = Describe("ActualLrpGroupsGuid", func() {
 			Expect(err).To(Equal(models.ErrUnknownError))
 		})
 	})
-
 })
