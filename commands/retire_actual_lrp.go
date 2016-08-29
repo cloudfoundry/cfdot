@@ -3,7 +3,6 @@ package commands
 import (
 	"errors"
 	"io"
-	"strconv"
 
 	"code.cloudfoundry.org/bbs"
 	"code.cloudfoundry.org/bbs/models"
@@ -17,7 +16,6 @@ var retireActualLRPCmd = &cobra.Command{
 	RunE:  retireActualLRP,
 }
 var errMissingArguments = errors.New("Missing arguments")
-var errInvalidIndex = errors.New("Index should be a valid integer")
 var errInvalidProcessGuid = errors.New("Process guid should be non empty string")
 
 func init() {
@@ -41,18 +39,17 @@ func retireActualLRP(cmd *cobra.Command, args []string) error {
 		return NewCFDotValidationError(cmd, errInvalidProcessGuid)
 	}
 
-	indexInt64, err := strconv.ParseInt(args[1], 10, 32)
+	index, err := ValidatePositiveIntegerForFlag("index", args[1], cmd)
 	if err != nil {
-		return NewCFDotValidationError(cmd, errInvalidIndex)
+		return err
 	}
-	index := int32(indexInt64)
 
 	bbsClient, err = newBBSClient(cmd)
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}
 
-	err = RetireActualLRP(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, args, processGuid, index)
+	err = RetireActualLRP(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, args, processGuid, int32(index))
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}

@@ -2,7 +2,6 @@ package commands
 
 import (
 	"errors"
-	"strconv"
 
 	"github.com/spf13/cobra"
 )
@@ -32,22 +31,14 @@ var (
 
 func SetDomainPrehook(cmd *cobra.Command, args []string) error {
 	var err error
-
 	if ttl == "" {
 		ttl = "0"
 	}
 
-	ttlAsInt, err = strconv.Atoi(ttl)
+	ttlAsInt, err = ValidatePositiveIntegerForFlag("ttl", ttl, cmd)
 
 	if err != nil {
-		return NewCFDotValidationError(cmd, errInvalidTTL)
-	}
-
-	if ttlAsInt < 0 {
-		return CFDotError{
-			errNegativeTTL,
-			3,
-		}
+		return err
 	}
 
 	if len(args) == 0 || args[0] == "" {

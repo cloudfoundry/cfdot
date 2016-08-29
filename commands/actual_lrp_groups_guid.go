@@ -19,10 +19,14 @@ var actualLRPGroupsByProcessGuidCmd = &cobra.Command{
 	RunE:  actualLRPGroupsByProcessGuid,
 }
 
-var errMissingProcessGuid = errors.New("No process-guid given")
+var (
+	errMissingProcessGuid = errors.New("No process-guid given")
+	index                 = ""
+)
 
 func init() {
 	AddBBSFlags(actualLRPGroupsByProcessGuidCmd)
+	actualLRPGroupsByProcessGuidCmd.Flags().StringVarP(&index, "index", "i", "", "retrieve actual lrp for the given index")
 	actualLRPGroupsByProcessGuidCmd.PreRunE = func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 || args[0] == "" {
 			return NewCFDotValidationError(cmd, errMissingProcessGuid)
@@ -42,7 +46,15 @@ func actualLRPGroupsByProcessGuid(cmd *cobra.Command, args []string) error {
 		return NewCFDotError(cmd, err)
 	}
 
-	err = ActualLRPGroupsByProcessGuid(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, args)
+	if index == "" {
+		err = ActualLRPGroupsByProcessGuid(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, args)
+	} else {
+		indexAsInt, err := ValidatePositiveIntegerForFlag("index", index, cmd)
+		if err != nil {
+			return err
+		}
+		err = ActualLRPGroupsByProcessGuidAndIndex(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, args, indexAsInt)
+	}
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}
@@ -50,10 +62,25 @@ func actualLRPGroupsByProcessGuid(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func ActualLRPGroupsByProcessGuidAndIndex(stdout, stderr io.Writer, bbsClient bbs.Client, args []string, index int) error {
+	logger := globalLogger.Session("actualLRPGroupsByProcessGuid")
+
+	processGuid := args[0]
+	actualLRPGroup, err := bbsClient.ActualLRPGroupByProcessGuidAndIndex(logger, processGuid, index)
+	if err != nil {
+		return err
+	}
+
+	encoder := json.NewEncoder(stdout)
+	encoder.Encode(actualLRPGroup)
+	return nil
+}
+
 func ActualLRPGroupsByProcessGuid(stdout, stderr io.Writer, bbsClient bbs.Client, args []string) error {
 	logger := globalLogger.Session("actualLRPGroupsByProcessGuid")
 
 	processGuid := args[0]
+
 	actualLRPGroups, err := bbsClient.ActualLRPGroupsByProcessGuid(logger, processGuid)
 	if err != nil {
 		return err
