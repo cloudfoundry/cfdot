@@ -11,7 +11,7 @@ import (
 
 // flags
 var (
-	desiredLRPSchedulingInfoDomainFlag string
+	desiredLRPSchedulingInfosDomainFlag string
 )
 
 var desiredLRPSchedulingInfosCmd = &cobra.Command{
@@ -24,7 +24,7 @@ var desiredLRPSchedulingInfosCmd = &cobra.Command{
 func init() {
 	AddBBSFlags(desiredLRPSchedulingInfosCmd)
 	desiredLRPSchedulingInfosCmd.PreRunE = BBSPrehook
-	desiredLRPSchedulingInfosCmd.Flags().StringVarP(&desiredLRPSchedulingInfoDomainFlag, "domain", "d", "", "retrieve only scheduling infos for the given domain")
+	desiredLRPSchedulingInfosCmd.Flags().StringVarP(&desiredLRPSchedulingInfosDomainFlag, "domain", "d", "", "retrieve only scheduling infos for the given domain")
 	RootCmd.AddCommand(desiredLRPSchedulingInfosCmd)
 }
 
@@ -56,8 +56,8 @@ func DesiredLRPSchedulingInfos(stdout, stderr io.Writer, bbsClient bbs.Client, a
 	encoder := json.NewEncoder(stdout)
 	desiredLRPFilter := models.DesiredLRPFilter{}
 
-	if desiredLRPSchedulingInfoDomainFlag != "" {
-		desiredLRPFilter.Domain = desiredLRPSchedulingInfoDomainFlag
+	if desiredLRPSchedulingInfosDomainFlag != "" {
+		desiredLRPFilter.Domain = desiredLRPSchedulingInfosDomainFlag
 	}
 
 	desiredLRPSchedulingInfos, err := bbsClient.DesiredLRPSchedulingInfos(logger, desiredLRPFilter)
