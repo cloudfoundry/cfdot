@@ -9,17 +9,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func init() {
-	AddBBSFlags(domainsCmd)
-	domainsCmd.PreRunE = BBSPrehook
-	RootCmd.AddCommand(domainsCmd)
-}
-
 var domainsCmd = &cobra.Command{
 	Use:   "domains",
 	Short: "List domains",
 	Long:  "List fresh domains from the BBS",
 	RunE:  domains,
+}
+
+func init() {
+	AddBBSFlags(domainsCmd)
+	domainsCmd.PreRunE = BBSPrehook
+	RootCmd.AddCommand(domainsCmd)
 }
 
 func domains(cmd *cobra.Command, args []string) error {

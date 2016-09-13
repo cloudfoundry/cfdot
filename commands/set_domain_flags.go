@@ -1,18 +1,14 @@
 package commands
 
-import (
-	"errors"
+import "github.com/spf13/cobra"
 
-	"github.com/spf13/cobra"
-)
-
+// flags
 var (
 	ttl      string
 	ttlAsInt int
 )
 
 func AddSetDomainFlags(cmd *cobra.Command) {
-
 	// Read this in as a StringVar so we can check whether it was set or not, and
 	// use an environment variable if not set, and throw our own error instead of
 	// using the error from pflag
@@ -22,12 +18,6 @@ func AddSetDomainFlags(cmd *cobra.Command) {
 func TTLAsInt() int {
 	return ttlAsInt
 }
-
-var (
-	errMissingDomain = errors.New("No domain given")
-	errInvalidTTL    = errors.New("ttl is non-numeric")
-	errNegativeTTL   = errors.New("ttl is negative")
-)
 
 func SetDomainPrehook(cmd *cobra.Command, args []string) error {
 	var err error

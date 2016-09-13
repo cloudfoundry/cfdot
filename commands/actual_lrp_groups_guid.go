@@ -12,6 +12,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// flags
+var (
+	actualLRPGroupsGuidIndexFlag = ""
+)
+
+// errors
+var (
+	errMissingProcessGuid = errors.New("No process-guid given")
+)
+
 var actualLRPGroupsByProcessGuidCmd = &cobra.Command{
 	Use:   "actual-lrp-groups-for-guid <process-guid>",
 	Short: "List actual LRP groups for a process guid",
@@ -19,14 +29,9 @@ var actualLRPGroupsByProcessGuidCmd = &cobra.Command{
 	RunE:  actualLRPGroupsByProcessGuid,
 }
 
-var (
-	errMissingProcessGuid = errors.New("No process-guid given")
-	index                 = ""
-)
-
 func init() {
 	AddBBSFlags(actualLRPGroupsByProcessGuidCmd)
-	actualLRPGroupsByProcessGuidCmd.Flags().StringVarP(&index, "index", "i", "", "retrieve actual lrp for the given index")
+	actualLRPGroupsByProcessGuidCmd.Flags().StringVarP(&actualLRPGroupsGuidIndexFlag, "index", "i", "", "retrieve actual lrp for the given index")
 	actualLRPGroupsByProcessGuidCmd.PreRunE = func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 || args[0] == "" {
 			return NewCFDotValidationError(cmd, errMissingProcessGuid)
@@ -46,10 +51,10 @@ func actualLRPGroupsByProcessGuid(cmd *cobra.Command, args []string) error {
 		return NewCFDotError(cmd, err)
 	}
 
-	if index == "" {
+	if actualLRPGroupsGuidIndexFlag == "" {
 		err = ActualLRPGroupsByProcessGuid(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, args)
 	} else {
-		indexAsInt, err := ValidatePositiveIntegerForFlag("index", index, cmd)
+		indexAsInt, err := ValidatePositiveIntegerForFlag("index", actualLRPGroupsGuidIndexFlag, cmd)
 		if err != nil {
 			return err
 		}

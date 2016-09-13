@@ -9,14 +9,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// errors
+var (
+	errMissingArguments   = errors.New("Missing arguments")
+	errInvalidProcessGuid = errors.New("Process guid should be non empty string")
+)
+
 var retireActualLRPCmd = &cobra.Command{
 	Use:   "retire-actual-lrp <process-guid> <index>",
 	Short: "Retire actual LRP by index and process guid",
 	Long:  "Retire actual LRP by index and process guid",
 	RunE:  retireActualLRP,
 }
-var errMissingArguments = errors.New("Missing arguments")
-var errInvalidProcessGuid = errors.New("Process guid should be non empty string")
 
 func init() {
 	AddBBSFlags(retireActualLRPCmd)

@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"errors"
 	"io"
 	"time"
 
@@ -8,6 +9,20 @@ import (
 
 	"github.com/spf13/cobra"
 )
+
+// errors
+var (
+	errMissingDomain = errors.New("No domain given")
+	errInvalidTTL    = errors.New("ttl is non-numeric")
+	errNegativeTTL   = errors.New("ttl is negative")
+)
+
+var setDomainCmd = &cobra.Command{
+	Use:   "set-domain <domain>",
+	Short: "Set domain",
+	Long:  "Mark a domain as fresh for ttl seconds, where 0 or non-specified means keep fresh permanently",
+	RunE:  setDomain,
+}
 
 func init() {
 	AddBBSFlags(setDomainCmd)
@@ -20,13 +35,6 @@ func init() {
 		return BBSPrehook(cmd, args)
 	}
 	RootCmd.AddCommand(setDomainCmd)
-}
-
-var setDomainCmd = &cobra.Command{
-	Use:   "set-domain <domain>",
-	Short: "Set domain",
-	Long:  "Mark a domain as fresh for ttl seconds, where 0 or non-specified means keep fresh permanently",
-	RunE:  setDomain,
 }
 
 func setDomain(cmd *cobra.Command, args []string) error {

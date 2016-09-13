@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// flags
 var (
 	bbsURL            string
 	bbsCACertFile     string

@@ -3,6 +3,7 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -26,4 +27,24 @@ func ValidatePositiveIntegerForFlag(flag, value string, cmd *cobra.Command) (int
 	}
 
 	return valueAsInt, nil
+}
+
+func ValidateConflictingShortAndLongFlag(short string, long string, cmd *cobra.Command) error {
+	errorConflictingShortAndLongFlagPassed := errors.New(fmt.Sprintf("Only one of %s and %s should be passed", short, long))
+
+	if contains(os.Args, short) && contains(os.Args, long) {
+		return NewCFDotValidationError(cmd, errorConflictingShortAndLongFlagPassed)
+	}
+
+	return nil
+}
+
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+
+	return false
 }
