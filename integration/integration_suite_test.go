@@ -1,6 +1,8 @@
 package integration_test
 
 import (
+	"os/exec"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -40,4 +42,20 @@ var _ = AfterEach(func() {
 func TestIntegration(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Integration Suite")
+}
+
+// Pass arguments that would be passed to cfdot
+// i.e. set-domain domain1
+func itValidatesBBSFlags(args ...string) {
+	Context("BBS Flag Validation", func() {
+		It("exits with status 3 when no bbs flags are specified", func() {
+			cmd := exec.Command(cfdotPath, args...)
+
+			sess, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(sess.Exited).Should(BeClosed())
+
+			Expect(sess.ExitCode()).To(Equal(3))
+		})
+	})
 }

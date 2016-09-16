@@ -49,6 +49,8 @@ var _ = Describe("desired-lrp", func() {
 		Eventually(sess.Exited).Should(BeClosed())
 	})
 
+	itValidatesBBSFlags("desired-lrp", "test-guid")
+
 	It("exits with status code of 0", func() {
 		Expect(sess.ExitCode()).To(Equal(0))
 	})

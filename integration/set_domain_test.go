@@ -13,6 +13,8 @@ import (
 )
 
 var _ = Describe("set-domain", func() {
+	itValidatesBBSFlags("set-domain", "domain1")
+
 	Context("when the server responds for set-domain", func() {
 		BeforeEach(func() {
 			bbsServer.AppendHandlers(

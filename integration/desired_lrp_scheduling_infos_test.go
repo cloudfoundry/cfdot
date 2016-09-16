@@ -15,6 +15,8 @@ import (
 var _ = Describe("desired-lrp-scheduling-infos", func() {
 	var sess *gexec.Session
 
+	itValidatesBBSFlags("desired-lrp-scheduling-infos")
+
 	Context("when no filters are passed", func() {
 		BeforeEach(func() {
 			bbsServer.AppendHandlers(

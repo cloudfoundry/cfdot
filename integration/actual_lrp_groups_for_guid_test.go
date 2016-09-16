@@ -15,6 +15,8 @@ import (
 var _ = Describe("actual-lrp-groups-for-guid", func() {
 	var sess *gexec.Session
 
+	itValidatesBBSFlags("actual-lrp-groups-for-guid", "test-guid")
+
 	Context("when there is no filter", func() {
 		JustBeforeEach(func() {
 			cfdotCmd := exec.Command(

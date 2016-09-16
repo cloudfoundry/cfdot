@@ -26,7 +26,6 @@ func SetDomainPrehook(cmd *cobra.Command, args []string) error {
 	}
 
 	ttlAsInt, err = ValidatePositiveIntegerForFlag("ttl", ttl, cmd)
-
 	if err != nil {
 		return err
 	}

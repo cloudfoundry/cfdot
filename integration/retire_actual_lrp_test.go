@@ -12,6 +12,8 @@ import (
 )
 
 var _ = Describe("retire-actual-lrp", func() {
+	itValidatesBBSFlags("retire-actual-lrp", "test-guid", "1")
+
 	Context("when the bbs returns everything successfully", func() {
 		BeforeEach(func() {
 			bbsServer.AppendHandlers(

@@ -15,6 +15,8 @@ import (
 var _ = Describe("actual-lrp-groups", func() {
 	var sess *gexec.Session
 
+	itValidatesBBSFlags("actual-lrp-groups")
+
 	Context("when no filters are passed", func() {
 		BeforeEach(func() {
 			bbsServer.AppendHandlers(
