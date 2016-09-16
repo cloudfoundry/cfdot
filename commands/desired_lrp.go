@@ -28,10 +28,10 @@ func desiredLRP(cmd *cobra.Command, args []string) error {
 		return NewCFDotValidationError(cmd, err)
 	}
 
-	bbsClient, _ := newBBSClient(cmd)
-	// if err != nil {
-	// 	return NewCFDotError(cmd, err)
-	// }
+	bbsClient, err := newBBSClient(cmd)
+	if err != nil {
+		return NewCFDotError(cmd, err)
+	}
 
 	err = DesiredLRP(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, processGuid)
 	if err != nil {

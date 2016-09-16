@@ -42,8 +42,14 @@ var _ = Describe("ActualLRPGroups", func() {
 		})
 
 		It("prints a json stream of all the actual lrp groups", func() {
-			err := commands.ActualLRPGroups(stdout, stderr, fakeBBSClient, nil)
+			err := commands.ActualLRPGroups(stdout, stderr, fakeBBSClient, "domain-1", "cell-1")
 			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeBBSClient.ActualLRPGroupsCallCount()).To(Equal(1))
+
+			_, filter := fakeBBSClient.ActualLRPGroupsArgsForCall(0)
+			Expect(filter).To(Equal(models.ActualLRPFilter{CellID: "cell-1", Domain: "domain-1"}))
+
 			Expect(stdout).To(gbytes.Say(`"state":"running"`))
 		})
 	})
@@ -54,8 +60,9 @@ var _ = Describe("ActualLRPGroups", func() {
 		})
 
 		It("fails with a relevant error", func() {
-			err := commands.ActualLRPGroups(stdout, stderr, fakeBBSClient, nil)
+			err := commands.ActualLRPGroups(stdout, stderr, fakeBBSClient, "", "")
 			Expect(err).To(HaveOccurred())
+
 			Expect(err).To(Equal(models.ErrUnknownError))
 		})
 	})

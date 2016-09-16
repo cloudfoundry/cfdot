@@ -26,21 +26,26 @@ var actualLRPGroupsCmd = &cobra.Command{
 func init() {
 	AddBBSFlags(actualLRPGroupsCmd)
 	actualLRPGroupsCmd.PreRunE = BBSPrehook
+
 	actualLRPGroupsCmd.Flags().StringVarP(&actualLRPGroupsDomainFlag, "domain", "d", "", "retrieve only actual lrps for the given domain")
 	actualLRPGroupsCmd.Flags().StringVarP(&actualLRPGroupsCellIdFlag, "cell-id", "c", "", "retrieve only actual lrps for the given cell id")
+
 	RootCmd.AddCommand(actualLRPGroupsCmd)
 }
 
 func actualLRPGroups(cmd *cobra.Command, args []string) error {
-	var err error
-	var bbsClient bbs.Client
-
-	bbsClient, err = newBBSClient(cmd)
+	bbsClient, err := newBBSClient(cmd)
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}
 
-	err = ActualLRPGroups(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, args)
+	err = ActualLRPGroups(
+		cmd.OutOrStdout(),
+		cmd.OutOrStderr(),
+		bbsClient,
+		actualLRPGroupsDomainFlag,
+		actualLRPGroupsCellIdFlag,
+	)
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}
@@ -48,17 +53,14 @@ func actualLRPGroups(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func ActualLRPGroups(stdout, stderr io.Writer, bbsClient bbs.Client, args []string) error {
-	logger := globalLogger.Session("actualLRPGroups")
+func ActualLRPGroups(stdout, stderr io.Writer, bbsClient bbs.Client, domain, cellID string) error {
+	logger := globalLogger.Session("actual-lrp-groups")
 
 	encoder := json.NewEncoder(stdout)
-	actualLRPFilter := models.ActualLRPFilter{}
-	if actualLRPGroupsDomainFlag != "" {
-		actualLRPFilter.Domain = actualLRPGroupsDomainFlag
-	}
 
-	if actualLRPGroupsCellIdFlag != "" {
-		actualLRPFilter.CellID = actualLRPGroupsCellIdFlag
+	actualLRPFilter := models.ActualLRPFilter{
+		CellID: cellID,
+		Domain: domain,
 	}
 
 	actualLRPGroups, err := bbsClient.ActualLRPGroups(logger, actualLRPFilter)
@@ -67,7 +69,10 @@ func ActualLRPGroups(stdout, stderr io.Writer, bbsClient bbs.Client, args []stri
 	}
 
 	for _, actualLRPGroup := range actualLRPGroups {
-		encoder.Encode(actualLRPGroup)
+		err = encoder.Encode(actualLRPGroup)
+		if err != nil {
+			logger.Error("failed-to-unmarshal", err)
+		}
 	}
 
 	return nil

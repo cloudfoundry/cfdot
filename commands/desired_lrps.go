@@ -65,9 +65,5 @@ func DesiredLRPs(stdout, stderr io.Writer, bbsClient bbs.Client, args []string) 
 		return err
 	}
 
-	for _, desiredLRP := range desiredLRPs {
-		encoder.Encode(desiredLRP)
-	}
-
-	return nil
+	return encoder.Encode(desiredLRPs)
 }
