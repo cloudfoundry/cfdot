@@ -23,26 +23,22 @@ var desiredLRPsCmd = &cobra.Command{
 
 func init() {
 	AddBBSFlags(desiredLRPsCmd)
-	desiredLRPsCmd.PreRunE = BBSPrehook
 	desiredLRPsCmd.Flags().StringVarP(&desiredLRPsDomainFlag, "domain", "d", "", "retrieve only desired lrps for the given domain")
 	RootCmd.AddCommand(desiredLRPsCmd)
 }
 
 func desiredLRPs(cmd *cobra.Command, args []string) error {
-	var err error
-	var bbsClient bbs.Client
-
-	err = ValidateConflictingShortAndLongFlag("-d", "--domain", cmd)
+	err := ValidateConflictingShortAndLongFlag("-d", "--domain", cmd)
 	if err != nil {
 		return err
 	}
 
-	bbsClient, err = newBBSClient(cmd)
+	bbsClient, err := newBBSClient(cmd)
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}
 
-	err = DesiredLRPs(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, args)
+	err = DesiredLRPs(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, desiredLRPsDomainFlag)
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}
@@ -50,20 +46,23 @@ func desiredLRPs(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func DesiredLRPs(stdout, stderr io.Writer, bbsClient bbs.Client, args []string) error {
+func DesiredLRPs(stdout, stderr io.Writer, bbsClient bbs.Client, domain string) error {
 	logger := globalLogger.Session("desiredLRPs")
 
-	encoder := json.NewEncoder(stdout)
-	desiredLRPFilter := models.DesiredLRPFilter{}
-
-	if desiredLRPsDomainFlag != "" {
-		desiredLRPFilter.Domain = desiredLRPsDomainFlag
-	}
+	desiredLRPFilter := models.DesiredLRPFilter{Domain: domain}
 
 	desiredLRPs, err := bbsClient.DesiredLRPs(logger, desiredLRPFilter)
 	if err != nil {
 		return err
 	}
 
-	return encoder.Encode(desiredLRPs)
+	encoder := json.NewEncoder(stdout)
+	for _, lrp := range desiredLRPs {
+		err = encoder.Encode(lrp)
+		if err != nil {
+			logger.Error("failed-to-marshal", err)
+		}
+	}
+
+	return nil
 }

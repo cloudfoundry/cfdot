@@ -10,11 +10,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// errors
 var (
+	// errors
 	errMissingDomain = errors.New("No domain given")
-	errInvalidTTL    = errors.New("ttl is non-numeric")
 	errNegativeTTL   = errors.New("ttl is negative")
+
+	// flags
+	setDomainTTLFlag time.Duration
 )
 
 var setDomainCmd = &cobra.Command{
@@ -26,27 +28,26 @@ var setDomainCmd = &cobra.Command{
 
 func init() {
 	AddBBSFlags(setDomainCmd)
-	AddSetDomainFlags(setDomainCmd)
-	setDomainCmd.PreRunE = func(cmd *cobra.Command, args []string) error {
-		err := SetDomainPrehook(cmd, args)
-		if err != nil {
-			return err
-		}
-		return BBSPrehook(cmd, args)
-	}
+	setDomainCmd.Flags().DurationVarP(&setDomainTTLFlag, "ttl", "t", 0*time.Second, "ttl of domain")
 	RootCmd.AddCommand(setDomainCmd)
 }
 
 func setDomain(cmd *cobra.Command, args []string) error {
-	var err error
-	var bbsClient bbs.Client
+	domain, err := ValidateSetDomainArgs(args)
+	if err != nil {
+		return NewCFDotValidationError(cmd, err)
+	}
 
-	bbsClient, err = newBBSClient(cmd)
+	if setDomainTTLFlag < 0 {
+		return NewCFDotValidationError(cmd, errNegativeTTL)
+	}
+
+	bbsClient, err := newBBSClient(cmd)
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}
 
-	err = SetDomain(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, args, ttlAsInt)
+	err = SetDomain(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, domain, setDomainTTLFlag)
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}
@@ -54,15 +55,26 @@ func setDomain(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func SetDomain(stdout, stderr io.Writer, bbsClient bbs.Client, args []string, ttl int) error {
+func ValidateSetDomainArgs(args []string) (string, error) {
+	if len(args) < 1 {
+		return "", errMissingArguments
+	}
+
+	if len(args) > 1 {
+		return "", errExtraArguments
+	}
+
+	if args[0] == "" {
+		return "", errMissingDomain
+	}
+
+	return args[0], nil
+}
+
+func SetDomain(stdout, stderr io.Writer, bbsClient bbs.Client, domain string, ttlDuration time.Duration) error {
 	logger := globalLogger.Session("set-domain")
 
-	var duration = time.Duration(ttl) * time.Second
-
-	// The prehook catches the case where we don't specify any args
-	domain := args[0]
-
-	err := bbsClient.UpsertDomain(logger, domain, duration)
+	err := bbsClient.UpsertDomain(logger, domain, ttlDuration)
 	if err != nil {
 		return err
 	}

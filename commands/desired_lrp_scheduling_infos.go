@@ -23,26 +23,22 @@ var desiredLRPSchedulingInfosCmd = &cobra.Command{
 
 func init() {
 	AddBBSFlags(desiredLRPSchedulingInfosCmd)
-	desiredLRPSchedulingInfosCmd.PreRunE = BBSPrehook
 	desiredLRPSchedulingInfosCmd.Flags().StringVarP(&desiredLRPSchedulingInfosDomainFlag, "domain", "d", "", "retrieve only scheduling infos for the given domain")
 	RootCmd.AddCommand(desiredLRPSchedulingInfosCmd)
 }
 
 func desiredLRPSchedulingInfos(cmd *cobra.Command, args []string) error {
-	var err error
-	var bbsClient bbs.Client
-
-	err = ValidateConflictingShortAndLongFlag("-d", "--domain", cmd)
+	err := ValidateConflictingShortAndLongFlag("-d", "--domain", cmd)
 	if err != nil {
 		return err
 	}
 
-	bbsClient, err = newBBSClient(cmd)
+	bbsClient, err := newBBSClient(cmd)
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}
 
-	err = DesiredLRPSchedulingInfos(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, args)
+	err = DesiredLRPSchedulingInfos(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, desiredLRPSchedulingInfosDomainFlag)
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}
@@ -50,14 +46,12 @@ func desiredLRPSchedulingInfos(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func DesiredLRPSchedulingInfos(stdout, stderr io.Writer, bbsClient bbs.Client, args []string) error {
-	logger := globalLogger.Session("desiredLRPSchedulingInfos")
+func DesiredLRPSchedulingInfos(stdout, stderr io.Writer, bbsClient bbs.Client, domain string) error {
+	logger := globalLogger.Session("desired-lrp-scheduling-infos")
 
 	encoder := json.NewEncoder(stdout)
-	desiredLRPFilter := models.DesiredLRPFilter{}
-
-	if desiredLRPSchedulingInfosDomainFlag != "" {
-		desiredLRPFilter.Domain = desiredLRPSchedulingInfosDomainFlag
+	desiredLRPFilter := models.DesiredLRPFilter{
+		Domain: domain,
 	}
 
 	desiredLRPSchedulingInfos, err := bbsClient.DesiredLRPSchedulingInfos(logger, desiredLRPFilter)
@@ -65,8 +59,11 @@ func DesiredLRPSchedulingInfos(stdout, stderr io.Writer, bbsClient bbs.Client, a
 		return err
 	}
 
-	for _, desiredLRPSchedulingInfo := range desiredLRPSchedulingInfos {
-		encoder.Encode(desiredLRPSchedulingInfo)
+	for _, info := range desiredLRPSchedulingInfos {
+		err = encoder.Encode(info)
+		if err != nil {
+			logger.Error("failed-to-marshal", err)
+		}
 	}
 
 	return nil

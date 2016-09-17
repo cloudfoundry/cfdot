@@ -2,7 +2,6 @@ package commands
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 
 	"code.cloudfoundry.org/bbs"
@@ -18,7 +17,6 @@ var desiredLRPCmd = &cobra.Command{
 
 func init() {
 	AddBBSFlags(desiredLRPCmd)
-	desiredLRPCmd.PreRunE = BBSPrehook
 	RootCmd.AddCommand(desiredLRPCmd)
 }
 
@@ -43,22 +41,22 @@ func desiredLRP(cmd *cobra.Command, args []string) error {
 
 func ValidateDesiredLRPArguments(args []string) (string, error) {
 	if len(args) == 0 {
-		return "", errors.New("no process guid specified")
+		return "", errMissingArguments
 	}
 
 	if len(args) > 1 {
-		return "", errors.New("too many arguments specified")
+		return "", errExtraArguments
 	}
 
-	if (args[0]) == "" {
-		return "", errors.New("process guid cannot be an empty string")
+	if args[0] == "" {
+		return "", errInvalidProcessGuid
 	}
 
 	return args[0], nil
 }
 
 func DesiredLRP(stdout, stderr io.Writer, bbsClient bbs.Client, processGuid string) error {
-	logger := globalLogger.Session("desiredLRP")
+	logger := globalLogger.Session("desired-lrp")
 
 	desiredLRP, err := bbsClient.DesiredLRPByProcessGuid(logger, processGuid)
 	if err != nil {

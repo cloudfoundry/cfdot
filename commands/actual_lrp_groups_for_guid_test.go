@@ -109,10 +109,14 @@ var _ = Describe("ActualLRPGroupsForGuid", func() {
 			_, guid := fakeBBSClient.ActualLRPGroupsByProcessGuidArgsForCall(0)
 			Expect(guid).To(Equal("guid"))
 
-			jsonData, err := json.Marshal(actualLRPGroups)
-			Expect(err).NotTo(HaveOccurred())
+			expectedOutput := ""
+			for _, group := range actualLRPGroups {
+				d, err := json.Marshal(group)
+				Expect(err).NotTo(HaveOccurred())
+				expectedOutput += string(d) + "\n"
+			}
 
-			Expect(stdout).To(gbytes.Say(string(jsonData)))
+			Expect(string(stdout.Contents())).To(Equal(expectedOutput))
 		})
 
 		Context("when fetching actual lrp groups fails", func() {

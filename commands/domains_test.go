@@ -28,7 +28,7 @@ var _ = Describe("Domains", func() {
 		})
 
 		It("prints a json stream of all the domains", func() {
-			err := commands.Domains(stdout, stderr, fakeBBSClient, nil)
+			err := commands.Domains(stdout, stderr, fakeBBSClient)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(stdout).To(gbytes.Say(`"domain-1"\n"domain-2"\n`))
 		})
@@ -40,7 +40,7 @@ var _ = Describe("Domains", func() {
 		})
 
 		It("returns an empty response", func() {
-			err := commands.Domains(stdout, stderr, fakeBBSClient, nil)
+			err := commands.Domains(stdout, stderr, fakeBBSClient)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(stdout.Contents()).To(BeEmpty())
 		})
@@ -52,7 +52,7 @@ var _ = Describe("Domains", func() {
 		})
 
 		It("fails with a relevant error", func() {
-			err := commands.Domains(stdout, stderr, fakeBBSClient, nil)
+			err := commands.Domains(stdout, stderr, fakeBBSClient)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(Equal(models.ErrUnknownError))
 		})

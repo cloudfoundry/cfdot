@@ -12,8 +12,7 @@ import (
 
 // flags
 var (
-	actualLRPGroupsDomainFlag string
-	actualLRPGroupsCellIdFlag string
+	actualLRPGroupsDomainFlag, actualLRPGroupsCellIdFlag string
 )
 
 var actualLRPGroupsCmd = &cobra.Command{
@@ -25,7 +24,6 @@ var actualLRPGroupsCmd = &cobra.Command{
 
 func init() {
 	AddBBSFlags(actualLRPGroupsCmd)
-	actualLRPGroupsCmd.PreRunE = BBSPrehook
 
 	actualLRPGroupsCmd.Flags().StringVarP(&actualLRPGroupsDomainFlag, "domain", "d", "", "retrieve only actual lrps for the given domain")
 	actualLRPGroupsCmd.Flags().StringVarP(&actualLRPGroupsCellIdFlag, "cell-id", "c", "", "retrieve only actual lrps for the given cell id")
@@ -71,7 +69,7 @@ func ActualLRPGroups(stdout, stderr io.Writer, bbsClient bbs.Client, domain, cel
 	for _, actualLRPGroup := range actualLRPGroups {
 		err = encoder.Encode(actualLRPGroup)
 		if err != nil {
-			logger.Error("failed-to-unmarshal", err)
+			logger.Error("failed-to-marshal", err)
 		}
 	}
 

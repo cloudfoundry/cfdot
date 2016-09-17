@@ -2,7 +2,6 @@ package commands
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -27,10 +26,10 @@ var actualLRPGroupsByProcessGuidCmd = &cobra.Command{
 
 func init() {
 	AddBBSFlags(actualLRPGroupsByProcessGuidCmd)
-	actualLRPGroupsByProcessGuidCmd.PreRunE = BBSPrehook
 
 	// String flag because logic for optional int flag is not clear
 	actualLRPGroupsByProcessGuidCmd.Flags().StringVarP(&actualLRPGroupsGuidIndexFlag, "index", "i", "", "retrieve actual lrp for the given index")
+
 	RootCmd.AddCommand(actualLRPGroupsByProcessGuidCmd)
 }
 
@@ -55,15 +54,15 @@ func actualLRPGroupsByProcessGuid(cmd *cobra.Command, args []string) error {
 
 func ValidateActualLRPGroupsForGuidArgs(args []string, indexFlag string) (string, int, error) {
 	if len(args) < 1 {
-		return "", 0, errors.New("no process guid specified")
+		return "", 0, errMissingArguments
 	}
 
 	if len(args) > 1 {
-		return "", 0, errors.New("too many arguments specified")
+		return "", 0, errExtraArguments
 	}
 
 	if args[0] == "" {
-		return "", 0, errors.New("process guid cannot be an empty string")
+		return "", 0, errInvalidProcessGuid
 	}
 
 	index := -1
@@ -71,7 +70,7 @@ func ValidateActualLRPGroupsForGuidArgs(args []string, indexFlag string) (string
 		var err error
 		index, err = strconv.Atoi(indexFlag)
 		if err != nil || index < 0 {
-			return "", 0, errors.New("index must be an integer greater than 0")
+			return "", 0, errInvalidIndex
 		}
 	}
 
@@ -88,7 +87,14 @@ func ActualLRPGroupsForGuid(stdout, stderr io.Writer, bbsClient bbs.Client, proc
 			return err
 		}
 
-		return encoder.Encode(actualLRPGroups)
+		for _, group := range actualLRPGroups {
+			err = encoder.Encode(group)
+			if err != nil {
+				logger.Error("failed-to-marshal", err)
+			}
+		}
+
+		return nil
 	} else {
 		actualLRPGroup, err := bbsClient.ActualLRPGroupByProcessGuidAndIndex(logger, processGuid, index)
 		if err != nil {

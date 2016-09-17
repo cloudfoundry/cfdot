@@ -13,6 +13,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	clientSessionCacheSize int = 0
+	maxIdleConnsPerHost    int = 0
+)
+
 // flags
 var (
 	bbsURL            string
@@ -29,17 +34,13 @@ var (
 	errMissingCertAndKeyFiles = errors.New("--bbsCertFile and --bbsKeyFile must both be specified for TLS connections.")
 )
 
-const clientSessionCacheSize int = 0
-const maxIdleConnsPerHost int = 0
-
 func AddBBSFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVar(&bbsURL, "bbsURL", "", "URL of BBS server to target [environment variable equivalent: BBS_URL]")
-	// Read this in as a StringVar instead of a BoolVar so we can check whether it was set or not, and use an environment variable if it was not set.
 	cmd.Flags().BoolVar(&bbsSkipCertVerify, "bbsSkipCertVerify", false, "when set to true, skips all SSL/TLS certificate verification [environment variable equivalent: BBS_SKIP_CERT_VERIFY]")
+	cmd.Flags().StringVar(&bbsURL, "bbsURL", "", "URL of BBS server to target [environment variable equivalent: BBS_URL]")
 	cmd.Flags().StringVar(&bbsCertFile, "bbsCertFile", "", "path to the TLS client certificate to use during mutual-auth TLS [environment variable equivalent: BBS_CERT_FILE]")
 	cmd.Flags().StringVar(&bbsKeyFile, "bbsKeyFile", "", "path to the TLS client private key file to use during mutual-auth TLS [environment variable equivalent: BBS_KEY_FILE]")
 	cmd.Flags().StringVar(&bbsCACertFile, "bbsCACertFile", "", "path the Certificate Authority (CA) file to use when verifying TLS keypairs [environment variable equivalent: BBS_CA_CERT_FILE]")
-
+	cmd.PreRunE = BBSPrehook
 }
 
 func BBSPrehook(cmd *cobra.Command, args []string) error {

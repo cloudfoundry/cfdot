@@ -37,7 +37,7 @@ var _ = Describe("set-domain", func() {
 		})
 
 		It("set-domain works with a TTL specified", func() {
-			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "set-domain", "any-domain", "--ttl", "40")
+			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "set-domain", "any-domain", "--ttl", "40s")
 
 			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
@@ -48,7 +48,7 @@ var _ = Describe("set-domain", func() {
 		})
 
 		It("set-domain prints to stderr when no domain specified", func() {
-			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "set-domain", "", "--ttl", "40")
+			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "set-domain", "", "--ttl", "40s")
 
 			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
@@ -61,7 +61,7 @@ var _ = Describe("set-domain", func() {
 		})
 
 		It("set-domain prints to stderr for negative TTL", func() {
-			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "set-domain", "any-domain", "--ttl", "-40")
+			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "set-domain", "any-domain", "--ttl", "-40s")
 
 			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
@@ -82,7 +82,7 @@ var _ = Describe("set-domain", func() {
 			<-sess.Exited
 			Expect(sess.ExitCode()).To(Equal(3))
 
-			Expect(sess.Err).To(gbytes.Say(`ttl is non-numeric`))
+			Expect(sess.Err).To(gbytes.Say(`invalid duration`))
 			Expect(sess.Err).To(gbytes.Say(`Usage:`))
 		})
 	})
@@ -92,6 +92,7 @@ var _ = Describe("set-domain", func() {
 			bbsServer.RouteToHandler("POST", "/v1/domains/upsert",
 				ghttp.RespondWith(500, []byte{}))
 		})
+
 		It("set-domain fails with a relevant error message", func() {
 			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "set-domain", "any-domain")
 
@@ -127,7 +128,7 @@ var _ = Describe("set-domain", func() {
 			})
 
 			It("works with a --bbsURL flag specified after set-domain", func() {
-				cfdotCmd := exec.Command(cfdotPath, "set-domain", "--bbsURL", bbsServer.URL(), "anything", "--ttl", "40")
+				cfdotCmd := exec.Command(cfdotPath, "set-domain", "--bbsURL", bbsServer.URL(), "anything", "--ttl", "40s")
 
 				sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())

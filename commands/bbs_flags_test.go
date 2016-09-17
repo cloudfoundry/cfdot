@@ -23,7 +23,6 @@ var _ = Describe("BBS Flags", func() {
 			Run: func(cmd *cobra.Command, args []string) {},
 		}
 		commands.AddBBSFlags(dummyCmd)
-		dummyCmd.PreRunE = commands.BBSPrehook
 		output = gbytes.NewBuffer()
 		dummyCmd.SetOutput(output)
 

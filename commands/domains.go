@@ -18,20 +18,16 @@ var domainsCmd = &cobra.Command{
 
 func init() {
 	AddBBSFlags(domainsCmd)
-	domainsCmd.PreRunE = BBSPrehook
 	RootCmd.AddCommand(domainsCmd)
 }
 
 func domains(cmd *cobra.Command, args []string) error {
-	var err error
-	var bbsClient bbs.Client
-
-	bbsClient, err = newBBSClient(cmd)
+	bbsClient, err := newBBSClient(cmd)
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}
 
-	err = Domains(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, args)
+	err = Domains(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient)
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}
@@ -39,7 +35,7 @@ func domains(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func Domains(stdout, stderr io.Writer, bbsClient bbs.Client, args []string) error {
+func Domains(stdout, stderr io.Writer, bbsClient bbs.Client) error {
 	logger := globalLogger.Session("domains")
 
 	encoder := json.NewEncoder(stdout)
@@ -49,7 +45,10 @@ func Domains(stdout, stderr io.Writer, bbsClient bbs.Client, args []string) erro
 	}
 
 	for _, domain := range domains {
-		encoder.Encode(domain)
+		err = encoder.Encode(domain)
+		if err != nil {
+			logger.Error("failed-to-marshal", err)
+		}
 	}
 
 	return nil

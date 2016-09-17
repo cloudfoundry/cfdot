@@ -1,6 +1,8 @@
 package commands_test
 
 import (
+	"encoding/json"
+
 	"code.cloudfoundry.org/bbs/fake_bbs"
 	"code.cloudfoundry.org/bbs/models"
 	"code.cloudfoundry.org/cfdot/commands"
@@ -50,7 +52,14 @@ var _ = Describe("ActualLRPGroups", func() {
 			_, filter := fakeBBSClient.ActualLRPGroupsArgsForCall(0)
 			Expect(filter).To(Equal(models.ActualLRPFilter{CellID: "cell-1", Domain: "domain-1"}))
 
-			Expect(stdout).To(gbytes.Say(`"state":"running"`))
+			expectedOutput := ""
+			for _, group := range actualLRPGroups {
+				d, err := json.Marshal(group)
+				Expect(err).NotTo(HaveOccurred())
+				expectedOutput += string(d) + "\n"
+			}
+
+			Expect(string(stdout.Contents())).To(Equal(expectedOutput))
 		})
 	})
 

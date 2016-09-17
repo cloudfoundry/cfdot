@@ -1,6 +1,8 @@
 package commands_test
 
 import (
+	"encoding/json"
+
 	"code.cloudfoundry.org/bbs/fake_bbs"
 	"code.cloudfoundry.org/bbs/models"
 	"code.cloudfoundry.org/cfdot/commands"
@@ -14,45 +16,46 @@ var _ = Describe("DesiredLRPSchedulingInfos", func() {
 	var (
 		fakeBBSClient   *fake_bbs.FakeClient
 		schedulingInfos []*models.DesiredLRPSchedulingInfo
-		returnedError   error
 		stdout, stderr  *gbytes.Buffer
 	)
 
 	BeforeEach(func() {
-		schedulingInfos = nil
-		returnedError = nil
+		fakeBBSClient = &fake_bbs.FakeClient{}
 		stdout = gbytes.NewBuffer()
 		stderr = gbytes.NewBuffer()
-		fakeBBSClient = &fake_bbs.FakeClient{}
+
+		schedulingInfos = []*models.DesiredLRPSchedulingInfo{
+			{
+				Instances: 1,
+			},
+		}
+		fakeBBSClient.DesiredLRPSchedulingInfosReturns(schedulingInfos, nil)
 	})
 
-	JustBeforeEach(func() {
-		fakeBBSClient.DesiredLRPSchedulingInfosReturns(schedulingInfos, returnedError)
-	})
+	It("prints a json stream of all the desired lrp scheduling infos", func() {
+		err := commands.DesiredLRPSchedulingInfos(stdout, stderr, fakeBBSClient, "domain")
+		Expect(err).NotTo(HaveOccurred())
 
-	Context("when the bbs responds with scheduling infos", func() {
-		BeforeEach(func() {
-			schedulingInfos = []*models.DesiredLRPSchedulingInfo{
-				{
-					Instances: 1,
-				},
-			}
-		})
+		Expect(fakeBBSClient.DesiredLRPSchedulingInfosCallCount()).To(Equal(1))
+		_, filter := fakeBBSClient.DesiredLRPSchedulingInfosArgsForCall(0)
+		Expect(filter).To(Equal(models.DesiredLRPFilter{Domain: "domain"}))
 
-		It("prints a json stream of all the desired lrp scheduling infos", func() {
-			err := commands.DesiredLRPSchedulingInfos(stdout, stderr, fakeBBSClient, nil)
+		expectedOutput := ""
+		for _, info := range schedulingInfos {
+			d, err := json.Marshal(info)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(stdout).To(gbytes.Say(`"instances":1`))
-		})
+			expectedOutput += string(d) + "\n"
+		}
+		Expect(string(stdout.Contents())).To(Equal(expectedOutput))
 	})
 
 	Context("when the bbs errors", func() {
 		BeforeEach(func() {
-			returnedError = models.ErrUnknownError
+			fakeBBSClient.DesiredLRPSchedulingInfosReturns(nil, models.ErrUnknownError)
 		})
 
 		It("fails with a relevant error", func() {
-			err := commands.DesiredLRPSchedulingInfos(stdout, stderr, fakeBBSClient, nil)
+			err := commands.DesiredLRPSchedulingInfos(stdout, stderr, fakeBBSClient, "")
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(Equal(models.ErrUnknownError))
 		})

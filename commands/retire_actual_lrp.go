@@ -1,18 +1,12 @@
 package commands
 
 import (
-	"errors"
 	"io"
+	"strconv"
 
 	"code.cloudfoundry.org/bbs"
 	"code.cloudfoundry.org/bbs/models"
 	"github.com/spf13/cobra"
-)
-
-// errors
-var (
-	errMissingArguments   = errors.New("Missing arguments")
-	errInvalidProcessGuid = errors.New("Process guid should be non empty string")
 )
 
 var retireActualLRPCmd = &cobra.Command{
@@ -24,36 +18,21 @@ var retireActualLRPCmd = &cobra.Command{
 
 func init() {
 	AddBBSFlags(retireActualLRPCmd)
-	retireActualLRPCmd.PreRunE = func(cmd *cobra.Command, args []string) error {
-		return BBSPrehook(cmd, args)
-	}
 	RootCmd.AddCommand(retireActualLRPCmd)
 }
 
 func retireActualLRP(cmd *cobra.Command, args []string) error {
-	var err error
-	var bbsClient bbs.Client
-
-	if len(args) < 2 {
-		return NewCFDotValidationError(cmd, errMissingArguments)
-	}
-
-	processGuid := args[0]
-	if processGuid == "" {
-		return NewCFDotValidationError(cmd, errInvalidProcessGuid)
-	}
-
-	index, err := ValidatePositiveIntegerForFlag("index", args[1], cmd)
+	processGuid, index, err := ValidateRetireActualLRPArgs(args)
 	if err != nil {
-		return err
+		return NewCFDotValidationError(cmd, err)
 	}
 
-	bbsClient, err = newBBSClient(cmd)
+	bbsClient, err := newBBSClient(cmd)
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}
 
-	err = RetireActualLRP(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, args, processGuid, int32(index))
+	err = RetireActualLRP(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, processGuid, int32(index))
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}
@@ -61,8 +40,29 @@ func retireActualLRP(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func RetireActualLRP(stdout, stderr io.Writer, bbsClient bbs.Client, args []string, processGuid string, index int32) error {
-	logger := globalLogger.Session("retireActualLRP")
+func ValidateRetireActualLRPArgs(args []string) (string, int, error) {
+	if len(args) < 2 {
+		return "", 0, errMissingArguments
+	}
+
+	if len(args) > 2 {
+		return "", 0, errExtraArguments
+	}
+
+	if args[0] == "" {
+		return "", 0, errInvalidProcessGuid
+	}
+
+	index, err := strconv.Atoi(args[1])
+	if err != nil || index < 0 {
+		return "", 0, errInvalidIndex
+	}
+
+	return args[0], index, nil
+}
+
+func RetireActualLRP(stdout, stderr io.Writer, bbsClient bbs.Client, processGuid string, index int32) error {
+	logger := globalLogger.Session("retire-actual-lrp")
 
 	desiredLRP, err := bbsClient.DesiredLRPByProcessGuid(logger, processGuid)
 	if err != nil {
