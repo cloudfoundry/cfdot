@@ -63,8 +63,9 @@ var _ = Describe("CreateDesiredLRP", func() {
 
 		It("validates the input file successfully", func() {
 			args := []string{"@" + filename}
-			_, err := commands.ValidateCreateDesiredLRPArguments(args)
+			actualSpec, err := commands.ValidateCreateDesiredLRPArguments(args)
 			Expect(err).NotTo(HaveOccurred())
+			Expect(actualSpec).To(Equal(spec))
 		})
 
 	})

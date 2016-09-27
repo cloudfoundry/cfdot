@@ -2,6 +2,7 @@ package commands
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -14,9 +15,9 @@ import (
 )
 
 var createDesiredLRPCmd = &cobra.Command{
-	Use:   "create-desired-lrp",
+	Use:   "create-desired-lrp (spec|@file)",
 	Short: "Create a desired LRP",
-	Long:  "Create a desired LRP from the given specs",
+	Long:  "Create a desired LRP from the given spec. Spec can either be json encoded desired-lrp, e.g. '{\"process_guid\":\"some-guid\"}' or a file containing json encoded desired-lrp, e.g. @/path/to/spec/file",
 	RunE:  createDesiredLRP,
 }
 
@@ -27,7 +28,7 @@ func init() {
 
 func createDesiredLRP(cmd *cobra.Command, args []string) error {
 	if len(args) != 1 {
-		return fmt.Errorf("expected one argument, found %d", len(args))
+		return NewCFDotValidationError(cmd, fmt.Errorf("missing spec argument"))
 	}
 
 	spec, err := ValidateCreateDesiredLRPArguments(args)
@@ -68,7 +69,7 @@ func ValidateCreateDesiredLRPArguments(args []string) ([]byte, error) {
 	}
 	err = json.Unmarshal([]byte(spec), &desiredLRP)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(fmt.Sprintf("Invalid JSON: %s", err.Error()))
 	}
 	return spec, nil
 }
