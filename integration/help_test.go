@@ -26,6 +26,7 @@ var _ = Describe("help", func() {
 			Expect(sess.Out).To(gbytes.Say("Usage:"))
 			Expect(sess.Out).To(gbytes.Say("cfdot"))
 			Expect(sess.Out).To(gbytes.Say("Available Commands:"))
+			Expect(sess.Out).To(gbytes.Say("delete-desired-lrp"))
 			Expect(sess.Out).To(gbytes.Say("domains"))
 			Expect(sess.Out).To(gbytes.Say("set-domain"))
 		})
@@ -84,4 +85,18 @@ var _ = Describe("help", func() {
 		})
 	})
 
+	Context("called `cfdot help delete-desired-lrp`", func() {
+		BeforeEach(func() {
+			cfdotCmd = exec.Command(cfdotPath, "help", "delete-desired-lrp")
+		})
+
+		It("displays the delete-desired-lrp usage message", func() {
+			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+
+			<-sess.Exited
+			Expect(sess.ExitCode()).To(Equal(0))
+			Expect(sess.Out).To(gbytes.Say("Delete a desired LRP"))
+		})
+	})
 })
