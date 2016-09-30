@@ -9,7 +9,7 @@ import (
 )
 
 var desiredLRPCmd = &cobra.Command{
-	Use:   "desired-lrp",
+	Use:   "desired-lrp PROCESS_GUID",
 	Short: "Show the specified desired LRP",
 	Long:  "Show the desired LRP specified by the given process GUID",
 	RunE:  desiredLRP,

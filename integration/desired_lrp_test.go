@@ -15,32 +15,15 @@ import (
 
 var _ = Describe("desired-lrp", func() {
 	var (
-		sess       *gexec.Session
-		desiredLRP *models.DesiredLRP
+		sess *gexec.Session
+		args []string
 	)
 
-	BeforeEach(func() {
-		desiredLRP = &models.DesiredLRP{
-			ProcessGuid: "test-guid",
-			Instances:   2,
-		}
-
-		bbsServer.AppendHandlers(
-			ghttp.CombineHandlers(
-				ghttp.VerifyRequest("POST", "/v1/desired_lrps/get_by_process_guid.r2"),
-				ghttp.VerifyProtoRepresenting(&models.DesiredLRPByProcessGuidRequest{
-					ProcessGuid: "test-guid",
-				}),
-				ghttp.RespondWithProto(200, &models.DesiredLRPResponse{
-					DesiredLrp: desiredLRP,
-					Error:      nil,
-				}),
-			),
-		)
-	})
+	itValidatesBBSFlags("desired-lrp", "test-guid")
 
 	JustBeforeEach(func() {
-		cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "desired-lrp", "test-guid")
+		args = append([]string{"--bbsURL", bbsServer.URL(), "desired-lrp"}, args...)
+		cfdotCmd := exec.Command(cfdotPath, args...)
 
 		var err error
 		sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
@@ -49,16 +32,112 @@ var _ = Describe("desired-lrp", func() {
 		Eventually(sess.Exited).Should(BeClosed())
 	})
 
-	itValidatesBBSFlags("desired-lrp", "test-guid")
+	Context("when no arguments are provided", func() {
+		BeforeEach(func() {
+			args = []string{}
+		})
 
-	It("exits with status code of 0", func() {
-		Expect(sess.ExitCode()).To(Equal(0))
+		It("fails with exit code 3", func() {
+			Expect(sess.ExitCode()).To(Equal(3))
+		})
+		It("prints usage to stderr", func() {
+			Expect(sess.Err).To(gbytes.Say("Missing arguments"))
+			Expect(sess.Err).To(gbytes.Say("cfdot desired-lrp PROCESS_GUID \\[flags\\]"))
+		})
 	})
 
-	It("returns the json encoding of the desired lrp scheduling info", func() {
-		jsonData, err := json.Marshal(desiredLRP)
-		Expect(err).NotTo(HaveOccurred())
+	Context("when two arguments are provided", func() {
+		BeforeEach(func() {
+			args = []string{"arg1", "arg2"}
+		})
 
-		Expect(sess.Out).To(gbytes.Say(string(jsonData)))
+		It("fails with exit code 3", func() {
+			Expect(sess.ExitCode()).To(Equal(3))
+		})
+		It("prints usage to stderr", func() {
+			Expect(sess.Err).To(gbytes.Say("Too many arguments specified"))
+			Expect(sess.Err).To(gbytes.Say("cfdot desired-lrp PROCESS_GUID \\[flags\\]"))
+		})
+	})
+
+	Context("when an empty argument is provided", func() {
+		BeforeEach(func() {
+			args = []string{""}
+		})
+
+		It("fails with exit code 3", func() {
+			Expect(sess.ExitCode()).To(Equal(3))
+		})
+		It("prints usage to stderr", func() {
+			Expect(sess.Err).To(gbytes.Say("Process guid should be non empty string"))
+			Expect(sess.Err).To(gbytes.Say("cfdot desired-lrp PROCESS_GUID \\[flags\\]"))
+		})
+	})
+
+	Context("when a desired-lrp process_guid is provided", func() {
+		var (
+			desiredLRP *models.DesiredLRP
+		)
+		BeforeEach(func() {
+			args = []string{"test-guid"}
+		})
+		Context("when bbs responds with 200 status code", func() {
+			BeforeEach(func() {
+				desiredLRP = &models.DesiredLRP{
+					ProcessGuid: "test-guid",
+					Instances:   2,
+				}
+
+				bbsServer.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/v1/desired_lrps/get_by_process_guid.r2"),
+						ghttp.VerifyProtoRepresenting(&models.DesiredLRPByProcessGuidRequest{
+							ProcessGuid: "test-guid",
+						}),
+						ghttp.RespondWithProto(200, &models.DesiredLRPResponse{
+							DesiredLrp: desiredLRP,
+							Error:      nil,
+						}),
+					),
+				)
+
+			})
+
+			It("exits with status code of 0", func() {
+				Expect(sess.ExitCode()).To(Equal(0))
+			})
+
+			It("returns the json encoding of the desired lrp scheduling info", func() {
+				jsonData, err := json.Marshal(desiredLRP)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(sess.Out).To(gbytes.Say(string(jsonData)))
+			})
+		})
+
+		Context("when bbs responds with non-200 status code", func() {
+			BeforeEach(func() {
+				bbsServer.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/v1/desired_lrps/get_by_process_guid.r2"),
+						ghttp.RespondWithProto(500, &models.DesiredLRPResponse{
+							Error: &models.Error{
+								Type:    models.Error_Deadlock,
+								Message: "deadlock detected",
+							},
+						}),
+					),
+				)
+			})
+
+			It("exits with status code of 4", func() {
+				Expect(sess.ExitCode()).To(Equal(4))
+			})
+
+			It("prints the error", func() {
+				Expect(sess.Err).To(gbytes.Say("deadlock"))
+			})
+		})
+
 	})
 })
