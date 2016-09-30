@@ -16,6 +16,7 @@ var _ = Describe("desired-lrps", func() {
 	var sess *gexec.Session
 
 	itValidatesBBSFlags("desired-lrps")
+	itHasNoArgs("desired-lrps")
 
 	Context("when no filters are passed", func() {
 		BeforeEach(func() {

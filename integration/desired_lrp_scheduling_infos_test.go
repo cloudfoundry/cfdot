@@ -16,6 +16,27 @@ var _ = Describe("desired-lrp-scheduling-infos", func() {
 	var sess *gexec.Session
 
 	itValidatesBBSFlags("desired-lrp-scheduling-infos")
+	itHasNoArgs("desired-lrp-scheduling-infos")
+
+	Context("when extra arguments are passed", func() {
+		BeforeEach(func() {
+			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "desired-lrp-scheduling-infos", "extra-arg")
+
+			var err error
+			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(sess.Exited).Should(BeClosed())
+		})
+
+		It("exits with status code of 3", func() {
+			Expect(sess.ExitCode()).To(Equal(3))
+		})
+
+		It("prints the usage to stderr", func() {
+			Expect(sess.Err).To(gbytes.Say("cfdot desired-lrp-scheduling-infos \\[flags\\]"))
+		})
+	})
 
 	Context("when no filters are passed", func() {
 		BeforeEach(func() {

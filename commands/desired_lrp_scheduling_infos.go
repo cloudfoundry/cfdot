@@ -30,7 +30,12 @@ func init() {
 func desiredLRPSchedulingInfos(cmd *cobra.Command, args []string) error {
 	err := ValidateConflictingShortAndLongFlag("-d", "--domain", cmd)
 	if err != nil {
-		return err
+		return NewCFDotValidationError(cmd, err)
+	}
+
+	err = ValidateDesiredLRPSchedulingInfosArguments(args)
+	if err != nil {
+		return NewCFDotValidationError(cmd, err)
 	}
 
 	bbsClient, err := newBBSClient(cmd)
@@ -43,6 +48,13 @@ func desiredLRPSchedulingInfos(cmd *cobra.Command, args []string) error {
 		return NewCFDotError(cmd, err)
 	}
 
+	return nil
+}
+
+func ValidateDesiredLRPSchedulingInfosArguments(args []string) error {
+	if len(args) > 0 {
+		return errExtraArguments
+	}
 	return nil
 }
 

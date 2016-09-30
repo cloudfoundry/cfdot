@@ -16,6 +16,7 @@ var _ = Describe("domains", func() {
 	var sess *gexec.Session
 
 	itValidatesBBSFlags("domains")
+	itHasNoArgs("domains")
 
 	Context("when the server responds with domains", func() {
 		BeforeEach(func() {

@@ -32,6 +32,11 @@ func init() {
 }
 
 func actualLRPGroups(cmd *cobra.Command, args []string) error {
+	err := ValidateActualLRPGroupsArguments(args)
+	if err != nil {
+		return NewCFDotValidationError(cmd, err)
+	}
+
 	bbsClient, err := newBBSClient(cmd)
 	if err != nil {
 		return NewCFDotError(cmd, err)
@@ -48,6 +53,13 @@ func actualLRPGroups(cmd *cobra.Command, args []string) error {
 		return NewCFDotError(cmd, err)
 	}
 
+	return nil
+}
+
+func ValidateActualLRPGroupsArguments(args []string) error {
+	if len(args) > 0 {
+		return errExtraArguments
+	}
 	return nil
 }
 

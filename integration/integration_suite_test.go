@@ -5,9 +5,11 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"github.com/onsi/gomega/ghttp"
 
+	"fmt"
 	"testing"
 )
 
@@ -56,6 +58,31 @@ func itValidatesBBSFlags(args ...string) {
 			Eventually(sess.Exited).Should(BeClosed())
 
 			Expect(sess.ExitCode()).To(Equal(3))
+		})
+	})
+}
+
+func itHasNoArgs(command string) {
+	var (
+		sess *gexec.Session
+	)
+	Context("when any arguments are passed", func() {
+		BeforeEach(func() {
+			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), command, "extra-arg")
+
+			var err error
+			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(sess.Exited).Should(BeClosed())
+		})
+
+		It("exits with status code of 3", func() {
+			Expect(sess.ExitCode()).To(Equal(3))
+		})
+
+		It("prints the usage to stderr", func() {
+			Expect(sess.Err).To(gbytes.Say(fmt.Sprintf("cfdot %s \\[flags\\]", command)))
 		})
 	})
 }
