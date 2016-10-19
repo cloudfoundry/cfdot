@@ -135,7 +135,11 @@ var _ = Describe("create-desired-lrp", func() {
 
 		Context("non-existing spec file", func() {
 			BeforeEach(func() {
-				args = []string{"/path/to/non/existing/file"}
+				args = []string{"@/path/to/non/existing/file"}
+			})
+
+			It("prints the error", func() {
+				Expect(sess.Err).To(gbytes.Say("no such file"))
 			})
 
 			It("exits with status code of 3", func() {
