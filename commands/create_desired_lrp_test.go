@@ -12,26 +12,21 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
-	"github.com/spf13/cobra"
 )
 
 var _ = Describe("CreateDesiredLRP", func() {
 	var (
 		fakeBBSClient      *fake_bbs.FakeClient
-		returnedError      error
 		stdout, stderr     *gbytes.Buffer
 		expectedDesiredLRP *models.DesiredLRP
 		spec               []byte
-		cmd                *cobra.Command
 	)
 
 	BeforeEach(func() {
-		cmd = &cobra.Command{}
 		fakeBBSClient = &fake_bbs.FakeClient{}
 		stdout = gbytes.NewBuffer()
 		stderr = gbytes.NewBuffer()
 
-		fakeBBSClient.DesireLRPReturns(returnedError)
 		expectedDesiredLRP = &models.DesiredLRP{
 			ProcessGuid: "some-desired-lrp",
 		}

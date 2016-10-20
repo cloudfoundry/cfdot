@@ -8,7 +8,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
-	"github.com/spf13/cobra"
 )
 
 var _ = Describe("DeleteDesiredLRP", func() {
@@ -16,12 +15,10 @@ var _ = Describe("DeleteDesiredLRP", func() {
 		fakeBBSClient  *fake_bbs.FakeClient
 		returnedError  error
 		stdout, stderr *gbytes.Buffer
-		cmd            *cobra.Command
 		processGuid    string
 	)
 
 	BeforeEach(func() {
-		cmd = &cobra.Command{}
 		fakeBBSClient = &fake_bbs.FakeClient{}
 		stdout = gbytes.NewBuffer()
 		stderr = gbytes.NewBuffer()
