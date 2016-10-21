@@ -86,7 +86,6 @@ var _ = Describe("update-desired-lrp", func() {
 			BeforeEach(func() {
 				spec, err := json.Marshal(lrpUpdate)
 				Expect(err).NotTo(HaveOccurred())
-				println(string(spec))
 				args = []string{"process-guid", string(spec)}
 			})
 
@@ -176,8 +175,6 @@ var _ = Describe("update-desired-lrp", func() {
 		})
 
 		It("prints the error", func() {
-			println(sess.Err)
-			println("==================")
 			Expect(sess.Err).To(gbytes.Say("Deadlock"))
 		})
 
