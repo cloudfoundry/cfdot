@@ -9,7 +9,7 @@ import (
 )
 
 var taskCmd = &cobra.Command{
-	Use:   "task",
+	Use:   "task TASK_GUID",
 	Short: "Display task",
 	Long:  "Retrieve the specified task",
 	RunE:  task,

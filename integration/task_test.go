@@ -66,7 +66,7 @@ var _ = Describe("task", func() {
 	})
 
 	Context("validates that exactly one guid is passed in", func() {
-		It("fails with no arugments", func() {
+		It("fails with no arugments and prints the usage", func() {
 			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "task")
 
 			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
@@ -74,6 +74,7 @@ var _ = Describe("task", func() {
 
 			Eventually(sess).Should(gexec.Exit(3))
 			Expect(sess.Err).To(gbytes.Say("Error: Missing arguments"))
+			Expect(sess.Err).To(gbytes.Say("cfdot task TASK_GUID \\[flags\\]"))
 		})
 
 		It("fails with 2+ arguments", func() {
@@ -84,6 +85,7 @@ var _ = Describe("task", func() {
 
 			Eventually(sess).Should(gexec.Exit(3))
 			Expect(sess.Err).To(gbytes.Say("Error: Too many arguments specified"))
+			Expect(sess.Err).To(gbytes.Say("cfdot task TASK_GUID \\[flags\\]"))
 		})
 	})
 })

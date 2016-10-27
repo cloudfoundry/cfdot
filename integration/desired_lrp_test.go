@@ -41,6 +41,7 @@ var _ = Describe("desired-lrp", func() {
 			It("fails with exit code 3", func() {
 				Expect(sess.ExitCode()).To(Equal(3))
 			})
+
 			It("prints usage to stderr", func() {
 				Expect(sess.Err).To(gbytes.Say("Missing arguments"))
 				Expect(sess.Err).To(gbytes.Say("cfdot desired-lrp PROCESS_GUID \\[flags\\]"))
@@ -55,6 +56,7 @@ var _ = Describe("desired-lrp", func() {
 			It("fails with exit code 3", func() {
 				Expect(sess.ExitCode()).To(Equal(3))
 			})
+
 			It("prints usage to stderr", func() {
 				Expect(sess.Err).To(gbytes.Say("Too many arguments specified"))
 				Expect(sess.Err).To(gbytes.Say("cfdot desired-lrp PROCESS_GUID \\[flags\\]"))
