@@ -31,15 +31,9 @@ var _ = Describe("create-desired-lrp", func() {
 			Eventually(sess.Exited).Should(BeClosed())
 		})
 
-		It("exits with status code of 3", func() {
-			Expect(sess.ExitCode()).To(Equal(3))
-		})
-
-		It("prints an error on stderr", func() {
+		It("exits with status code of 3 and prints the error and usage", func() {
+			Eventually(sess).Should(gexec.Exit(3))
 			Expect(sess.Err).To(gbytes.Say(`missing spec`))
-		})
-
-		It("prints usage", func() {
 			Expect(sess.Err).To(gbytes.Say("cfdot create-desired-lrp \\(spec\\|@file\\) .*"))
 		})
 	})
@@ -77,7 +71,6 @@ var _ = Describe("create-desired-lrp", func() {
 			var err error
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-			Eventually(sess.Exited).Should(BeClosed())
 		})
 
 		Context("as json", func() {
@@ -88,7 +81,7 @@ var _ = Describe("create-desired-lrp", func() {
 			})
 
 			It("exits with status code of 0", func() {
-				Expect(sess.ExitCode()).To(Equal(0))
+				Eventually(sess).Should(gexec.Exit(0))
 			})
 		})
 
@@ -105,7 +98,7 @@ var _ = Describe("create-desired-lrp", func() {
 			})
 
 			It("exits with status code 0", func() {
-				Expect(sess.ExitCode()).To(Equal(0))
+				Eventually(sess).Should(gexec.Exit(0))
 			})
 		})
 
@@ -115,7 +108,7 @@ var _ = Describe("create-desired-lrp", func() {
 			})
 
 			It("exits with status code of 3", func() {
-				Expect(sess.ExitCode()).To(Equal(3))
+				Eventually(sess).Should(gexec.Exit(3))
 			})
 		})
 
@@ -124,12 +117,9 @@ var _ = Describe("create-desired-lrp", func() {
 				args = []string{"foo"}
 			})
 
-			It("prints the error", func() {
+			It("exits with status code of 3 and prints the error", func() {
+				Eventually(sess).Should(gexec.Exit(3))
 				Expect(sess.Err).To(gbytes.Say("Invalid JSON:"))
-			})
-
-			It("exits with status code of 3", func() {
-				Expect(sess.ExitCode()).To(Equal(3))
 			})
 		})
 
@@ -138,12 +128,9 @@ var _ = Describe("create-desired-lrp", func() {
 				args = []string{"@/path/to/non/existing/file"}
 			})
 
-			It("prints the error", func() {
+			It("exits with status 3 and prints the error", func() {
+				Eventually(sess).Should(gexec.Exit(3))
 				Expect(sess.Err).To(gbytes.Say("no such file"))
-			})
-
-			It("exits with status code of 3", func() {
-				Expect(sess.ExitCode()).To(Equal(3))
 			})
 		})
 	})
@@ -169,14 +156,10 @@ var _ = Describe("create-desired-lrp", func() {
 			var err error
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-			Eventually(sess.Exited).Should(BeClosed())
 		})
 
-		It("exits with status code 4", func() {
-			Expect(sess.ExitCode()).To(Equal(4))
-		})
-
-		It("prints the error", func() {
+		It("exits with status code 4 and prints the error", func() {
+			Eventually(sess).Should(gexec.Exit(4))
 			Expect(sess.Err).To(gbytes.Say("deadlock"))
 		})
 	})

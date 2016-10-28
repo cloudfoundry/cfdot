@@ -18,15 +18,9 @@ var _ = Describe("delete-desired-lrp", func() {
 	itValidatesBBSFlags("delete-desired-lrp")
 
 	itFailsWithValidationError := func() {
-		It("exits with status code of 3", func() {
-			Expect(sess.ExitCode()).To(Equal(3))
-		})
-
-		It("prints an error on stderr", func() {
+		It("exits with status 3 and prints the usage and the error", func() {
+			Eventually(sess).Should(gexec.Exit(3))
 			Expect(sess.Err).To(gbytes.Say(`Error:`))
-		})
-
-		It("prints usage", func() {
 			Expect(sess.Err).To(gbytes.Say("cfdot delete-desired-lrp PROCESS_GUID .*"))
 		})
 	}
@@ -44,14 +38,13 @@ var _ = Describe("delete-desired-lrp", func() {
 			var err error
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-
-			Eventually(sess.Exited).Should(BeClosed())
 		})
 
 		Context("when two arguments are passed", func() {
 			BeforeEach(func() {
 				args = []string{"arg-1", "arg-2"}
 			})
+
 			itFailsWithValidationError()
 		})
 
@@ -59,13 +52,12 @@ var _ = Describe("delete-desired-lrp", func() {
 			BeforeEach(func() {
 				args = []string{}
 			})
+
 			itFailsWithValidationError()
 		})
-
 	})
 
 	Context("when bbs responds with 200 status code", func() {
-
 		BeforeEach(func() {
 			processGuid := "process-guid"
 			bbsServer.AppendHandlers(
@@ -85,13 +77,11 @@ var _ = Describe("delete-desired-lrp", func() {
 			var err error
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-			Eventually(sess.Exited).Should(BeClosed())
 		})
 
 		It("exits with status code of 0", func() {
-			Expect(sess.ExitCode()).To(Equal(0))
+			Eventually(sess).Should(gexec.Exit(0))
 		})
-
 	})
 
 	Context("when bbs responds with non-200 status code", func() {
@@ -115,14 +105,10 @@ var _ = Describe("delete-desired-lrp", func() {
 			var err error
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-			Eventually(sess.Exited).Should(BeClosed())
 		})
 
-		It("exits with status code 4", func() {
-			Expect(sess.ExitCode()).To(Equal(4))
-		})
-
-		It("prints the error", func() {
+		It("exits with status code 4 and prints the error", func() {
+			Eventually(sess).Should(gexec.Exit(4))
 			Expect(sess.Err).To(gbytes.Say("deadlock"))
 		})
 	})

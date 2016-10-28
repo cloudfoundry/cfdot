@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"os/exec"
+	"time"
 
 	"code.cloudfoundry.org/bbs/models"
 
@@ -30,10 +31,7 @@ var _ = Describe("set-domain", func() {
 
 			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-
-			<-sess.Exited
-			Expect(sess.ExitCode()).To(Equal(0))
-
+			Eventually(sess).Should(gexec.Exit(0))
 		})
 
 		It("set-domain works with a TTL specified", func() {
@@ -41,10 +39,7 @@ var _ = Describe("set-domain", func() {
 
 			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-
-			<-sess.Exited
-			Expect(sess.ExitCode()).To(Equal(0))
-
+			Eventually(sess).Should(gexec.Exit(0))
 		})
 
 		It("set-domain prints to stderr when no domain specified", func() {
@@ -53,9 +48,7 @@ var _ = Describe("set-domain", func() {
 			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
-			<-sess.Exited
-			Expect(sess.ExitCode()).To(Equal(3))
-
+			Eventually(sess).Should(gexec.Exit(3))
 			Expect(sess.Err).To(gbytes.Say(`No domain given`))
 			Expect(sess.Err).To(gbytes.Say(`Usage`))
 		})
@@ -66,9 +59,7 @@ var _ = Describe("set-domain", func() {
 			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
-			<-sess.Exited
-			Expect(sess.ExitCode()).To(Equal(3))
-
+			Eventually(sess).Should(gexec.Exit(3))
 			Expect(sess.Err).To(gbytes.Say(`ttl is negative`))
 			Expect(sess.Err).To(gbytes.Say(`Usage:`))
 		})
@@ -79,9 +70,7 @@ var _ = Describe("set-domain", func() {
 			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
-			<-sess.Exited
-			Expect(sess.ExitCode()).To(Equal(3))
-
+			Eventually(sess).Should(gexec.Exit(3))
 			Expect(sess.Err).To(gbytes.Say(`invalid duration`))
 			Expect(sess.Err).To(gbytes.Say(`Usage:`))
 		})
@@ -99,9 +88,7 @@ var _ = Describe("set-domain", func() {
 			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
-			<-sess.Exited
-			Expect(sess.ExitCode()).To(Equal(4))
-
+			Eventually(sess, 2*time.Second).Should(gexec.Exit(4))
 			Expect(sess.Err).To(gbytes.Say("Invalid Response with status code: 500"))
 		})
 	})
@@ -122,9 +109,7 @@ var _ = Describe("set-domain", func() {
 
 				sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
-
-				<-sess.Exited
-				Expect(sess.ExitCode()).To(Equal(0))
+				Eventually(sess).Should(gexec.Exit(0))
 			})
 
 			It("works with a --bbsURL flag specified after set-domain", func() {
@@ -132,9 +117,7 @@ var _ = Describe("set-domain", func() {
 
 				sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
-
-				<-sess.Exited
-				Expect(sess.ExitCode()).To(Equal(0))
+				Eventually(sess).Should(gexec.Exit(0))
 			})
 		})
 	})

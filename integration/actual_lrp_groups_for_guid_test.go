@@ -28,8 +28,6 @@ var _ = Describe("actual-lrp-groups-for-guid", func() {
 			var err error
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-
-			<-sess.Exited
 		})
 
 		Context("when the server returns a valid response", func() {
@@ -53,11 +51,8 @@ var _ = Describe("actual-lrp-groups-for-guid", func() {
 				)
 			})
 
-			It("exits with status code of 0", func() {
-				Expect(sess.ExitCode()).To(Equal(0))
-			})
-
 			It("returns the json encoding of the actual lrp", func() {
+				Eventually(sess).Should(gexec.Exit(0))
 				Expect(sess.Out).To(gbytes.Say(`"state":"running"`))
 			})
 		})
@@ -78,11 +73,8 @@ var _ = Describe("actual-lrp-groups-for-guid", func() {
 				)
 			})
 
-			It("exits with status code 4", func() {
-				Expect(sess.ExitCode()).To(Equal(4))
-			})
-
-			It("should print the type and message of the error", func() {
+			It("exits with status code 4 and should print the type and message of the error", func() {
+				Eventually(sess).Should(gexec.Exit(4))
 				Expect(sess.Err).To(gbytes.Say("BBS error"))
 				Expect(sess.Err).To(gbytes.Say("Type 28: Deadlock"))
 				Expect(sess.Err).To(gbytes.Say("Message: the request failed due to deadlock"))
@@ -107,8 +99,7 @@ var _ = Describe("actual-lrp-groups-for-guid", func() {
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
-			<-sess.Exited
-			Expect(sess.ExitCode()).To(Equal(0))
+			Eventually(sess).Should(gexec.Exit(0))
 		})
 
 		BeforeEach(func() {

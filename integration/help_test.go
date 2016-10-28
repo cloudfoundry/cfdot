@@ -19,9 +19,7 @@ var _ = Describe("help", func() {
 			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
-			<-sess.Exited
-			Expect(sess.ExitCode()).To(Equal(0))
-
+			Eventually(sess).Should(gexec.Exit(0))
 			Expect(sess.Out).To(gbytes.Say("A command-line tool to interact with a Cloud Foundry Diego deployment"))
 			Expect(sess.Out).To(gbytes.Say("Usage:"))
 			Expect(sess.Out).To(gbytes.Say("cfdot"))
@@ -68,9 +66,7 @@ var _ = Describe("help", func() {
 			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
-			<-sess.Exited
-			Expect(sess.ExitCode()).To(Equal(0))
-
+			Eventually(sess).Should(gexec.Exit(0))
 			Expect(sess.Out).To(gbytes.Say("Mark a domain as fresh"))
 			Expect(sess.Out).To(gbytes.Say("Usage:"))
 			Expect(sess.Out).To(gbytes.Say("cfdot set-domain <domain>"))
@@ -94,8 +90,7 @@ var _ = Describe("help", func() {
 			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
-			<-sess.Exited
-			Expect(sess.ExitCode()).To(Equal(0))
+			Eventually(sess).Should(gexec.Exit(0))
 			Expect(sess.Out).To(gbytes.Say("Delete a desired LRP"))
 		})
 	})

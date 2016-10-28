@@ -25,15 +25,10 @@ var _ = Describe("desired-lrp-scheduling-infos", func() {
 			var err error
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-
-			Eventually(sess.Exited).Should(BeClosed())
 		})
 
-		It("exits with status code of 3", func() {
-			Expect(sess.ExitCode()).To(Equal(3))
-		})
-
-		It("prints the usage to stderr", func() {
+		It("exits with status code of 3 and prints the usage", func() {
+			Eventually(sess).Should(gexec.Exit(3))
 			Expect(sess.Err).To(gbytes.Say("cfdot desired-lrp-scheduling-infos \\[flags\\]"))
 		})
 	})
@@ -60,15 +55,10 @@ var _ = Describe("desired-lrp-scheduling-infos", func() {
 			var err error
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-
-			Eventually(sess.Exited).Should(BeClosed())
 		})
 
-		It("exits with status code of 0", func() {
-			Expect(sess.ExitCode()).To(Equal(0))
-		})
-
-		It("returns the json encoding of the desired lrp scheduling info", func() {
+		It("exits with 0  and returns the json encoding of the desired lrp scheduling info", func() {
+			Eventually(sess).Should(gexec.Exit(0))
 			Expect(sess.Out).To(gbytes.Say(`"instances":1`))
 		})
 	})
@@ -104,8 +94,7 @@ var _ = Describe("desired-lrp-scheduling-infos", func() {
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
-			<-sess.Exited
-			Expect(sess.ExitCode()).To(Equal(0))
+			Eventually(sess).Should(gexec.Exit(0))
 		})
 
 		It("exits with status code of 0", func() {
@@ -120,8 +109,7 @@ var _ = Describe("desired-lrp-scheduling-infos", func() {
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
-			<-sess.Exited
-			Expect(sess.ExitCode()).To(Equal(0))
+			Eventually(sess).Should(gexec.Exit(0))
 		})
 
 		It("exits with status code of 3", func() {
@@ -137,8 +125,7 @@ var _ = Describe("desired-lrp-scheduling-infos", func() {
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
-			<-sess.Exited
-			Expect(sess.ExitCode()).To(Equal(3))
+			Eventually(sess).Should(gexec.Exit(3))
 		})
 	})
 })

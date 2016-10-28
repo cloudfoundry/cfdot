@@ -43,14 +43,10 @@ var _ = Describe("actual-lrp-groups", func() {
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
-			Eventually(sess.Exited).Should(BeClosed())
-		})
-
-		It("exits with status code of 0", func() {
-			Expect(sess.ExitCode()).To(Equal(0))
 		})
 
 		It("returns the json encoding of the actual lrp", func() {
+			Eventually(sess).Should(gexec.Exit(0))
 			Expect(sess.Out).To(gbytes.Say(`"state":"running"`))
 		})
 	})
@@ -90,8 +86,7 @@ var _ = Describe("actual-lrp-groups", func() {
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
-			<-sess.Exited
-			Expect(sess.ExitCode()).To(Equal(0))
+			Eventually(sess).Should(gexec.Exit(0))
 		})
 
 		It("exits with status code of 0", func() {
@@ -107,8 +102,7 @@ var _ = Describe("actual-lrp-groups", func() {
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
-			<-sess.Exited
-			Expect(sess.ExitCode()).To(Equal(0))
+			Eventually(sess).Should(gexec.Exit(0))
 		})
 	})
 })

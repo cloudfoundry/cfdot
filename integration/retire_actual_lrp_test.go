@@ -43,9 +43,7 @@ var _ = Describe("retire-actual-lrp", func() {
 
 			session, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-
-			Eventually(session.Exited).Should(BeClosed())
-			Expect(session.ExitCode()).To(Equal(0))
+			Eventually(session).Should(gexec.Exit(0))
 		})
 	})
 
@@ -75,9 +73,7 @@ var _ = Describe("retire-actual-lrp", func() {
 
 			session, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-
-			Eventually(session.Exited).Should(BeClosed())
-			Expect(session.ExitCode()).To(Equal(4))
+			Eventually(session).Should(gexec.Exit(4))
 		})
 	})
 
@@ -93,9 +89,7 @@ var _ = Describe("retire-actual-lrp", func() {
 
 			session, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-
-			Eventually(session.Exited).Should(BeClosed())
-			Expect(session.ExitCode()).To(Equal(3))
+			Eventually(session).Should(gexec.Exit(3))
 		})
 	})
 })

@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"os/exec"
+	"time"
 
 	"code.cloudfoundry.org/bbs/models"
 
@@ -37,9 +38,7 @@ var _ = Describe("domains", func() {
 			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
-			<-sess.Exited
-			Expect(sess.ExitCode()).To(Equal(0))
-
+			Eventually(sess).Should(gexec.Exit(0))
 			Expect(sess.Out).To(gbytes.Say(`"domain-1"\n"domain-2"\n`))
 		})
 	})
@@ -56,9 +55,7 @@ var _ = Describe("domains", func() {
 			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
-			<-sess.Exited
-			Expect(sess.ExitCode()).To(Equal(4))
-
+			Eventually(sess, 2*time.Second).Should(gexec.Exit(4))
 			Expect(sess.Err).To(gbytes.Say("Invalid Response with status code: 500"))
 		})
 	})
@@ -85,15 +82,10 @@ var _ = Describe("domains", func() {
 			var err error
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-
-			<-sess.Exited
 		})
 
-		It("exits with status code 4", func() {
-			Expect(sess.ExitCode()).To(Equal(4))
-		})
-
-		It("should print the type and message of the error", func() {
+		It("exits with status code 4 and should print the type and message of the error", func() {
+			Eventually(sess).Should(gexec.Exit(4))
 			Expect(sess.Err).To(gbytes.Say("BBS error"))
 			Expect(sess.Err).To(gbytes.Say("Type 28: Deadlock"))
 			Expect(sess.Err).To(gbytes.Say("Message: the request failed due to deadlock"))
@@ -121,8 +113,7 @@ var _ = Describe("domains", func() {
 				sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
 
-				<-sess.Exited
-				Expect(sess.ExitCode()).To(Equal(0))
+				Eventually(sess).Should(gexec.Exit(0))
 			})
 
 			It("works with a --bbsURL flag specified after domains", func() {
@@ -131,8 +122,7 @@ var _ = Describe("domains", func() {
 				sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
 
-				<-sess.Exited
-				Expect(sess.ExitCode()).To(Equal(0))
+				Eventually(sess).Should(gexec.Exit(0))
 			})
 		})
 	})

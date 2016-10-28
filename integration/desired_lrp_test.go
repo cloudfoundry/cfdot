@@ -29,8 +29,6 @@ var _ = Describe("desired-lrp", func() {
 			var err error
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-
-			Eventually(sess.Exited).Should(BeClosed())
 		})
 
 		Context("when no arguments are provided", func() {
@@ -38,11 +36,8 @@ var _ = Describe("desired-lrp", func() {
 				args = []string{}
 			})
 
-			It("fails with exit code 3", func() {
-				Expect(sess.ExitCode()).To(Equal(3))
-			})
-
-			It("prints usage to stderr", func() {
+			It("fails with exit code 3 and prints the usage to stderr", func() {
+				Eventually(sess).Should(gexec.Exit(3))
 				Expect(sess.Err).To(gbytes.Say("Missing arguments"))
 				Expect(sess.Err).To(gbytes.Say("cfdot desired-lrp PROCESS_GUID \\[flags\\]"))
 			})
@@ -53,11 +48,8 @@ var _ = Describe("desired-lrp", func() {
 				args = []string{"arg1", "arg2"}
 			})
 
-			It("fails with exit code 3", func() {
-				Expect(sess.ExitCode()).To(Equal(3))
-			})
-
-			It("prints usage to stderr", func() {
+			It("fails with exit code 3 and prints the usage to stderr", func() {
+				Eventually(sess).Should(gexec.Exit(3))
 				Expect(sess.Err).To(gbytes.Say("Too many arguments specified"))
 				Expect(sess.Err).To(gbytes.Say("cfdot desired-lrp PROCESS_GUID \\[flags\\]"))
 			})
@@ -68,22 +60,20 @@ var _ = Describe("desired-lrp", func() {
 				args = []string{""}
 			})
 
-			It("fails with exit code 3", func() {
-				Expect(sess.ExitCode()).To(Equal(3))
-			})
-			It("prints usage to stderr", func() {
+			It("fails with exit code 3 and prints the usage to stderr", func() {
+				Eventually(sess).Should(gexec.Exit(3))
 				Expect(sess.Err).To(gbytes.Say("Process guid should be non empty string"))
 				Expect(sess.Err).To(gbytes.Say("cfdot desired-lrp PROCESS_GUID \\[flags\\]"))
 			})
 		})
 
 		Context("when a desired-lrp process_guid is provided", func() {
-			var (
-				desiredLRP *models.DesiredLRP
-			)
+			var desiredLRP *models.DesiredLRP
+
 			BeforeEach(func() {
 				args = []string{"test-guid"}
 			})
+
 			Context("when bbs responds with 200 status code", func() {
 				BeforeEach(func() {
 					desiredLRP = &models.DesiredLRP{
@@ -106,11 +96,8 @@ var _ = Describe("desired-lrp", func() {
 
 				})
 
-				It("exits with status code of 0", func() {
-					Expect(sess.ExitCode()).To(Equal(0))
-				})
-
-				It("returns the json encoding of the desired lrp scheduling info", func() {
+				It("exits with status 0 and returns the json encoding of the desired lrp scheduling info", func() {
+					Eventually(sess).Should(gexec.Exit(0))
 					jsonData, err := json.Marshal(desiredLRP)
 					Expect(err).NotTo(HaveOccurred())
 
@@ -133,11 +120,8 @@ var _ = Describe("desired-lrp", func() {
 					)
 				})
 
-				It("exits with status code of 4", func() {
-					Expect(sess.ExitCode()).To(Equal(4))
-				})
-
-				It("prints the error", func() {
+				It("exits with status 4 and prints the error", func() {
+					Eventually(sess).Should(gexec.Exit(4))
 					Expect(sess.Err).To(gbytes.Say("deadlock"))
 				})
 			})
