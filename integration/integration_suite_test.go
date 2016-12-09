@@ -38,6 +38,7 @@ var _ = BeforeEach(func() {
 })
 
 var _ = AfterEach(func() {
+	bbsServer.CloseClientConnections()
 	bbsServer.Close()
 })
 
