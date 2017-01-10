@@ -34,15 +34,13 @@ var _ = Describe("desired-lrps", func() {
 			)
 		})
 
-		JustBeforeEach(func() {
+		It("returns the json encoding of the desired lrp scheduling info", func() {
 			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "desired-lrps")
 
 			var err error
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-		})
 
-		It("returns the json encoding of the desired lrp scheduling info", func() {
 			Eventually(sess).Should(gexec.Exit(0))
 			Expect(sess.Out).To(gbytes.Say(`"instances":1`))
 		})
