@@ -65,50 +65,34 @@ var _ = Describe("desired-lrps", func() {
 			)
 		})
 
-		It("exits with status code of 0", func() {
-			cfdotCmd := exec.Command(
-				cfdotPath,
-				"--bbsURL", bbsServer.URL(),
-				"desired-lrps",
-				"-d", "cf-apps",
-			)
+		Context("when -d is used as a filter flag", func() {
+			It("exits with a status code of 0", func() {
+				cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "desired-lrps", "-d", "cf-apps")
+				sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+				Expect(err).NotTo(HaveOccurred())
 
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-
-			Eventually(sess).Should(gexec.Exit(0))
+				Eventually(sess).Should(gexec.Exit(0))
+			})
 		})
 
-		It("exits with status code of 0", func() {
-			cfdotCmd := exec.Command(
-				cfdotPath,
-				"--bbsURL", bbsServer.URL(),
-				"desired-lrps",
-				"--domain", "cf-apps",
-			)
+		Context("when --domain is used as a filter flag", func() {
+			It("exits with a status code of 0", func() {
+				cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "desired-lrps", "--domain", "cf-apps")
+				sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+				Expect(err).NotTo(HaveOccurred())
 
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-
-			Eventually(sess).Should(gexec.Exit(0))
+				Eventually(sess).Should(gexec.Exit(0))
+			})
 		})
 
-		It("exits with status code of 3", func() {
-			cfdotCmd := exec.Command(
-				cfdotPath,
-				"--bbsURL", bbsServer.URL(),
-				"desired-lrps",
-				"--domain", "cf-apps",
-				"-d", "cf-apps",
-			)
+		Context("when --domain and -d are supplied as filter flags", func() {
+			It("exits with a status code of 3", func() {
+				cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "desired-lrps", "--domain", "cf-apps", "-d", "cf-apps")
+				sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+				Expect(err).NotTo(HaveOccurred())
 
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-
-			Eventually(sess).Should(gexec.Exit(3))
+				Eventually(sess).Should(gexec.Exit(3))
+			})
 		})
 	})
 })

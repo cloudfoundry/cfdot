@@ -33,19 +33,19 @@ var _ = Describe("tasks", func() {
 		})
 
 		JustBeforeEach(func() {
-			bbsClient.TasksReturns(testData, testError)
+			bbsClient.TasksWithFilterReturns(testData, testError)
 		})
 
 		It("fetches tasks from BBS", func() {
-			err := commands.Tasks(stdout, nil, bbsClient)
+			err := commands.Tasks(stdout, nil, bbsClient, "", "")
 			Expect(err).NotTo(HaveOccurred())
-			Expect(bbsClient.TasksCallCount()).To(Equal(1))
+			Expect(bbsClient.TasksWithFilterCallCount()).To(Equal(1))
 		})
 
 		It("outputs some JSON tasks", func() {
 			bbsClient.TasksReturns(testData, nil)
 
-			err := commands.Tasks(stdout, nil, bbsClient)
+			err := commands.Tasks(stdout, nil, bbsClient, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			expectedOutput1, err := json.Marshal(&testTask1)
@@ -56,13 +56,60 @@ var _ = Describe("tasks", func() {
 			Expect(stdout).To(gbytes.Say(string(expectedOutput1) + "\n" + string(expectedOutput2)))
 		})
 
+		Context("when there are task filters", func() {
+			Context("when there is the domain filter", func() {
+				It("should filter by domain", func() {
+					err := commands.Tasks(stdout, nil, bbsClient, "domain", "")
+					Expect(err).NotTo(HaveOccurred())
+
+					_, filter := bbsClient.TasksWithFilterArgsForCall(0)
+					Expect(filter).To(Equal(models.TaskFilter{Domain: "domain"}))
+
+					expectedOutput1, err := json.Marshal(&testTask1)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(stdout).To(gbytes.Say(string(expectedOutput1)))
+				})
+			})
+
+			Context("when there is the cellID filter", func() {
+				It("should filter by cellID", func() {
+					err := commands.Tasks(stdout, nil, bbsClient, "", "cell-id")
+					Expect(err).NotTo(HaveOccurred())
+
+					_, filter := bbsClient.TasksWithFilterArgsForCall(0)
+					Expect(filter).To(Equal(models.TaskFilter{CellID: "cell-id"}))
+
+					expectedOutput1, err := json.Marshal(&testTask1)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(stdout).To(gbytes.Say(string(expectedOutput1)))
+				})
+			})
+
+			Context("when there is the cellID filter", func() {
+				It("should filter by cellID", func() {
+					err := commands.Tasks(stdout, nil, bbsClient, "domain", "cell-id")
+					Expect(err).NotTo(HaveOccurred())
+
+					_, filter := bbsClient.TasksWithFilterArgsForCall(0)
+					Expect(filter).To(Equal(models.TaskFilter{Domain: "domain", CellID: "cell-id"}))
+
+					expectedOutput1, err := json.Marshal(&testTask1)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(stdout).To(gbytes.Say(string(expectedOutput1)))
+				})
+			})
+		})
+
 		Context("when there are no tasks", func() {
 			BeforeEach(func() {
 				testData = []*models.Task{}
 			})
 
 			It("outputs nothing", func() {
-				err := commands.Tasks(stdout, nil, bbsClient)
+				err := commands.Tasks(stdout, nil, bbsClient, "", "")
 				Expect(err).NotTo(HaveOccurred())
 				Expect(stdout.Contents()).To(BeEmpty())
 			})
@@ -71,8 +118,8 @@ var _ = Describe("tasks", func() {
 		Context("when BBS returns an error", func() {
 			It("should return the error", func() {
 				testError := errors.New("barf")
-				bbsClient.TasksReturns(nil, testError)
-				err := commands.Tasks(stdout, nil, bbsClient)
+				bbsClient.TasksWithFilterReturns(nil, testError)
+				err := commands.Tasks(stdout, nil, bbsClient, "", "")
 				Expect(err).To(Equal(testError))
 			})
 		})
@@ -81,7 +128,7 @@ var _ = Describe("tasks", func() {
 			It("should return the error", func() {
 				err := stdout.Close()
 				Expect(err).NotTo(HaveOccurred())
-				err = commands.Tasks(stdout, nil, bbsClient)
+				err = commands.Tasks(stdout, nil, bbsClient, "", "")
 				Expect(err).To(HaveOccurred())
 			})
 		})
