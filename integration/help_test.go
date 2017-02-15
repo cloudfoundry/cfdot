@@ -26,36 +26,42 @@ var _ = Describe("help", func() {
 			Expect(sess.Out).To(gbytes.Say("Available Commands:"))
 			Expect(sess.Out).To(gbytes.Say("delete-desired-lrp"))
 			Expect(sess.Out).To(gbytes.Say("domains"))
+			Expect(sess.Out).To(gbytes.Say("help"))
 			Expect(sess.Out).To(gbytes.Say("set-domain"))
 		})
 	}
 
 	Context("called with no command", func() {
 		BeforeEach(func() {
-			cfdotCmd = exec.Command(cfdotPath, "help")
-		})
-		itPrintsHelp()
-	})
-
-	Context("called with help option", func() {
-		BeforeEach(func() {
-			cfdotCmd = exec.Command(cfdotPath, "help")
+			cfdotCmd = exec.Command(cfdotPath)
 		})
 		itPrintsHelp()
 	})
 
 	Context("called with -h", func() {
 		BeforeEach(func() {
-			cfdotCmd = exec.Command(cfdotPath, "help")
+			cfdotCmd = exec.Command(cfdotPath, "-h")
 		})
 		itPrintsHelp()
 	})
 
 	Context("called with --help", func() {
 		BeforeEach(func() {
-			cfdotCmd = exec.Command(cfdotPath, "help")
+			cfdotCmd = exec.Command(cfdotPath, "--help")
 		})
 		itPrintsHelp()
+	})
+
+	Context("help task", func() {
+		It("should print the usage for the help command", func() {
+			cfdotCmd = exec.Command(cfdotPath, "help")
+			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(sess).Should(gexec.Exit(0))
+			Expect(sess.Out).To(gbytes.Say("Get help on using cfdot commands"))
+			Expect(sess.Out).To(gbytes.Say("Usage:"))
+			Expect(sess.Out).To(gbytes.Say("cfdot help CMD"))
+		})
 	})
 
 	Context("called `cfdot help set-domain`", func() {
