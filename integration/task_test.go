@@ -66,7 +66,7 @@ var _ = Describe("task", func() {
 	})
 
 	Context("validates that exactly one guid is passed in", func() {
-		It("fails with no arugments and prints the usage", func() {
+		It("fails with no arguments and prints the usage", func() {
 			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "task")
 
 			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
