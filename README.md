@@ -19,6 +19,7 @@ Available Commands:
   actual-lrp-groups-for-guid   List actual LRP groups for a process guid
   create-desired-lrp           Create a desired LRP
   delete-desired-lrp           Delete a desired LRP
+  delete-task                  Delete a Task
   desired-lrp                  Show the specified desired LRP
   desired-lrp-scheduling-infos List desired LRP scheduling infos
   desired-lrps                 List desired LRPs
