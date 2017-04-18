@@ -10,7 +10,7 @@ import (
 )
 
 var retireActualLRPCmd = &cobra.Command{
-	Use:   "retire-actual-lrp <process-guid> <index>",
+	Use:   "retire-actual-lrp PROCESS_GUID INDEX",
 	Short: "Retire actual LRP by index and process guid",
 	Long:  "Retire actual LRP by index and process guid",
 	RunE:  retireActualLRP,

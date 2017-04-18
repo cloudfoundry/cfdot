@@ -75,7 +75,7 @@ var _ = Describe("help", func() {
 			Eventually(sess).Should(gexec.Exit(0))
 			Expect(sess.Out).To(gbytes.Say("Mark a domain as fresh"))
 			Expect(sess.Out).To(gbytes.Say("Usage:"))
-			Expect(sess.Out).To(gbytes.Say("cfdot set-domain <domain>"))
+			Expect(sess.Out).To(gbytes.Say("cfdot set-domain DOMAIN"))
 			Expect(sess.Out).To(gbytes.Say("Flags:"))
 			Expect(sess.Out).To(gbytes.Say("--bbsCACertFile"))
 			Expect(sess.Out).To(gbytes.Say("--bbsCertFile"))

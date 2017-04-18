@@ -20,7 +20,7 @@ var (
 )
 
 var setDomainCmd = &cobra.Command{
-	Use:   "set-domain <domain>",
+	Use:   "set-domain DOMAIN",
 	Short: "Set domain",
 	Long:  "Mark a domain as fresh for ttl seconds, where 0 or non-specified means keep fresh permanently",
 	RunE:  setDomain,

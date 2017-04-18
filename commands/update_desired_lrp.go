@@ -15,7 +15,7 @@ import (
 )
 
 var updateDesiredLRPCmd = &cobra.Command{
-	Use:   "update-desired-lrp process-guid (spec|@file)",
+	Use:   "update-desired-lrp process-guid (SPEC|@FILE)",
 	Short: "Update a desired LRP",
 	Long:  "Update a desired LRP for a process-guid with the given spec. Spec can either be json encoded update to a desired-lrp, e.g. '{\"instances\":\"4\"}', or a file containing json encoded update to a desired-lrp, e.g. @/path/to/spec/file",
 	RunE:  updateDesiredLRP,

@@ -32,7 +32,7 @@ var _ = Describe("update-desired-lrp", func() {
 		It("exits with status 3 and prints an error on stderr", func() {
 			Eventually(sess).Should(gexec.Exit(3))
 			Expect(sess.Err).To(gbytes.Say(`Missing arguments`))
-			Expect(sess.Err).To(gbytes.Say("cfdot update-desired-lrp process-guid \\(spec\\|@file\\) .*"))
+			Expect(sess.Err).To(gbytes.Say("cfdot update-desired-lrp process-guid \\(SPEC\\|@FILE\\) .*"))
 		})
 	})
 

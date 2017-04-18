@@ -34,7 +34,7 @@ var _ = Describe("create-desired-lrp", func() {
 		It("exits with status code of 3 and prints the error and usage", func() {
 			Eventually(sess).Should(gexec.Exit(3))
 			Expect(sess.Err).To(gbytes.Say(`missing spec`))
-			Expect(sess.Err).To(gbytes.Say("cfdot create-desired-lrp \\(spec\\|@file\\) .*"))
+			Expect(sess.Err).To(gbytes.Say("cfdot create-desired-lrp \\(SPEC\\|@FILE\\) .*"))
 		})
 	})
 

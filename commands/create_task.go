@@ -15,7 +15,7 @@ import (
 )
 
 var createTaskCmd = &cobra.Command{
-	Use:   "create-task (spec|@file)",
+	Use:   "create-task (SPEC|@FILE)",
 	Short: "Create a Task",
 	Long:  "Create a Task from the given spec. Spec can either be json encoded task, e.g. '{\"task_guid\":\"some-guid\"}' or a file containing json encoded task, e.g. @/path/to/spec/file",
 	RunE:  createTask,

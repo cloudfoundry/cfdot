@@ -11,7 +11,7 @@ import (
 )
 
 var cellCmd = &cobra.Command{
-	Use:   "cell <cell-id>",
+	Use:   "cell CELL_ID",
 	Short: "Show the specified cell presence",
 	Long:  "Show the cell presence specified by the given cell id",
 	RunE:  cell,
