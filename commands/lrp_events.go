@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"code.cloudfoundry.org/bbs"
+	"code.cloudfoundry.org/bbs/models"
 	"github.com/spf13/cobra"
 )
 
@@ -56,7 +57,7 @@ func LRPEvents(stdout, stderr io.Writer, bbsClient bbs.Client) error {
 
 	es, err := bbsClient.SubscribeToEvents(logger)
 	if err != nil {
-		return err
+		return models.ConvertError(err)
 	}
 	defer es.Close()
 	encoder := json.NewEncoder(stdout)

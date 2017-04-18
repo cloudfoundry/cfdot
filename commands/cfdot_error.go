@@ -31,9 +31,16 @@ func (a CFDotError) ExitCode() int {
 func NewCFDotError(cmd *cobra.Command, err error) CFDotError {
 	cmd.SilenceUsage = true
 
+	if _, ok := err.(*models.Error); ok {
+		return CFDotError{
+			err:      err,
+			exitCode: 4,
+		}
+	}
+
 	return CFDotError{
 		err:      err,
-		exitCode: 4,
+		exitCode: 5,
 	}
 }
 
