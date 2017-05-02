@@ -1,8 +1,10 @@
 # cfdot
 
-`cfdot` is the CF Diego Operator Toolkit, a CLI tool designed to interact with Diego components.
+`cfdot` is the CF Diego Operator Toolkit, a CLI tool designed to interact with
+Diego components.
 
-At present, its commands focus on the Diego BBS API, the main public interface to a Diego deployment.
+At present, its commands focus on the Diego BBS API, the main public interface
+to a Diego deployment.
 
 
 ## Current Commands
@@ -34,15 +36,17 @@ Use "cfdot [command] --help" for more information about a command.
 
 ## Running from a BOSH-deployed VM
 
-`cfdot` is most useful in the context of a running Diego deployment.
-If you use the [`generate-deployment-manifest`](https://github.com/cloudfoundry/diego-release/blob/master/scripts/generate-deployment-manifest) script in diego-release to generate your Diego manifest, `cfdot` is already available on the BOSH-deployed Diego VMs. To use it:
+`cfdot` is most useful in the context of a running Diego deployment.  If you
+use the [`generate-deployment-manifest`](https://github.com/cloudfoundry/diego-release/blob/master/scripts/generate-deployment-manifest)
+script in diego-release to generate your Diego manifest, `cfdot` is already
+available on the BOSH-deployed Diego VMs. To use it:
 
 ```bash
-$ bosh ssh <DIEGO_JOB>/<INDEX>
-
-$ source /var/vcap/jobs/cfdot/bin/setup
+bosh ssh <DIEGO_JOB>/<INDEX>
+cfdot
 ```
 
+The `cfdot` pre-start script installs the `setup` script into `/etc/profile.d`.
 This `setup` script does 3 things:
 
 - Exports environment variables to target the BBS API in the deployment.
@@ -67,8 +71,9 @@ UNCLAIMED: 1
 
 `cfdot` requires the [Diego BBS client library](https://github.com/cloudfoundry/bbs).
 If you have already cloned [diego-release](https://github.com/cloudfoundry/diego-release),
-you can run the following commands using that diego-release directory as your GOPATH.
-Alternatively, run these commands with any other GOPATH and `go get` will automatically fetch the latest BBS code from diego-release.
+you can run the following commands using that diego-release directory as your
+GOPATH.  Alternatively, run these commands with any other GOPATH and `go get`
+will automatically fetch the latest BBS code from diego-release.
 
 ```bash
 # Get cfdot and required dependencies
