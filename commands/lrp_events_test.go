@@ -28,7 +28,7 @@ var _ = Describe("LRP Events", func() {
 		stderr = gbytes.NewBuffer()
 		fakeBBSClient = &fake_bbs.FakeClient{}
 		fakeEventSource = &eventfakes.FakeEventSource{}
-		fakeBBSClient.SubscribeToEventsReturns(fakeEventSource, nil)
+		fakeBBSClient.SubscribeToEventsByCellIDReturns(fakeEventSource, nil)
 
 		lrp = &models.DesiredLRP{
 			ProcessGuid: "some-desired-lrp",
@@ -55,7 +55,7 @@ var _ = Describe("LRP Events", func() {
 
 		expectedLines := []string{string(data), string(data)}
 
-		err = commands.LRPEvents(stdout, stderr, fakeBBSClient)
+		err = commands.LRPEvents(stdout, stderr, fakeBBSClient, "")
 		Expect(err).NotTo(HaveOccurred())
 
 		stdoutData := stdout.Contents()
@@ -68,7 +68,7 @@ var _ = Describe("LRP Events", func() {
 	})
 
 	It("closes the event stream", func() {
-		err := commands.LRPEvents(stdout, stderr, fakeBBSClient)
+		err := commands.LRPEvents(stdout, stderr, fakeBBSClient, "")
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeEventSource.CloseCallCount()).To(Equal(1))
@@ -76,11 +76,11 @@ var _ = Describe("LRP Events", func() {
 
 	Context("when failing to subscribe to events", func() {
 		BeforeEach(func() {
-			fakeBBSClient.SubscribeToEventsReturns(nil, errors.New("failed to connect"))
+			fakeBBSClient.SubscribeToEventsByCellIDReturns(nil, errors.New("failed to connect"))
 		})
 
 		It("returns an error", func() {
-			err := commands.LRPEvents(stdout, stderr, fakeBBSClient)
+			err := commands.LRPEvents(stdout, stderr, fakeBBSClient, "")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("failed to connect"))
 		})
@@ -93,7 +93,7 @@ var _ = Describe("LRP Events", func() {
 		})
 
 		It("returns an error", func() {
-			err := commands.LRPEvents(stdout, stderr, fakeBBSClient)
+			err := commands.LRPEvents(stdout, stderr, fakeBBSClient, "")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("boom"))
 		})

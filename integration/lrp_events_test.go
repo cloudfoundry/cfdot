@@ -6,6 +6,7 @@ import (
 	"code.cloudfoundry.org/bbs/events"
 	"code.cloudfoundry.org/bbs/models"
 
+	"github.com/gogo/protobuf/proto"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -16,6 +17,67 @@ import (
 var _ = Describe("lrp-events", func() {
 	itValidatesBBSFlags("lrp-events")
 	itHasNoArgs("lrp-events")
+
+	Context("events filtering by cell id", func() {
+		var (
+			session *gexec.Session
+			cmd     *exec.Cmd
+		)
+
+		BeforeEach(func() {
+			var err error
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		JustBeforeEach(func() {
+			var err error
+			session, err = gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		AfterEach(func() {
+			Eventually(session).Should(gexec.Exit())
+		})
+
+		Context("when the cell id is specified", func() {
+			BeforeEach(func() {
+				expectedRequest := &models.EventsByCellId{CellId: "some-cell-id"}
+				expectedBody, err := proto.Marshal(expectedRequest)
+				Expect(err).NotTo(HaveOccurred())
+				bbsServer.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/v1/events"),
+						ghttp.VerifyBody(expectedBody),
+					),
+				)
+				cmd = exec.Command(cfdotPath, "lrp-events", "--bbsURL", bbsServer.URL(), "-c", "some-cell-id")
+			})
+
+			It("passes the cell id to the bbs client", func() {
+				Eventually(bbsServer.ReceivedRequests).Should(HaveLen(1))
+			})
+		})
+
+		Context("when the cell id is not specified", func() {
+			BeforeEach(func() {
+				expectedRequest := &models.EventsByCellId{CellId: ""}
+				expectedBody, err := proto.Marshal(expectedRequest)
+				Expect(err).NotTo(HaveOccurred())
+				bbsServer.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/v1/events"),
+						ghttp.VerifyBody(expectedBody),
+					),
+				)
+				cmd = exec.Command(cfdotPath, "lrp-events", "--bbsURL", bbsServer.URL())
+			})
+
+			It("passes empty cell id to the bbs client", func() {
+				Eventually(bbsServer.ReceivedRequests).Should(HaveLen(1))
+			})
+		})
+
+	})
 
 	Context("when the server responds with events", func() {
 		BeforeEach(func() {

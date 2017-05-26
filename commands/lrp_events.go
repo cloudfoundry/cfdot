@@ -9,6 +9,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	lrpEventsCellIdFlag string
+)
+
 var lrpEventsCmd = &cobra.Command{
 	Use:   "lrp-events",
 	Short: "Subscribe to BBS LRP events",
@@ -24,6 +28,8 @@ type LRPEvent struct {
 func init() {
 	AddBBSFlags(lrpEventsCmd)
 
+	lrpEventsCmd.Flags().StringVarP(&lrpEventsCellIdFlag, "cell-id", "c", "", "retrieve only events for the given cell id")
+
 	RootCmd.AddCommand(lrpEventsCmd)
 }
 
@@ -38,7 +44,7 @@ func lrpEvents(cmd *cobra.Command, args []string) error {
 		return NewCFDotError(cmd, err)
 	}
 
-	err = LRPEvents(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient)
+	err = LRPEvents(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, lrpEventsCellIdFlag)
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}
@@ -52,10 +58,10 @@ func validateLRPEventsArguments(args []string) error {
 	return nil
 }
 
-func LRPEvents(stdout, stderr io.Writer, bbsClient bbs.Client) error {
+func LRPEvents(stdout, stderr io.Writer, bbsClient bbs.Client, cellID string) error {
 	logger := globalLogger.Session("lrp-events")
 
-	es, err := bbsClient.SubscribeToEvents(logger)
+	es, err := bbsClient.SubscribeToEventsByCellID(logger, cellID)
 	if err != nil {
 		return models.ConvertError(err)
 	}
