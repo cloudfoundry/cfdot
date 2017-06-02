@@ -46,6 +46,22 @@ var _ = Describe("CfDotError", func() {
 		})
 	})
 
+	Context("when a locket error occurs", func() {
+		BeforeEach(func() {
+			err = commands.NewCFDotLocketError(cmd, &models.Error{
+				Type:    models.Error_UnknownError,
+				Message: "connection refused",
+			})
+		})
+		It("returns an exit code of 4", func() {
+			Expect(err.ExitCode()).To(Equal(4))
+		})
+
+		It("silence the usage message", func() {
+			Expect(cmd.SilenceUsage).To(BeTrue())
+		})
+	})
+
 	Context("when a validation error occurs", func() {
 		BeforeEach(func() {
 			err = commands.NewCFDotValidationError(cmd, errors.New("some error"))
