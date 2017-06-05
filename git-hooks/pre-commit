@@ -1,0 +1,8 @@
+#!/bin/bash
+
+cfdot_documentation_updated=$(scripts/check-cfdot-documentation)
+if [ -n "$cfdot_documentation_updated" ]; then
+  echo $'cfdot documentation needs to be updated with the current available commands'
+  echo
+  exit 1
+fi
