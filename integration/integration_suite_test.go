@@ -2,8 +2,12 @@ package integration_test
 
 import (
 	"encoding/json"
+	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
+
+	"google.golang.org/grpc/grpclog"
 
 	"code.cloudfoundry.org/bbs/test_helpers"
 	"code.cloudfoundry.org/bbs/test_helpers/sqlrunner"
@@ -48,6 +52,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 	return []byte(bytes)
 }, func(data []byte) {
+	grpclog.SetLogger(log.New(ioutil.Discard, "", 0))
 	paths := []string{}
 	err := json.Unmarshal(data, &paths)
 	Expect(err).NotTo(HaveOccurred())
