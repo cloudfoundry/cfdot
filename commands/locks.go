@@ -12,8 +12,8 @@ import (
 
 var locksCmd = &cobra.Command{
 	Use:   "locks",
-	Short: "List registered cell presences",
-	Long:  "List registered cell presences from Locket",
+	Short: "List locks",
+	Long:  "List locks from Locket",
 	RunE:  locks,
 }
 

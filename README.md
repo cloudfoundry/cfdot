@@ -31,7 +31,7 @@ Available Commands:
   desired-lrps                 List desired LRPs
   domains                      List domains
   help                         Get help on [command]
-  locks                        List registered cell presences
+  locks                        List locks
   lrp-events                   Subscribe to BBS LRP events
   retire-actual-lrp            Retire actual LRP by index and process guid
   set-domain                   Set domain
