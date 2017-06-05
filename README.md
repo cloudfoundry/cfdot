@@ -19,19 +19,25 @@ Usage:
 Available Commands:
   actual-lrp-groups            List actual LRP groups
   actual-lrp-groups-for-guid   List actual LRP groups for a process guid
+  cancel-task                  Cancel task
+  cell                         Show the specified cell presence
+  cells                        List registered cell presences
   create-desired-lrp           Create a desired LRP
+  create-task                  Create a Task
   delete-desired-lrp           Delete a desired LRP
   delete-task                  Delete a Task
   desired-lrp                  Show the specified desired LRP
   desired-lrp-scheduling-infos List desired LRP scheduling infos
   desired-lrps                 List desired LRPs
   domains                      List domains
+  help                         Get help on [command]
+  locks                        List registered cell presences
+  lrp-events                   Subscribe to BBS LRP events
   retire-actual-lrp            Retire actual LRP by index and process guid
   set-domain                   Set domain
   task                         Display task
+  tasks                        List tasks in BBS
   update-desired-lrp           Update a desired LRP
-
-Use "cfdot [command] --help" for more information about a command.
 ```
 
 ## Running from a BOSH-deployed VM
