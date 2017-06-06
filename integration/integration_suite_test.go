@@ -139,7 +139,7 @@ func itValidatesLocketFlags(args ...string) {
 	})
 }
 
-func itHasNoArgs(command string) {
+func itHasNoArgs(command string, locketFlags bool) {
 	var (
 		sess *gexec.Session
 	)
@@ -147,7 +147,7 @@ func itHasNoArgs(command string) {
 		BeforeEach(func() {
 			urlFlag := "--bbsURL"
 			url := bbsServer.URL()
-			if command == "locks" {
+			if locketFlags {
 				urlFlag = "--locketAPILocation"
 				url = locketAPILocation
 			}

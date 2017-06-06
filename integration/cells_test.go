@@ -16,7 +16,7 @@ var _ = Describe("cells", func() {
 	var sess *gexec.Session
 
 	itValidatesBBSFlags("cells")
-	itHasNoArgs("cells")
+	itHasNoArgs("cells", false)
 
 	Context("when cells command is called", func() {
 		BeforeEach(func() {

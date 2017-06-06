@@ -18,9 +18,9 @@ import (
 	"github.com/tedsuo/ifrit/ginkgomon"
 )
 
-var _ = Describe("locks", func() {
-	itValidatesLocketFlags("locks")
-	itHasNoArgs("locks", true)
+var _ = Describe("Presences", func() {
+	itValidatesLocketFlags("presences")
+	itHasNoArgs("presences", true)
 
 	var (
 		locketClientCertFile string
@@ -39,7 +39,7 @@ var _ = Describe("locks", func() {
 		logger = lagertest.NewTestLogger("locket")
 	})
 
-	Context("when the server responds with locks", func() {
+	Context("when the server responds with presences", func() {
 		BeforeEach(func() {
 			locketConfig := locket.ClientLocketConfig{
 				LocketAddress:        locketAPILocation,
@@ -55,7 +55,7 @@ var _ = Describe("locks", func() {
 					Key:   "key",
 					Owner: "owner",
 					Value: "value",
-					Type:  "lock",
+					Type:  models.PresenceType,
 				},
 				TtlInSeconds: 10,
 			}
@@ -65,7 +65,7 @@ var _ = Describe("locks", func() {
 		})
 
 		It("locks prints a json stream of all the locks", func() {
-			cfdotCmd := exec.Command(cfdotPath, "--locketAPILocation", locketAPILocation, "locks")
+			cfdotCmd := exec.Command(cfdotPath, "--locketAPILocation", locketAPILocation, "presences")
 
 			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
@@ -80,8 +80,8 @@ var _ = Describe("locks", func() {
 			ginkgomon.Interrupt(locketProcess)
 		})
 
-		It("locks fails with a relevant error message", func() {
-			cfdotCmd := exec.Command(cfdotPath, "--locketAPILocation", locketAPILocation, "locks")
+		It("presences fails with a relevant error message", func() {
+			cfdotCmd := exec.Command(cfdotPath, "--locketAPILocation", locketAPILocation, "presences")
 
 			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())

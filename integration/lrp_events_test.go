@@ -16,7 +16,7 @@ import (
 
 var _ = Describe("lrp-events", func() {
 	itValidatesBBSFlags("lrp-events")
-	itHasNoArgs("lrp-events")
+	itHasNoArgs("lrp-events", false)
 
 	Context("events filtering by cell id", func() {
 		var (

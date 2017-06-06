@@ -16,7 +16,7 @@ var _ = Describe("desired-lrp-scheduling-infos", func() {
 	var sess *gexec.Session
 
 	itValidatesBBSFlags("desired-lrp-scheduling-infos")
-	itHasNoArgs("desired-lrp-scheduling-infos")
+	itHasNoArgs("desired-lrp-scheduling-infos", false)
 
 	Context("when extra arguments are passed", func() {
 		BeforeEach(func() {

@@ -33,6 +33,7 @@ Available Commands:
   help                         Get help on [command]
   locks                        List locks
   lrp-events                   Subscribe to BBS LRP events
+  presences                    List registered cell presences
   retire-actual-lrp            Retire actual LRP by index and process guid
   set-domain                   Set domain
   task                         Display task
