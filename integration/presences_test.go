@@ -87,7 +87,7 @@ var _ = Describe("Presences", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(sess, 2*time.Second).Should(gexec.Exit(4))
-			Expect(sess.Err).To(gbytes.Say("the connection is unavailable"))
+			Expect(sess.Err).To(gbytes.Say("connection refused"))
 		})
 	})
 })
