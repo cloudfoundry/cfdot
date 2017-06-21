@@ -22,6 +22,7 @@ Available Commands:
   cancel-task                  Cancel task
   cell                         Show the specified cell presence
   cells                        List registered cell presences
+  claim-lock                   Claim Locket Lock
   create-desired-lrp           Create a desired LRP
   create-task                  Create a Task
   delete-desired-lrp           Delete a desired LRP
