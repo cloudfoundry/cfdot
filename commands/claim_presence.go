@@ -9,32 +9,24 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// flags
-var (
-	lockKey      string
-	lockOwner    string
-	lockValue    string
-	ttlInSeconds int
-)
-
-var claimLockCmd = &cobra.Command{
-	Use:   "claim-lock",
-	Short: "Claim Locket Lock",
-	Long:  "Claims a Locket lock with the given `key`, `owner`, and `value`",
-	RunE:  claimLock,
+var claimPresenceCmd = &cobra.Command{
+	Use:   "claim-presence",
+	Short: "Claim Presence",
+	Long:  "Claims a Locket presence with the given `key`, `owner`, and `value`",
+	RunE:  claimPresence,
 }
 
 func init() {
-	AddLocketFlags(claimLockCmd)
-	claimLockCmd.Flags().StringVarP(&lockKey, "key", "k", "", "the key of the lock being claimed")
-	claimLockCmd.Flags().StringVarP(&lockOwner, "owner", "o", "", "the lock owner")
-	claimLockCmd.Flags().StringVarP(&lockValue, "value", "v", "", "the value associated with the key")
-	claimLockCmd.Flags().IntVarP(&ttlInSeconds, "ttl", "t", 0, "the TTL for the lock")
-	RootCmd.AddCommand(claimLockCmd)
+	AddLocketFlags(claimPresenceCmd)
+	claimPresenceCmd.Flags().StringVarP(&lockKey, "key", "k", "", "the key of the presence being claimed")
+	claimPresenceCmd.Flags().StringVarP(&lockOwner, "owner", "o", "", "the presence owner")
+	claimPresenceCmd.Flags().StringVarP(&lockValue, "value", "v", "", "the value associated with the presence")
+	claimPresenceCmd.Flags().IntVarP(&ttlInSeconds, "ttl", "t", 0, "the TTL for the presence")
+	RootCmd.AddCommand(claimPresenceCmd)
 }
 
-func claimLock(cmd *cobra.Command, args []string) error {
-	err := ValidateClaimLocksArguments(cmd, args, lockKey, lockOwner, lockValue, ttlInSeconds)
+func claimPresence(cmd *cobra.Command, args []string) error {
+	err := ValidateClaimPresenceArguments(cmd, args, lockKey, lockOwner, lockValue, ttlInSeconds)
 	if err != nil {
 		return NewCFDotValidationError(cmd, err)
 	}
@@ -45,7 +37,7 @@ func claimLock(cmd *cobra.Command, args []string) error {
 		return NewCFDotLocketError(cmd, err)
 	}
 
-	err = ClaimLock(
+	err = ClaimPresence(
 		cmd.OutOrStdout(),
 		cmd.OutOrStderr(),
 		locketClient,
@@ -61,7 +53,7 @@ func claimLock(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func ValidateClaimLocksArguments(cmd *cobra.Command, args []string, lockKey, lockOwner, lockValue string, ttlInSeconds int) error {
+func ValidateClaimPresenceArguments(cmd *cobra.Command, args []string, lockKey, lockOwner, lockValue string, ttlInSeconds int) error {
 	if len(args) > 0 {
 		return errExtraArguments
 	}
@@ -103,19 +95,19 @@ func ValidateClaimLocksArguments(cmd *cobra.Command, args []string, lockKey, loc
 	return nil
 }
 
-func ClaimLock(
+func ClaimPresence(
 	stdout, stderr io.Writer,
 	locketClient models.LocketClient,
 	lockKey, lockOwner, lockValue string,
 	ttlInSeconds int64) error {
-	logger := globalLogger.Session("claim-lock")
+	logger := globalLogger.Session("claim-presence")
 
 	req := &models.LockRequest{
 		Resource: &models.Resource{
 			Key:   lockKey,
 			Owner: lockOwner,
 			Value: lockValue,
-			Type:  models.LockType,
+			Type:  models.PresenceType,
 		},
 		TtlInSeconds: ttlInSeconds,
 	}
