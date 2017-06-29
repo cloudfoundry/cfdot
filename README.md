@@ -23,6 +23,7 @@ Available Commands:
   cell                         Show the specified cell presence
   cells                        List registered cell presences
   claim-lock                   Claim Locket Lock
+  claim-presence               Claim Presence
   create-desired-lrp           Create a desired LRP
   create-task                  Create a Task
   delete-desired-lrp           Delete a desired LRP
@@ -35,6 +36,7 @@ Available Commands:
   locks                        List locks
   lrp-events                   Subscribe to BBS LRP events
   presences                    List registered cell presences
+  release-lock                 Release Locket Lock
   retire-actual-lrp            Retire actual LRP by index and process guid
   set-domain                   Set domain
   task                         Display task
