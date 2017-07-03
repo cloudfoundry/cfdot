@@ -19,8 +19,8 @@ var (
 
 var claimLockCmd = &cobra.Command{
 	Use:   "claim-lock",
-	Short: "Claim Locket Lock",
-	Long:  "Claims a Locket lock with the given `key`, `owner`, and `value`",
+	Short: "Claim Locket lock",
+	Long:  "Claims a Locket lock with the given key, owner, and optional value",
 	RunE:  claimLock,
 }
 

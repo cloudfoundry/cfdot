@@ -11,8 +11,8 @@ import (
 
 var claimPresenceCmd = &cobra.Command{
 	Use:   "claim-presence",
-	Short: "Claim Presence",
-	Long:  "Claims a Locket presence with the given `key`, `owner`, and `value`",
+	Short: "Claim Locket presence",
+	Long:  "Claims a Locket presence with the given key, owner, and optional value",
 	RunE:  claimPresence,
 }
 

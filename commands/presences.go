@@ -12,8 +12,8 @@ import (
 
 var presencesCmd = &cobra.Command{
 	Use:   "presences",
-	Short: "List registered cell presences",
-	Long:  "List registered cell presences from Locket",
+	Short: "List Locket presences",
+	Long:  "List presences registered in Locket",
 	RunE:  presences,
 }
 

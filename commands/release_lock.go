@@ -11,8 +11,8 @@ import (
 
 var releaseLockCmd = &cobra.Command{
 	Use:   "release-lock",
-	Short: "Release Locket Lock",
-	Long:  "Releases a Locket lock with the given `key`, `owner`, and `value`",
+	Short: "Release Locket lock",
+	Long:  "Releases a Locket lock with the given key and owner",
 	RunE:  releaseLock,
 }
 

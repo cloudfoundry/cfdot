@@ -12,7 +12,7 @@ import (
 
 var locksCmd = &cobra.Command{
 	Use:   "locks",
-	Short: "List locks",
+	Short: "List Locket locks",
 	Long:  "List locks from Locket",
 	RunE:  locks,
 }
