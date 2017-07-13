@@ -40,6 +40,7 @@ Available Commands:
   retire-actual-lrp            Retire actual LRP by index and process guid
   set-domain                   Set domain
   task                         Display task
+  task-events                  Subscribe to BBS Task events
   tasks                        List tasks in BBS
   update-desired-lrp           Update a desired LRP
 
