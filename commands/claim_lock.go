@@ -112,10 +112,10 @@ func ClaimLock(
 
 	req := &models.LockRequest{
 		Resource: &models.Resource{
-			Key:   lockKey,
-			Owner: lockOwner,
-			Value: lockValue,
-			Type:  models.LockType,
+			Key:      lockKey,
+			Owner:    lockOwner,
+			Value:    lockValue,
+			TypeCode: models.LOCK,
 		},
 		TtlInSeconds: ttlInSeconds,
 	}

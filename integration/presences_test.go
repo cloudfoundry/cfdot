@@ -52,10 +52,10 @@ var _ = Describe("Presences", func() {
 
 			req := &models.LockRequest{
 				Resource: &models.Resource{
-					Key:   "key",
-					Owner: "owner",
-					Value: "value",
-					Type:  models.PresenceType,
+					Key:      "key",
+					Owner:    "owner",
+					Value:    "value",
+					TypeCode: models.PRESENCE,
 				},
 				TtlInSeconds: 10,
 			}

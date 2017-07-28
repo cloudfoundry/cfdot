@@ -41,10 +41,10 @@ var _ = Describe("ClaimPresence", func() {
 			_, req, _ := fakeLocketClient.LockArgsForCall(0)
 			Expect(req).To(Equal(&models.LockRequest{
 				Resource: &models.Resource{
-					Key:   "key",
-					Owner: "owner",
-					Value: "value",
-					Type:  models.PresenceType,
+					Key:      "key",
+					Owner:    "owner",
+					Value:    "value",
+					TypeCode: models.PRESENCE,
 				},
 				TtlInSeconds: 60,
 			}))

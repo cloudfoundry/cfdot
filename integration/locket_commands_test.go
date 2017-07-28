@@ -100,9 +100,10 @@ var _ = Describe("Locket commands", func() {
 			resp, err := locketClient.Fetch(context.Background(), &models.FetchRequest{Key: "test-key"})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.GetResource()).To(Equal(&models.Resource{
-				Key:   "test-key",
-				Owner: "test-owner",
-				Type:  models.LockType,
+				Key:      "test-key",
+				Owner:    "test-owner",
+				Type:     "lock",
+				TypeCode: models.LOCK,
 			}))
 		})
 

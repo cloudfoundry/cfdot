@@ -58,7 +58,7 @@ func Presences(stdout, stderr io.Writer, locketClient models.LocketClient) error
 
 	encoder := json.NewEncoder(stdout)
 
-	req := &models.FetchAllRequest{Type: models.PresenceType}
+	req := &models.FetchAllRequest{TypeCode: models.PRESENCE}
 	resp, err := locketClient.FetchAll(context.Background(), req)
 	if err != nil {
 		return err

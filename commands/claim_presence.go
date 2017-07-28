@@ -104,10 +104,10 @@ func ClaimPresence(
 
 	req := &models.LockRequest{
 		Resource: &models.Resource{
-			Key:   lockKey,
-			Owner: lockOwner,
-			Value: lockValue,
-			Type:  models.PresenceType,
+			Key:      lockKey,
+			Owner:    lockOwner,
+			Value:    lockValue,
+			TypeCode: models.PRESENCE,
 		},
 		TtlInSeconds: ttlInSeconds,
 	}
