@@ -45,6 +45,7 @@ var _ = Describe("ClaimPresence", func() {
 					Owner:    "owner",
 					Value:    "value",
 					TypeCode: models.PRESENCE,
+					Type:     models.PresenceType,
 				},
 				TtlInSeconds: 60,
 			}))
