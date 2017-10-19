@@ -99,7 +99,7 @@ var _ = AfterEach(func() {
 	bbsServer.CloseClientConnections()
 	bbsServer.Close()
 	ginkgomon.Interrupt(locketProcess)
-	dbProcess.Signal(os.Interrupt)
+	ginkgomon.Interrupt(dbProcess)
 	consulRunner.Stop()
 })
 
