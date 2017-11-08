@@ -90,14 +90,9 @@ func BBSPrehook(cmd *cobra.Command, args []string) error {
 				return returnErr
 			}
 
-			err := validateReadableFile(clientConfig.CACertFile)
-
+			err := validateReadableFile(cmd, clientConfig.CACertFile, "CA cert")
 			if err != nil {
-				returnErr = NewCFDotValidationError(
-					cmd,
-					fmt.Errorf("CA cert file '%s' doesn't exist or is not readable: %s", clientConfig.CACertFile, err.Error()),
-				)
-				return returnErr
+				return err
 			}
 		}
 
@@ -107,26 +102,18 @@ func BBSPrehook(cmd *cobra.Command, args []string) error {
 		}
 
 		if clientConfig.KeyFile != "" {
-			err := validateReadableFile(clientConfig.KeyFile)
+			err := validateReadableFile(cmd, clientConfig.KeyFile, "key")
 
 			if err != nil {
-				returnErr = NewCFDotValidationError(
-					cmd,
-					fmt.Errorf("key file '%s' doesn't exist or is not readable: %s", clientConfig.KeyFile, err.Error()),
-				)
-				return returnErr
+				return err
 			}
 		}
 
 		if clientConfig.CertFile != "" {
-			err := validateReadableFile(clientConfig.CertFile)
+			err := validateReadableFile(cmd, clientConfig.CertFile, "cert")
 
 			if err != nil {
-				returnErr = NewCFDotValidationError(
-					cmd,
-					fmt.Errorf("cert file '%s' doesn't exist or is not readable: %s", clientConfig.CertFile, err.Error()),
-				)
-				return returnErr
+				return err
 			}
 		}
 
@@ -147,9 +134,14 @@ func BBSPrehook(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func validateReadableFile(filename string) error {
+func validateReadableFile(cmd *cobra.Command, filename, filetype string) error {
 	file, err := os.Open(filename)
 	defer file.Close()
-
-	return err
+	if err != nil {
+		return NewCFDotValidationError(
+			cmd,
+			fmt.Errorf("%s file '%s' doesn't exist or is not readable: %s", filetype, filename, err.Error()),
+		)
+	}
+	return nil
 }

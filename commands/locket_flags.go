@@ -80,14 +80,10 @@ func LocketPrehook(cmd *cobra.Command, args []string) error {
 			return returnErr
 		}
 
-		err := validateReadableFile(locketCACertFile)
+		err := validateReadableFile(cmd, locketCACertFile, "CA cert")
 
 		if err != nil {
-			returnErr = NewCFDotValidationError(
-				cmd,
-				fmt.Errorf("CA cert file '%s' doesn't exist or is not readable: %s", locketCACertFile, err.Error()),
-			)
-			return returnErr
+			return err
 		}
 	}
 
@@ -97,26 +93,18 @@ func LocketPrehook(cmd *cobra.Command, args []string) error {
 	}
 
 	if locketKeyFile != "" {
-		err := validateReadableFile(locketKeyFile)
+		err := validateReadableFile(cmd, locketKeyFile, "key")
 
 		if err != nil {
-			returnErr = NewCFDotValidationError(
-				cmd,
-				fmt.Errorf("key file '%s' doesn't exist or is not readable: %s", locketKeyFile, err.Error()),
-			)
-			return returnErr
+			return err
 		}
 	}
 
 	if locketCertFile != "" {
-		err := validateReadableFile(locketCertFile)
+		err := validateReadableFile(cmd, locketCertFile, "cert")
 
 		if err != nil {
-			returnErr = NewCFDotValidationError(
-				cmd,
-				fmt.Errorf("cert file '%s' doesn't exist or is not readable: %s", locketCertFile, err.Error()),
-			)
-			return returnErr
+			return err
 		}
 	}
 
