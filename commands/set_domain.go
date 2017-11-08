@@ -7,6 +7,7 @@ import (
 
 	"code.cloudfoundry.org/bbs"
 
+	"code.cloudfoundry.org/cfdot/commands/helpers"
 	"github.com/spf13/cobra"
 )
 
@@ -42,7 +43,7 @@ func setDomain(cmd *cobra.Command, args []string) error {
 		return NewCFDotValidationError(cmd, errNegativeTTL)
 	}
 
-	bbsClient, err := newBBSClient(cmd)
+	bbsClient, err := helpers.NewBBSClient(cmd, clientConfig)
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}

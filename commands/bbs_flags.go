@@ -5,54 +5,45 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
+
+	"code.cloudfoundry.org/cfdot/commands/helpers"
 
 	"net/url"
 
-	"code.cloudfoundry.org/bbs"
 	"github.com/spf13/cobra"
-)
-
-const (
-	clientSessionCacheSize int = 0
-	maxIdleConnsPerHost    int = 0
 )
 
 // flags
 var (
-	bbsURL            string
-	bbsCACertFile     string
-	bbsCertFile       string
-	bbsKeyFile        string
-	bbsSkipCertVerify bool
+	clientConfig helpers.ClientConfig
 )
 
 // errors
 var (
-	errMissingBBSUrl          = errors.New("BBS URL not set. Please specify one with the '--bbsURL' flag or the 'BBS_URL' environment variable.")
-	errMissingCACertFile      = errors.New("--bbsCACertFile must be specified if using HTTPS and --bbsSkipCertVerify is not set")
-	errMissingCertAndKeyFiles = errors.New("--bbsCertFile and --bbsKeyFile must both be specified for TLS connections.")
+	errMissingBBSUrl             = errors.New("BBS URL not set. Please specify one with the '--bbsURL' flag or the 'BBS_URL' environment variable.")
+	errMissingBBSCACertFile      = errors.New("--bbsCACertFile must be specified if using HTTPS and --bbsSkipCertVerify is not set")
+	errMissingBBSCertAndKeyFiles = errors.New("--bbsCertFile and --bbsKeyFile must both be specified for TLS connections.")
 )
 
 func AddBBSFlags(cmd *cobra.Command) {
-	cmd.Flags().BoolVar(&bbsSkipCertVerify, "bbsSkipCertVerify", false, "when set to true, skips all SSL/TLS certificate verification [environment variable equivalent: BBS_SKIP_CERT_VERIFY]")
-	cmd.Flags().StringVar(&bbsURL, "bbsURL", "", "URL of BBS server to target [environment variable equivalent: BBS_URL]")
-	cmd.Flags().StringVar(&bbsCertFile, "bbsCertFile", "", "path to the TLS client certificate to use during mutual-auth TLS [environment variable equivalent: BBS_CERT_FILE]")
-	cmd.Flags().StringVar(&bbsKeyFile, "bbsKeyFile", "", "path to the TLS client private key file to use during mutual-auth TLS [environment variable equivalent: BBS_KEY_FILE]")
-	cmd.Flags().StringVar(&bbsCACertFile, "bbsCACertFile", "", "path the Certificate Authority (CA) file to use when verifying TLS keypairs [environment variable equivalent: BBS_CA_CERT_FILE]")
+	cmd.Flags().BoolVar(&clientConfig.SkipCertVerify, "bbsSkipCertVerify", false, "when set to true, skips all SSL/TLS certificate verification [environment variable equivalent: BBS_SKIP_CERT_VERIFY]")
+	cmd.Flags().StringVar(&clientConfig.BBSUrl, "bbsURL", "", "URL of BBS server to target [environment variable equivalent: BBS_URL]")
+	cmd.Flags().StringVar(&clientConfig.CertFile, "bbsCertFile", "", "path to the TLS client certificate to use during mutual-auth TLS [environment variable equivalent: BBS_CERT_FILE]")
+	cmd.Flags().StringVar(&clientConfig.KeyFile, "bbsKeyFile", "", "path to the TLS client private key file to use during mutual-auth TLS [environment variable equivalent: BBS_KEY_FILE]")
+	cmd.Flags().StringVar(&clientConfig.CACertFile, "bbsCACertFile", "", "path the Certificate Authority (CA) file to use when verifying TLS keypairs [environment variable equivalent: BBS_CA_CERT_FILE]")
 	cmd.PreRunE = BBSPrehook
 }
 
 func BBSPrehook(cmd *cobra.Command, args []string) error {
 	var err, returnErr error
 
-	if bbsURL == "" {
-		bbsURL = os.Getenv("BBS_URL")
+	if clientConfig.BBSUrl == "" {
+		clientConfig.BBSUrl = os.Getenv("BBS_URL")
 	}
 
 	// Only look at the environment variable if the flag has not been set.
 	if !cmd.Flags().Lookup("bbsSkipCertVerify").Changed && os.Getenv("BBS_SKIP_CERT_VERIFY") != "" {
-		bbsSkipCertVerify, err = strconv.ParseBool(os.Getenv("BBS_SKIP_CERT_VERIFY"))
+		clientConfig.SkipCertVerify, err = strconv.ParseBool(os.Getenv("BBS_SKIP_CERT_VERIFY"))
 		if err != nil {
 			returnErr = NewCFDotValidationError(
 				cmd,
@@ -64,76 +55,76 @@ func BBSPrehook(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if bbsCertFile == "" {
-		bbsCertFile = os.Getenv("BBS_CERT_FILE")
+	if clientConfig.CertFile == "" {
+		clientConfig.CertFile = os.Getenv("BBS_CERT_FILE")
 	}
 
-	if bbsKeyFile == "" {
-		bbsKeyFile = os.Getenv("BBS_KEY_FILE")
+	if clientConfig.KeyFile == "" {
+		clientConfig.KeyFile = os.Getenv("BBS_KEY_FILE")
 	}
 
-	if bbsCACertFile == "" {
-		bbsCACertFile = os.Getenv("BBS_CA_CERT_FILE")
+	if clientConfig.CACertFile == "" {
+		clientConfig.CACertFile = os.Getenv("BBS_CA_CERT_FILE")
 	}
 
-	if bbsURL == "" {
+	if clientConfig.BBSUrl == "" {
 		returnErr = NewCFDotValidationError(cmd, errMissingBBSUrl)
 		return returnErr
 	}
 
 	var parsedURL *url.URL
-	if parsedURL, err = url.Parse(bbsURL); err != nil {
+	if parsedURL, err = url.Parse(clientConfig.BBSUrl); err != nil {
 		returnErr = NewCFDotValidationError(
 			cmd,
 			fmt.Errorf(
 				"The value '%s' is not a valid BBS URL. Please specify one with the '--bbsURL' flag or the 'BBS_URL' environment variable.",
-				bbsURL),
+				clientConfig.BBSUrl),
 		)
 		return returnErr
 	}
 
 	if parsedURL.Scheme == "https" {
-		if !bbsSkipCertVerify {
-			if bbsCACertFile == "" {
-				returnErr = NewCFDotValidationError(cmd, errMissingCACertFile)
+		if !clientConfig.SkipCertVerify {
+			if clientConfig.CACertFile == "" {
+				returnErr = NewCFDotValidationError(cmd, errMissingBBSCACertFile)
 				return returnErr
 			}
 
-			err := validateReadableFile(bbsCACertFile)
+			err := validateReadableFile(clientConfig.CACertFile)
 
 			if err != nil {
 				returnErr = NewCFDotValidationError(
 					cmd,
-					fmt.Errorf("CA cert file '%s' doesn't exist or is not readable: %s", bbsCACertFile, err.Error()),
+					fmt.Errorf("CA cert file '%s' doesn't exist or is not readable: %s", clientConfig.CACertFile, err.Error()),
 				)
 				return returnErr
 			}
 		}
 
-		if (bbsKeyFile == "") || (bbsCertFile == "") {
-			returnErr = NewCFDotValidationError(cmd, errMissingCertAndKeyFiles)
+		if (clientConfig.KeyFile == "") || (clientConfig.CertFile == "") {
+			returnErr = NewCFDotValidationError(cmd, errMissingBBSCertAndKeyFiles)
 			return returnErr
 		}
 
-		if bbsKeyFile != "" {
-			err := validateReadableFile(bbsKeyFile)
+		if clientConfig.KeyFile != "" {
+			err := validateReadableFile(clientConfig.KeyFile)
 
 			if err != nil {
 				returnErr = NewCFDotValidationError(
 					cmd,
-					fmt.Errorf("key file '%s' doesn't exist or is not readable: %s", bbsKeyFile, err.Error()),
+					fmt.Errorf("key file '%s' doesn't exist or is not readable: %s", clientConfig.KeyFile, err.Error()),
 				)
 				return returnErr
 			}
 		}
 
-		if bbsCertFile != "" {
-			err := validateReadableFile(bbsCertFile)
+		if clientConfig.CertFile != "" {
+			err := validateReadableFile(clientConfig.CertFile)
 
 			if err != nil {
 				returnErr = NewCFDotValidationError(
 					cmd,
-					fmt.Errorf("cert file '%s' doesn't exist or is not readable: %s", bbsCertFile, err.Error()),
+					fmt.Errorf("cert file '%s' doesn't exist or is not readable: %s", clientConfig.CertFile, err.Error()),
 				)
 				return returnErr
 			}
@@ -148,42 +139,12 @@ func BBSPrehook(cmd *cobra.Command, args []string) error {
 			fmt.Errorf(
 				"The URL '%s' does not have an 'http' or 'https' scheme. Please "+
 					"specify one with the '--bbsURL' flag or the 'BBS_URL' environment "+
-					"variable.", bbsURL),
+					"variable.", clientConfig.BBSUrl),
 		)
 		return returnErr
 	}
 
 	return nil
-}
-
-func newBBSClient(cmd *cobra.Command) (bbs.Client, error) {
-	var err error
-	var client bbs.Client
-
-	if !strings.HasPrefix(bbsURL, "https") {
-		client = bbs.NewClient(bbsURL)
-	} else {
-		if bbsSkipCertVerify {
-			client, err = bbs.NewSecureSkipVerifyClient(
-				bbsURL,
-				bbsCertFile,
-				bbsKeyFile,
-				clientSessionCacheSize,
-				maxIdleConnsPerHost,
-			)
-		} else {
-			client, err = bbs.NewSecureClient(
-				bbsURL,
-				bbsCACertFile,
-				bbsCertFile,
-				bbsKeyFile,
-				clientSessionCacheSize,
-				maxIdleConnsPerHost,
-			)
-		}
-	}
-
-	return client, err
 }
 
 func validateReadableFile(filename string) error {

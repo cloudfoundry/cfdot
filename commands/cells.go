@@ -6,6 +6,7 @@ import (
 
 	"code.cloudfoundry.org/bbs"
 
+	"code.cloudfoundry.org/cfdot/commands/helpers"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +29,7 @@ func cells(cmd *cobra.Command, args []string) error {
 		return NewCFDotValidationError(cmd, err)
 	}
 
-	bbsClient, err := newBBSClient(cmd)
+	bbsClient, err := helpers.NewBBSClient(cmd, clientConfig)
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}
