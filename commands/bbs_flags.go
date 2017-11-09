@@ -138,10 +138,12 @@ func validateReadableFile(cmd *cobra.Command, filename, filetype string) error {
 	file, err := os.Open(filename)
 	defer file.Close()
 	if err != nil {
+
 		return NewCFDotValidationError(
 			cmd,
 			fmt.Errorf("%s file '%s' doesn't exist or is not readable: %s", filetype, filename, err.Error()),
 		)
 	}
+
 	return nil
 }

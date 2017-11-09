@@ -103,7 +103,7 @@ var _ = Describe("Cell", func() {
 
 		Context("when the cell doesn't exist", func() {
 			It("returns an error", func() {
-				err := commands.Cell(stdout, stderr, fakeBBSClient, "non-existant")
+				err := commands.Cell(stdout, stderr, fakeBBSClient, "non-existent")
 				Expect(err).To(HaveOccurred())
 			})
 		})

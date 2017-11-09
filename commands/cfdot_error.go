@@ -44,7 +44,7 @@ func NewCFDotError(cmd *cobra.Command, err error) CFDotError {
 	}
 }
 
-func NewCFDotLocketError(cmd *cobra.Command, err error) CFDotError {
+func NewCFDotComponentError(cmd *cobra.Command, err error) CFDotError {
 	cmd.SilenceUsage = true
 
 	return CFDotError{

@@ -139,6 +139,21 @@ func itValidatesLocketFlags(args ...string) {
 	})
 }
 
+// Pass arguments that would be passed to cfdot
+func itValidatesTLSFlags(args ...string) {
+	Context("TLS Flag Validation", func() {
+		It("exits with status 3 when no TLS flags are specified", func() {
+			cmd := exec.Command(cfdotPath, args...)
+
+			sess, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(sess.Exited).Should(BeClosed())
+
+			Expect(sess.ExitCode()).To(Equal(3))
+		})
+	})
+}
+
 func itHasNoArgs(command string, locketFlags bool) {
 	var (
 		sess *gexec.Session

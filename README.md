@@ -21,6 +21,7 @@ Available Commands:
   actual-lrp-groups-for-guid   List actual LRP groups for a process guid
   cancel-task                  Cancel task
   cell                         Show the specified cell presence
+  cell-state                   Show the specified cell state
   cells                        List registered cell presences
   claim-lock                   Claim Locket lock
   claim-presence               Claim Locket presence

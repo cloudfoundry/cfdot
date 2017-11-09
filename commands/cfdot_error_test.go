@@ -46,9 +46,9 @@ var _ = Describe("CfDotError", func() {
 		})
 	})
 
-	Context("when a locket error occurs", func() {
+	Context("when a component error occurs", func() {
 		BeforeEach(func() {
-			err = commands.NewCFDotLocketError(cmd, &models.Error{
+			err = commands.NewCFDotComponentError(cmd, &models.Error{
 				Type:    models.Error_UnknownError,
 				Message: "connection refused",
 			})

@@ -34,7 +34,7 @@ func claimPresence(cmd *cobra.Command, args []string) error {
 	logger := globalLogger.Session("locket-client")
 	locketClient, err := newLocketClient(logger, cmd)
 	if err != nil {
-		return NewCFDotLocketError(cmd, err)
+		return NewCFDotComponentError(cmd, err)
 	}
 
 	err = ClaimPresence(
@@ -47,7 +47,7 @@ func claimPresence(cmd *cobra.Command, args []string) error {
 		int64(ttlInSeconds),
 	)
 	if err != nil {
-		return NewCFDotLocketError(cmd, err)
+		return NewCFDotComponentError(cmd, err)
 	}
 
 	return nil

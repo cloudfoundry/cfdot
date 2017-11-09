@@ -32,7 +32,7 @@ func releaseLock(cmd *cobra.Command, args []string) error {
 	logger := globalLogger.Session("locket-client")
 	locketClient, err := newLocketClient(logger, cmd)
 	if err != nil {
-		return NewCFDotLocketError(cmd, err)
+		return NewCFDotComponentError(cmd, err)
 	}
 
 	err = ReleaseLock(
@@ -43,7 +43,7 @@ func releaseLock(cmd *cobra.Command, args []string) error {
 		lockOwner,
 	)
 	if err != nil {
-		return NewCFDotLocketError(cmd, err)
+		return NewCFDotComponentError(cmd, err)
 	}
 
 	return nil
