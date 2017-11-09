@@ -1,0 +1,141 @@
+package commands_test
+
+import (
+	"encoding/json"
+	"errors"
+
+	"code.cloudfoundry.org/bbs/fake_bbs"
+	"code.cloudfoundry.org/bbs/models"
+	"code.cloudfoundry.org/cfdot/commands"
+	"code.cloudfoundry.org/rep"
+	"code.cloudfoundry.org/rep/repfakes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
+)
+
+var _ = Describe("CellState", func() {
+	Context("ValidateCellStateArguments", func() {
+		It("validates there is one and only one argument", func() {
+			err := commands.ValidateCellArguments([]string{"cell-id"})
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		Context("more than 1 argument", func() {
+			It("returns an extra arguments error", func() {
+				err := commands.ValidateCellArguments([]string{"cell-id", "extra-arg"})
+				Expect(err).To(MatchError("Too many arguments specified"))
+			})
+		})
+
+		Context("no arguments", func() {
+			It("returns a missing arguments error", func() {
+				err := commands.ValidateCellArguments([]string{})
+				Expect(err).To(MatchError("Missing arguments"))
+			})
+		})
+	})
+
+	Context("FetchCellRegistration", func() {
+		var (
+			fakeBBSClient  *fake_bbs.FakeClient
+			stdout, stderr *gbytes.Buffer
+			presence       *models.CellPresence
+			cellId         string
+		)
+
+		BeforeEach(func() {
+			cellId = "cell-id"
+			presence = &models.CellPresence{
+				CellId: cellId,
+			}
+
+			stdout = gbytes.NewBuffer()
+			stderr = gbytes.NewBuffer()
+			fakeBBSClient = &fake_bbs.FakeClient{}
+			fakeBBSClient.CellsReturns([]*models.CellPresence{
+				{
+					CellId: "cell-id2",
+				},
+				presence,
+				{
+					CellId: "cell-id3",
+				},
+			}, nil)
+		})
+
+		It("returns the cell presence", func() {
+			receivedPresence, err := commands.FetchCellRegistration(fakeBBSClient, cellId)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeBBSClient.CellsCallCount()).To(Equal(1))
+
+			Expect(receivedPresence).To(Equal(presence))
+		})
+
+		Context("when fetching the cells fails", func() {
+			BeforeEach(func() {
+				fakeBBSClient.CellsReturns(nil, errors.New("boom"))
+			})
+
+			It("returns the error", func() {
+				_, err := commands.FetchCellRegistration(fakeBBSClient, cellId)
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Context("when the cell doesn't exist", func() {
+			It("returns an error", func() {
+				_, err := commands.FetchCellRegistration(fakeBBSClient, "non-existent")
+				Expect(err).To(HaveOccurred())
+			})
+		})
+	})
+
+	Context("FetchCellState", func() {
+		var (
+			fakeRepClient  *repfakes.FakeClient
+			stdout, stderr *gbytes.Buffer
+			state          rep.CellState
+		)
+
+		BeforeEach(func() {
+			state = rep.CellState{
+				RepURL:             "https://7a66adb6-1ce5-4c12-9127-6ff13efd1a79.cell.service.cf.internal:1801",
+				CellID:             "cell-id",
+				RootFSProviders:    rep.RootFSProviders{},
+				AvailableResources: rep.Resources{},
+				TotalResources:     rep.Resources{},
+				LRPs:               []rep.LRP{},
+			}
+
+			stdout = gbytes.NewBuffer()
+			stderr = gbytes.NewBuffer()
+
+			fakeRepClient = &repfakes.FakeClient{}
+			fakeRepClient.StateReturns(state, nil)
+		})
+
+		It("outputs the cell state to stdout", func() {
+			err := commands.FetchCellState(stdout, stderr, fakeRepClient)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeRepClient.StateCallCount()).To(Equal(1))
+
+			var receivedState rep.CellState
+			err = json.Unmarshal(stdout.Contents(), &receivedState)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(receivedState).To(Equal(state))
+		})
+
+		Context("when the rep fails to resond", func() {
+			BeforeEach(func() {
+				fakeRepClient.StateReturns(rep.CellState{}, errors.New("boom"))
+			})
+
+			It("returns an error", func() {
+				err := commands.FetchCellState(stdout, stderr, fakeRepClient)
+				Expect(err).To(HaveOccurred())
+				Expect(fakeRepClient.StateCallCount()).To(Equal(1))
+			})
+		})
+	})
+})

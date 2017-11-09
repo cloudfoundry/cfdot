@@ -2,8 +2,11 @@ package helpers
 
 import (
 	"strings"
+	"time"
 
 	"code.cloudfoundry.org/bbs"
+	"code.cloudfoundry.org/cfhttp"
+	"code.cloudfoundry.org/rep"
 	"github.com/spf13/cobra"
 )
 
@@ -48,4 +51,23 @@ func NewBBSClient(cmd *cobra.Command, clientConfig ClientConfig) (bbs.Client, er
 	}
 
 	return client, err
+}
+
+func NewRepClient(cmd *cobra.Command, address, url string, clientConfig ClientConfig) (rep.Client, error) {
+	var err error
+
+	httpClient := cfhttp.NewClient()
+	stateClient := cfhttp.NewCustomTimeoutClient(10 * time.Second)
+
+	repTLSConfig := &rep.TLSConfig{
+		CaCertFile: clientConfig.CACertFile,
+		CertFile:   clientConfig.CertFile,
+		KeyFile:    clientConfig.KeyFile,
+	}
+	repClientFactory, err := rep.NewClientFactory(httpClient, stateClient, repTLSConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return repClientFactory.CreateClient(address, url)
 }
