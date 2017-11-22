@@ -93,9 +93,11 @@ var _ = Describe("CellState", func() {
 
 	Context("FetchCellState", func() {
 		var (
-			fakeRepClient  *repfakes.FakeClient
-			stdout, stderr *gbytes.Buffer
-			state          rep.CellState
+			fakeRepClient        *repfakes.FakeClient
+			fakeRepClientFactory *repfakes.FakeClientFactory
+			stdout, stderr       *gbytes.Buffer
+			registration         *models.CellPresence
+			state                rep.CellState
 		)
 
 		BeforeEach(func() {
@@ -111,12 +113,20 @@ var _ = Describe("CellState", func() {
 			stdout = gbytes.NewBuffer()
 			stderr = gbytes.NewBuffer()
 
+			registration = &models.CellPresence{
+				RepUrl:     "something",
+				RepAddress: "something/else",
+			}
+
 			fakeRepClient = &repfakes.FakeClient{}
 			fakeRepClient.StateReturns(state, nil)
+
+			fakeRepClientFactory = &repfakes.FakeClientFactory{}
+			fakeRepClientFactory.CreateClientReturns(fakeRepClient, nil)
 		})
 
 		It("outputs the cell state to stdout", func() {
-			err := commands.FetchCellState(stdout, stderr, fakeRepClient)
+			err := commands.FetchCellState(stdout, stderr, fakeRepClientFactory, registration)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeRepClient.StateCallCount()).To(Equal(1))
 
@@ -126,13 +136,13 @@ var _ = Describe("CellState", func() {
 			Expect(receivedState).To(Equal(state))
 		})
 
-		Context("when the rep fails to resond", func() {
+		Context("when the rep fails to respond", func() {
 			BeforeEach(func() {
 				fakeRepClient.StateReturns(rep.CellState{}, errors.New("boom"))
 			})
 
 			It("returns an error", func() {
-				err := commands.FetchCellState(stdout, stderr, fakeRepClient)
+				err := commands.FetchCellState(stdout, stderr, fakeRepClientFactory, registration)
 				Expect(err).To(HaveOccurred())
 				Expect(fakeRepClient.StateCallCount()).To(Equal(1))
 			})

@@ -22,6 +22,7 @@ Available Commands:
   cancel-task                  Cancel task
   cell                         Show the specified cell presence
   cell-state                   Show the specified cell state
+  cell-states                  Show cell states for all cells
   cells                        List registered cell presences
   claim-lock                   Claim Locket lock
   claim-presence               Claim Locket presence

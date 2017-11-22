@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -114,8 +115,10 @@ var _ = Describe("cell-state", func() {
 		})
 
 		Context("when the rep has mutual TLS enabled", func() {
+			var args []string
+
 			It("uses the correct TLS config", func() {
-				args := []string{
+				args = []string{
 					"--bbsURL", bbsServer.URL(),
 					"--caCertFile", clientCAFile,
 					"--clientCertFile", clientCertFile,
@@ -130,6 +133,33 @@ var _ = Describe("cell-state", func() {
 				jsonData, err := json.Marshal(cellState1)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(bytes.TrimSpace(sess.Out.Contents())).To(Equal(jsonData))
+			})
+
+			Context("cell-states", func() {
+				It("returns the json encoding of the cell-states", func() {
+					args = []string{
+						"--bbsURL", bbsServer.URL(),
+						"--caCertFile", clientCAFile,
+						"--clientCertFile", clientCertFile,
+						"--clientKeyFile", clientKeyFile,
+						"cell-states",
+					}
+					cfdotCmd := exec.Command(cfdotPath, args...)
+					sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+					Expect(err).NotTo(HaveOccurred())
+					Eventually(sess).Should(gexec.Exit(0))
+
+					decoder := json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(sess.Out.Contents())))
+					var receivedState rep.CellState
+
+					err = decoder.Decode(&receivedState)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(receivedState).To(Equal(*cellState1))
+
+					err = decoder.Decode(&receivedState)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(receivedState).To(Equal(*cellState2))
+				})
 			})
 		})
 
@@ -161,6 +191,19 @@ var _ = Describe("cell-state", func() {
 				sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
 				Eventually(sess).Should(gexec.Exit(4))
+				Expect(sess.Err).To(gbytes.Say("BBS error"))
+			})
+
+			Context("cell-states", func() {
+				It("exits with status code of 4", func() {
+					cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "cell-states")
+
+					sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+					Expect(err).NotTo(HaveOccurred())
+					Eventually(sess).Should(gexec.Exit(4))
+					Expect(sess.Err).To(gbytes.Say("BBS error"))
+					Expect(sess.Err).To(gbytes.Say("Failed to get cell registrations from BBS"))
+				})
 			})
 		})
 
@@ -179,6 +222,19 @@ var _ = Describe("cell-state", func() {
 				Eventually(sess).Should(gexec.Exit(4))
 				Expect(sess.Err).To(gbytes.Say("Rep error"))
 			})
+
+			Context("cell-states", func() {
+				It("exits with status code of 4", func() {
+					cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "cell-states")
+
+					sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+					Expect(err).NotTo(HaveOccurred())
+					Eventually(sess).Should(gexec.Exit(4))
+					Expect(sess.Err).To(gbytes.Say("Rep error"))
+					Expect(sess.Err).To(gbytes.Say("Failed to get cell state for cell cell-1"))
+					Expect(sess.Err).To(gbytes.Say("Failed to get cell state for cell cell-2"))
+				})
+			})
 		})
 
 		Context("when cell command is called with extra arguments", func() {
@@ -188,6 +244,16 @@ var _ = Describe("cell-state", func() {
 				sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
 				Eventually(sess).Should(gexec.Exit(3))
+			})
+
+			Context("cell-states", func() {
+				It("exits with status code of 3", func() {
+					cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "cell-states", "extra-argument")
+
+					sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+					Expect(err).NotTo(HaveOccurred())
+					Eventually(sess).Should(gexec.Exit(3))
+				})
 			})
 		})
 	})
