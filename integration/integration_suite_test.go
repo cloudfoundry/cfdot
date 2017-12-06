@@ -12,6 +12,7 @@ import (
 	"code.cloudfoundry.org/bbs/test_helpers"
 	"code.cloudfoundry.org/bbs/test_helpers/sqlrunner"
 	"code.cloudfoundry.org/consuladapter/consulrunner"
+	"code.cloudfoundry.org/inigo/helpers/portauthority"
 	"code.cloudfoundry.org/locket/cmd/locket/config"
 	"code.cloudfoundry.org/locket/cmd/locket/testrunner"
 
@@ -36,6 +37,7 @@ var (
 	consulRunner          *consulrunner.ClusterRunner
 	locketAPILocation     string
 	locketCACertFile      string
+	portAllocator         portauthority.PortAllocator
 )
 
 var bbsServer *ghttp.Server
@@ -67,7 +69,17 @@ var _ = SynchronizedAfterSuite(func() {
 
 var _ = BeforeEach(func() {
 	bbsServer = ghttp.NewServer()
-	port := 8090 + GinkgoParallelNode()
+
+	node := GinkgoParallelNode()
+	startPort := 1050 * node
+	portRange := 1000
+	endPort := startPort + portRange*(node+1)
+	portAllocator, err := portauthority.New(startPort, endPort)
+	Expect(err).NotTo(HaveOccurred())
+
+	port, err := portAllocator.ClaimPorts(1)
+	Expect(err).NotTo(HaveOccurred())
+
 	locketAPILocation = fmt.Sprintf("localhost:%d", port)
 	wd, _ := os.Getwd()
 	locketCACertFile = fmt.Sprintf("%s/fixtures/locketCA.crt", wd)
@@ -76,9 +88,11 @@ var _ = BeforeEach(func() {
 	dbRunner = test_helpers.NewSQLRunner(dbName)
 	dbProcess = ginkgomon.Invoke(dbRunner)
 
+	consulStartingPort, err := portAllocator.ClaimPorts(consulrunner.PortOffsetLength)
+	Expect(err).NotTo(HaveOccurred())
 	consulRunner = consulrunner.NewClusterRunner(
 		consulrunner.ClusterRunnerConfig{
-			StartingPort: 9001 + GinkgoParallelNode()*consulrunner.PortOffsetLength,
+			StartingPort: int(consulStartingPort),
 			NumNodes:     1,
 			Scheme:       "http",
 		},
