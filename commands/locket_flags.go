@@ -6,46 +6,62 @@ import (
 	"os"
 	"strconv"
 
-	"code.cloudfoundry.org/lager"
-	"code.cloudfoundry.org/locket"
-	locketmodels "code.cloudfoundry.org/locket/models"
+	"code.cloudfoundry.org/cfdot/commands/helpers"
 	"github.com/spf13/cobra"
 )
 
-// flags
 var (
-	locketAPILocation    string
-	locketCACertFile     string
-	locketCertFile       string
-	locketKeyFile        string
-	locketSkipCertVerify bool
+	locketClientConfig helpers.TLSConfig
+	locketPreHooks     = []func(cmd *cobra.Command, args []string) error{}
 )
 
 // errors
 var (
-	errMissingLocketUrl             = errors.New("Locket API Location not set. Please specify one with the '--locketAPILocation' flag or the 'LOCKET_API_LOCATION' environment variable.")
-	errMissingLocketCACertFile      = errors.New("--locketCACertFile must be specified if --locketSkipCertVerify is not set")
-	errMissingLocketCertAndKeyFiles = errors.New("--locketCertFile and --locketKeyFile must both be specified for TLS connections.")
+	errMissingLocketUrl = errors.New("Locket API Location not set. Please specify one with the '--locketAPILocation' flag or the 'LOCKET_API_LOCATION' environment variable.")
 )
 
 func AddLocketFlags(cmd *cobra.Command) {
-	cmd.Flags().BoolVar(&locketSkipCertVerify, "locketSkipCertVerify", false, "when set to true, skips all SSL/TLS certificate verification [environment variable equivalent: LOCKET_SKIP_CERT_VERIFY]")
-	cmd.Flags().StringVar(&locketAPILocation, "locketAPILocation", "", "Hostname:Port of Locket server to target [environment variable equivalent: LOCKET_API_LOCATION]")
-	cmd.Flags().StringVar(&locketCertFile, "locketCertFile", "", "path to the TLS client certificate to use during mutual-auth TLS [environment variable equivalent: LOCKET_CERT_FILE]")
-	cmd.Flags().StringVar(&locketKeyFile, "locketKeyFile", "", "path to the TLS client private key file to use during mutual-auth TLS [environment variable equivalent: LOCKET_KEY_FILE]")
-	cmd.Flags().StringVar(&locketCACertFile, "locketCACertFile", "", "path the Certificate Authority (CA) file to use when verifying TLS keypairs [environment variable equivalent: LOCKET_CA_CERT_FILE]")
+	AddTLSFlags(cmd)
+	cmd.Flags().StringVar(&locketClientConfig.LocketApiLocation, "locketAPILocation", "", "Hostname:Port of Locket server to target [environment variable equivalent: LOCKET_API_LOCATION]")
+	cmd.Flags().BoolVar(&locketClientConfig.SkipCertVerify, "locketSkipCertVerify", false, "when set to true, skips all SSL/TLS certificate verification [environment variable equivalent: LOCKET_SKIP_CERT_VERIFY]. Deprecated in favor of --skipCertVerify.")
+	cmd.Flags().StringVar(&locketClientConfig.CertFile, "locketCertFile", "", "path to the TLS client certificate to use during mutual-auth TLS [environment variable equivalent: LOCKET_CERT_FILE]. Deprecated in favor of --clientCertFile.")
+	cmd.Flags().StringVar(&locketClientConfig.KeyFile, "locketKeyFile", "", "path to the TLS client private key file to use during mutual-auth TLS [environment variable equivalent: LOCKET_KEY_FILE]. Deprecated in favor of --clientKeyFile.")
+	cmd.Flags().StringVar(&locketClientConfig.CACertFile, "locketCACertFile", "", "path the Certificate Authority (CA) file to use when verifying TLS keypairs [environment variable equivalent: LOCKET_CA_CERT_FILE]. Deprecated in favor of --caCertFile.")
+	locketPreHooks = append(locketPreHooks, cmd.PreRunE)
 	cmd.PreRunE = LocketPrehook
 }
 
 func LocketPrehook(cmd *cobra.Command, args []string) error {
+	var err error
+	for _, f := range locketPreHooks {
+		if f == nil {
+			continue
+		}
+		err = f(cmd, args)
+		if err != nil {
+			return err
+		}
+	}
+
+	locketClientConfig.Merge(Config)
+	err = setLocketFlags(cmd, args)
+	if err != nil {
+		return err
+	}
+
+	Config = locketClientConfig
+	return nil
+}
+
+func setLocketFlags(cmd *cobra.Command, args []string) error {
 	var err, returnErr error
-	if locketAPILocation == "" {
-		locketAPILocation = os.Getenv("LOCKET_API_LOCATION")
+	if locketClientConfig.LocketApiLocation == "" {
+		locketClientConfig.LocketApiLocation = os.Getenv("LOCKET_API_LOCATION")
 	}
 
 	// Only look at the environment variable if the flag has not been set.
 	if !cmd.Flags().Lookup("locketSkipCertVerify").Changed && os.Getenv("LOCKET_SKIP_CERT_VERIFY") != "" {
-		locketSkipCertVerify, err = strconv.ParseBool(os.Getenv("LOCKET_SKIP_CERT_VERIFY"))
+		locketClientConfig.SkipCertVerify, err = strconv.ParseBool(os.Getenv("LOCKET_SKIP_CERT_VERIFY"))
 		if err != nil {
 			returnErr = NewCFDotValidationError(
 				cmd,
@@ -57,51 +73,51 @@ func LocketPrehook(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if locketCertFile == "" {
-		locketCertFile = os.Getenv("LOCKET_CERT_FILE")
+	if locketClientConfig.CertFile == "" {
+		locketClientConfig.CertFile = os.Getenv("LOCKET_CERT_FILE")
 	}
 
-	if locketKeyFile == "" {
-		locketKeyFile = os.Getenv("LOCKET_KEY_FILE")
+	if locketClientConfig.KeyFile == "" {
+		locketClientConfig.KeyFile = os.Getenv("LOCKET_KEY_FILE")
 	}
 
-	if locketCACertFile == "" {
-		locketCACertFile = os.Getenv("LOCKET_CA_CERT_FILE")
+	if locketClientConfig.CACertFile == "" {
+		locketClientConfig.CACertFile = os.Getenv("LOCKET_CA_CERT_FILE")
 	}
 
-	if locketAPILocation == "" {
+	if locketClientConfig.LocketApiLocation == "" {
 		returnErr = NewCFDotValidationError(cmd, errMissingLocketUrl)
 		return returnErr
 	}
 
-	if !locketSkipCertVerify {
-		if locketCACertFile == "" {
-			returnErr = NewCFDotValidationError(cmd, errMissingLocketCACertFile)
+	if !locketClientConfig.SkipCertVerify {
+		if locketClientConfig.CACertFile == "" {
+			returnErr = NewCFDotValidationError(cmd, errMissingCACertFile)
 			return returnErr
 		}
 
-		err := validateReadableFile(cmd, locketCACertFile, "CA cert")
+		err := validateReadableFile(cmd, locketClientConfig.CACertFile, "CA cert")
 
 		if err != nil {
 			return err
 		}
 	}
 
-	if (locketKeyFile == "") || (locketCertFile == "") {
-		returnErr = NewCFDotValidationError(cmd, errMissingLocketCertAndKeyFiles)
+	if (locketClientConfig.KeyFile == "") || (locketClientConfig.CertFile == "") {
+		returnErr = NewCFDotValidationError(cmd, errMissingClientCertAndKeyFiles)
 		return returnErr
 	}
 
-	if locketKeyFile != "" {
-		err := validateReadableFile(cmd, locketKeyFile, "key")
+	if locketClientConfig.KeyFile != "" {
+		err := validateReadableFile(cmd, locketClientConfig.KeyFile, "key")
 
 		if err != nil {
 			return err
 		}
 	}
 
-	if locketCertFile != "" {
-		err := validateReadableFile(cmd, locketCertFile, "cert")
+	if locketClientConfig.CertFile != "" {
+		err := validateReadableFile(cmd, locketClientConfig.CertFile, "cert")
 
 		if err != nil {
 			return err
@@ -109,29 +125,4 @@ func LocketPrehook(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
-}
-
-func newLocketClient(logger lager.Logger, cmd *cobra.Command) (locketmodels.LocketClient, error) {
-	var err error
-	var client locketmodels.LocketClient
-	config := locket.ClientLocketConfig{
-		LocketAddress:        locketAPILocation,
-		LocketCACertFile:     locketCACertFile,
-		LocketClientCertFile: locketCertFile,
-		LocketClientKeyFile:  locketKeyFile,
-	}
-
-	if locketSkipCertVerify {
-		client, err = locket.NewClientSkipCertVerify(
-			logger,
-			config,
-		)
-	} else {
-		client, err = locket.NewClient(
-			logger,
-			config,
-		)
-	}
-
-	return client, err
 }

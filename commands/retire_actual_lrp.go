@@ -28,7 +28,7 @@ func retireActualLRP(cmd *cobra.Command, args []string) error {
 		return NewCFDotValidationError(cmd, err)
 	}
 
-	bbsClient, err := helpers.NewBBSClient(cmd, clientConfig)
+	bbsClient, err := helpers.NewBBSClient(cmd, Config)
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}

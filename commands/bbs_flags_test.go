@@ -199,7 +199,7 @@ var _ = Describe("BBS Flags", func() {
 					})
 
 					It("uses the 'false' value from the flag", func() {
-						Expect(err).To(MatchError("--bbsCACertFile must be specified if using HTTPS and --bbsSkipCertVerify is not set"))
+						Expect(err).To(MatchError("--caCertFile must be specified if using HTTPS and --skipCertVerify is not set"))
 					})
 				})
 			})
@@ -238,7 +238,7 @@ var _ = Describe("BBS Flags", func() {
 			})
 
 			It("returns a validation error", func() {
-				Expect(err).To(MatchError("--bbsCertFile and --bbsKeyFile must both be specified for TLS connections."))
+				Expect(err).To(MatchError("--clientCertFile and --clientKeyFile must both be specified for TLS connections."))
 			})
 
 			It("exits with code 3", func() {
@@ -255,7 +255,7 @@ var _ = Describe("BBS Flags", func() {
 			})
 
 			It("returns a validation error", func() {
-				Expect(err).To(MatchError("--bbsCertFile and --bbsKeyFile must both be specified for TLS connections."))
+				Expect(err).To(MatchError("--clientCertFile and --clientKeyFile must both be specified for TLS connections."))
 			})
 
 			It("exits with code 3", func() {
@@ -394,7 +394,7 @@ var _ = Describe("BBS Flags", func() {
 			})
 
 			It("returns a validation error", func() {
-				Expect(err).To(MatchError("--bbsCACertFile must be specified if using HTTPS and --bbsSkipCertVerify is not set"))
+				Expect(err).To(MatchError("--caCertFile must be specified if using HTTPS and --skipCertVerify is not set"))
 			})
 
 			It("exits with code 3", func() {
@@ -475,6 +475,13 @@ func removeFlag(flags map[string]string, toRemove string) []string {
 func replaceFlagValue(flags map[string]string, key string, newValue string) []string {
 	flags[key] = newValue
 
+	return buildArgList(flags)
+}
+
+func mergeFlags(flags map[string]string, moreFlags map[string]string) []string {
+	for k, v := range moreFlags {
+		flags[k] = v
+	}
 	return buildArgList(flags)
 }
 

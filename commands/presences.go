@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 
+	"code.cloudfoundry.org/cfdot/commands/helpers"
 	"code.cloudfoundry.org/locket/models"
 
 	"github.com/spf13/cobra"
@@ -29,7 +30,7 @@ func presences(cmd *cobra.Command, args []string) error {
 	}
 
 	logger := globalLogger.Session("locket-client")
-	locketClient, err := newLocketClient(logger, cmd)
+	locketClient, err := helpers.NewLocketClient(logger, cmd, Config)
 	if err != nil {
 		return NewCFDotComponentError(cmd, err)
 	}

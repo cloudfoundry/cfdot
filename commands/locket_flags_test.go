@@ -136,7 +136,7 @@ var _ = Describe("Locket Flags", func() {
 					})
 
 					It("uses the 'false' value from the flag", func() {
-						Expect(err).To(MatchError("--locketCACertFile must be specified if --locketSkipCertVerify is not set"))
+						Expect(err).To(MatchError("--caCertFile must be specified if using HTTPS and --skipCertVerify is not set"))
 					})
 				})
 			})
@@ -175,7 +175,7 @@ var _ = Describe("Locket Flags", func() {
 			})
 
 			It("returns a validation error", func() {
-				Expect(err).To(MatchError("--locketCertFile and --locketKeyFile must both be specified for TLS connections."))
+				Expect(err).To(MatchError("--clientCertFile and --clientKeyFile must both be specified for TLS connections."))
 			})
 
 			It("exits with code 3", func() {
@@ -192,7 +192,7 @@ var _ = Describe("Locket Flags", func() {
 			})
 
 			It("returns a validation error", func() {
-				Expect(err).To(MatchError("--locketCertFile and --locketKeyFile must both be specified for TLS connections."))
+				Expect(err).To(MatchError("--clientCertFile and --clientKeyFile must both be specified for TLS connections."))
 			})
 
 			It("exits with code 3", func() {
@@ -350,7 +350,7 @@ var _ = Describe("Locket Flags", func() {
 			})
 
 			It("returns a validation error", func() {
-				Expect(err).To(MatchError("--locketCACertFile must be specified if --locketSkipCertVerify is not set"))
+				Expect(err).To(MatchError("--caCertFile must be specified if using HTTPS and --skipCertVerify is not set"))
 			})
 
 			It("exits with code 3", func() {
