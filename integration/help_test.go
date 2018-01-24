@@ -81,9 +81,9 @@ var _ = Describe("help", func() {
 			Expect(sess.Out).To(gbytes.Say("--bbsCertFile"))
 			Expect(sess.Out).To(gbytes.Say("--bbsSkipCertVerify"))
 			Expect(sess.Out).To(gbytes.Say("--bbsURL"))
+			Expect(sess.Out).To(gbytes.Say("--timeout"))
 			Expect(sess.Out).To(gbytes.Say("-t"))
 			Expect(sess.Out).To(gbytes.Say("--ttl"))
-
 		})
 	})
 

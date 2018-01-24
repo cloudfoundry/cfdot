@@ -23,7 +23,7 @@ var actualLRPGroupsCmd = &cobra.Command{
 }
 
 func init() {
-	AddBBSFlags(actualLRPGroupsCmd)
+	AddBBSAndTimeoutFlags(actualLRPGroupsCmd)
 
 	actualLRPGroupsCmd.Flags().StringVarP(&actualLRPGroupsDomainFlag, "domain", "d", "", "retrieve only actual lrps for the given domain")
 	actualLRPGroupsCmd.Flags().StringVarP(&actualLRPGroupsCellIdFlag, "cell-id", "c", "", "retrieve only actual lrps for the given cell id")

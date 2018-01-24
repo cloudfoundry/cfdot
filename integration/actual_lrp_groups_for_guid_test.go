@@ -1,7 +1,9 @@
 package integration_test
 
 import (
+	"net/http"
 	"os/exec"
+	"time"
 
 	"code.cloudfoundry.org/bbs/models"
 
@@ -18,23 +20,37 @@ var _ = Describe("actual-lrp-groups-for-guid", func() {
 	itValidatesBBSFlags("actual-lrp-groups-for-guid", "test-guid")
 
 	Context("when there is no filter", func() {
+		var cfdotArgs []string
+		BeforeEach(func() {
+			cfdotArgs = []string{"--bbsURL", bbsServer.URL()}
+		})
 		JustBeforeEach(func() {
+			execArgs := append(
+				cfdotArgs,
+				"actual-lrp-groups-for-guid",
+				"random-guid",
+			)
 			cfdotCmd := exec.Command(
 				cfdotPath,
-				"--bbsURL", bbsServer.URL(),
-				"actual-lrp-groups-for-guid", "random-guid",
+				execArgs...,
 			)
-
 			var err error
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		Context("when the server returns a valid response", func() {
+			var serverTimeout int
 			BeforeEach(func() {
+				serverTimeout = 0
+			})
+			JustBeforeEach(func() {
 				bbsServer.AppendHandlers(
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("POST", "/v1/actual_lrp_groups/list_by_process_guid"),
+						func(w http.ResponseWriter, req *http.Request) {
+							time.Sleep(time.Duration(serverTimeout) * time.Second)
+						},
 						ghttp.VerifyProtoRepresenting(&models.ActualLRPGroupsByProcessGuidRequest{
 							ProcessGuid: "random-guid",
 						}),
@@ -54,6 +70,30 @@ var _ = Describe("actual-lrp-groups-for-guid", func() {
 			It("returns the json encoding of the actual lrp", func() {
 				Eventually(sess).Should(gexec.Exit(0))
 				Expect(sess.Out).To(gbytes.Say(`"state":"running"`))
+			})
+
+			Context("when timeout flag is present", func() {
+				BeforeEach(func() {
+					cfdotArgs = append(cfdotArgs, "--timeout", "1")
+				})
+
+				Context("when request exceeds timeout", func() {
+					BeforeEach(func() {
+						serverTimeout = 2
+					})
+
+					It("exits with code 4 and a timeout message", func() {
+						Eventually(sess, 2).Should(gexec.Exit(4))
+						Expect(sess.Err).To(gbytes.Say(`Timeout exceeded`))
+					})
+				})
+
+				Context("when request is within the timeout", func() {
+					It("exits with status code of 0", func() {
+						Eventually(sess).Should(gexec.Exit(0))
+						Expect(sess.Out).To(gbytes.Say(`"state":"running"`))
+					})
+				})
 			})
 		})
 

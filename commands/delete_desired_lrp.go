@@ -16,7 +16,7 @@ var deleteDesiredLRPCmd = &cobra.Command{
 }
 
 func init() {
-	AddBBSFlags(deleteDesiredLRPCmd)
+	AddBBSAndTimeoutFlags(deleteDesiredLRPCmd)
 	RootCmd.AddCommand(deleteDesiredLRPCmd)
 }
 

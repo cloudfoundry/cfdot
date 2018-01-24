@@ -21,7 +21,7 @@ var tasksCmd = &cobra.Command{
 var tasksDomainFlag, tasksCellIdFlag string
 
 func init() {
-	AddBBSFlags(tasksCmd)
+	AddBBSAndTimeoutFlags(tasksCmd)
 	tasksCmd.Flags().StringVarP(&tasksDomainFlag, "domain", "d", "", "retrieve only tasks for the given domain")
 	tasksCmd.Flags().StringVarP(&tasksCellIdFlag, "cell-id", "c", "", "retrieve only tasks for the given cell-id")
 	RootCmd.AddCommand(tasksCmd)

@@ -18,7 +18,7 @@ var retireActualLRPCmd = &cobra.Command{
 }
 
 func init() {
-	AddBBSFlags(retireActualLRPCmd)
+	AddBBSAndTimeoutFlags(retireActualLRPCmd)
 	RootCmd.AddCommand(retireActualLRPCmd)
 }
 

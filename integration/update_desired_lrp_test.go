@@ -3,8 +3,10 @@ package integration_test
 import (
 	"encoding/json"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -38,8 +40,11 @@ var _ = Describe("update-desired-lrp", func() {
 
 	Context("when bbs responds with 200 status code", func() {
 		var (
-			lrpUpdate *models.DesiredLRPUpdate
-			args      []string
+			lrpUpdate     *models.DesiredLRPUpdate
+			sess          *gexec.Session
+			cfdotArgs     []string
+			cmdArgs       []string
+			serverTimeout int
 		)
 
 		BeforeEach(func() {
@@ -47,12 +52,17 @@ var _ = Describe("update-desired-lrp", func() {
 			lrpUpdate = &models.DesiredLRPUpdate{
 				Instances: &updatedInstanceCount,
 			}
+			cfdotArgs = []string{"--bbsURL", bbsServer.URL()}
+			serverTimeout = 0
 		})
 
 		JustBeforeEach(func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/v1/desired_lrp/update"),
+					func(w http.ResponseWriter, req *http.Request) {
+						time.Sleep(time.Duration(serverTimeout) * time.Second)
+					},
 					ghttp.VerifyProtoRepresenting(&models.UpdateDesiredLRPRequest{
 						Update:      lrpUpdate,
 						ProcessGuid: "process-guid",
@@ -63,10 +73,10 @@ var _ = Describe("update-desired-lrp", func() {
 				),
 			)
 
-			args = append([]string{"--bbsURL", bbsServer.URL(), "update-desired-lrp"}, args...)
+			execArgs := append(append(cfdotArgs, "update-desired-lrp"), cmdArgs...)
 			cfdotCmd := exec.Command(
 				cfdotPath,
-				args...,
+				execArgs...,
 			)
 			var err error
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
@@ -77,11 +87,34 @@ var _ = Describe("update-desired-lrp", func() {
 			BeforeEach(func() {
 				spec, err := json.Marshal(lrpUpdate)
 				Expect(err).NotTo(HaveOccurred())
-				args = []string{"process-guid", string(spec)}
+				cmdArgs = []string{"process-guid", string(spec)}
 			})
 
 			It("exits with status code of 0", func() {
 				Eventually(sess).Should(gexec.Exit(0))
+			})
+
+			Context("when timeout flag is present", func() {
+				BeforeEach(func() {
+					cfdotArgs = append(cfdotArgs, "--timeout", "1")
+				})
+
+				Context("when request exceeds timeout", func() {
+					BeforeEach(func() {
+						serverTimeout = 2
+					})
+
+					It("exits with code 4 and a timeout message", func() {
+						Eventually(sess, 2).Should(gexec.Exit(4))
+						Expect(sess.Err).To(gbytes.Say(`Timeout exceeded`))
+					})
+				})
+
+				Context("when request is within the timeout", func() {
+					It("exits with status code of 0", func() {
+						Eventually(sess).Should(gexec.Exit(0))
+					})
+				})
 			})
 		})
 
@@ -94,7 +127,7 @@ var _ = Describe("update-desired-lrp", func() {
 				defer f.Close()
 				_, err = f.Write(spec)
 				Expect(err).NotTo(HaveOccurred())
-				args = []string{"process-guid", "@" + f.Name()}
+				cmdArgs = []string{"process-guid", "@" + f.Name()}
 			})
 
 			It("exits with status code 0", func() {
@@ -104,7 +137,7 @@ var _ = Describe("update-desired-lrp", func() {
 
 		Context("empty spec", func() {
 			BeforeEach(func() {
-				args = []string{"process-guid"}
+				cmdArgs = []string{"process-guid"}
 			})
 
 			It("exits with status code of 3", func() {
@@ -114,7 +147,7 @@ var _ = Describe("update-desired-lrp", func() {
 
 		Context("invalid spec", func() {
 			BeforeEach(func() {
-				args = []string{"process-guid", "foo"}
+				cmdArgs = []string{"process-guid", "foo"}
 			})
 
 			It("exits with status code of 3 and prints the error", func() {
@@ -125,7 +158,7 @@ var _ = Describe("update-desired-lrp", func() {
 
 		Context("non-existing spec file", func() {
 			BeforeEach(func() {
-				args = []string{"process-guid1", "@/path/to/non/existing/file"}
+				cmdArgs = []string{"process-guid1", "@/path/to/non/existing/file"}
 			})
 
 			It("exits with status 3 and prints the error", func() {

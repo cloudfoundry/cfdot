@@ -23,7 +23,7 @@ var createDesiredLRPCmd = &cobra.Command{
 }
 
 func init() {
-	AddBBSFlags(createDesiredLRPCmd)
+	AddBBSAndTimeoutFlags(createDesiredLRPCmd)
 	RootCmd.AddCommand(createDesiredLRPCmd)
 }
 

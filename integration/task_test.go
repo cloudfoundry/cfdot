@@ -2,7 +2,9 @@ package integration_test
 
 import (
 	"encoding/json"
+	"net/http"
 	"os/exec"
+	"time"
 
 	"code.cloudfoundry.org/bbs/models"
 	. "github.com/onsi/ginkgo"
@@ -19,28 +21,66 @@ var _ = Describe("task", func() {
 		var task = &models.Task{
 			TaskGuid: "task-guid",
 		}
-
+		var (
+			sess          *gexec.Session
+			cfdotArgs     []string
+			serverTimeout int
+		)
 		BeforeEach(func() {
+			cfdotArgs = []string{"--bbsURL", bbsServer.URL()}
+			serverTimeout = 0
+		})
+		JustBeforeEach(func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/v1/tasks/get_by_task_guid.r2"),
+					func(w http.ResponseWriter, req *http.Request) {
+						time.Sleep(time.Duration(serverTimeout) * time.Second)
+					},
 					ghttp.VerifyProtoRepresenting(&models.TaskByGuidRequest{TaskGuid: "task-guid"}),
 					ghttp.RespondWithProto(200, &models.TaskResponse{Task: task}),
 				),
 			)
+			execArgs := append(cfdotArgs, "task", "task-guid")
+			cfdotCmd := exec.Command(
+				cfdotPath,
+				execArgs...,
+			)
+
+			var err error
+			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("task prints a json representation of the task", func() {
-			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "task", "task-guid")
-
-			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-
 			Eventually(sess).Should(gexec.Exit(0))
 
 			taskJSON, err := json.Marshal(task)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(sess.Out.Contents()).To(MatchJSON(taskJSON))
+		})
+
+		Context("when timeout flag is present", func() {
+			BeforeEach(func() {
+				cfdotArgs = append(cfdotArgs, "--timeout", "1")
+			})
+
+			Context("when request exceeds timeout", func() {
+				BeforeEach(func() {
+					serverTimeout = 2
+				})
+
+				It("exits with code 4 and a timeout message", func() {
+					Eventually(sess, 2).Should(gexec.Exit(4))
+					Expect(sess.Err).To(gbytes.Say(`Timeout exceeded`))
+				})
+			})
+
+			Context("when request is within the timeout", func() {
+				It("exits with status code of 0", func() {
+					Eventually(sess).Should(gexec.Exit(0))
+				})
+			})
 		})
 	})
 

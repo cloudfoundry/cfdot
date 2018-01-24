@@ -23,7 +23,7 @@ var desiredLRPsCmd = &cobra.Command{
 }
 
 func init() {
-	AddBBSFlags(desiredLRPsCmd)
+	AddBBSAndTimeoutFlags(desiredLRPsCmd)
 	desiredLRPsCmd.Flags().StringVarP(&desiredLRPsDomainFlag, "domain", "d", "", "retrieve only desired lrps for the given domain")
 	RootCmd.AddCommand(desiredLRPsCmd)
 }

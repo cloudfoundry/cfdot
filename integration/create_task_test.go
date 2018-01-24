@@ -3,8 +3,10 @@ package integration_test
 import (
 	"encoding/json"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -40,20 +42,27 @@ var _ = Describe("create-task", func() {
 
 	Context("when bbs responds with 200 status code", func() {
 		var (
-			task *models.Task
-			args []string
+			task          *models.Task
+			cfdotArgs     []string
+			cmdArgs       []string
+			serverTimeout int
 		)
 
 		BeforeEach(func() {
 			task = &models.Task{
 				TaskGuid: "some-task-guid",
 			}
+			cfdotArgs = []string{"--bbsURL", bbsServer.URL()}
+			serverTimeout = 0
 		})
 
 		JustBeforeEach(func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/v1/tasks/desire.r2"),
+					func(w http.ResponseWriter, req *http.Request) {
+						time.Sleep(time.Duration(serverTimeout) * time.Second)
+					},
 					ghttp.VerifyProtoRepresenting(&models.DesireTaskRequest{
 						TaskGuid:       task.TaskGuid,
 						Domain:         task.Domain,
@@ -65,10 +74,11 @@ var _ = Describe("create-task", func() {
 				),
 			)
 
-			args = append([]string{"--bbsURL", bbsServer.URL(), "create-task"}, args...)
+			execArgs := append(append(cfdotArgs, "create-task"), cmdArgs...)
+
 			cfdotCmd := exec.Command(
 				cfdotPath,
-				args...,
+				execArgs...,
 			)
 			var err error
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
@@ -79,11 +89,34 @@ var _ = Describe("create-task", func() {
 			BeforeEach(func() {
 				spec, err := json.Marshal(task)
 				Expect(err).NotTo(HaveOccurred())
-				args = []string{string(spec)}
+				cmdArgs = []string{string(spec)}
 			})
 
 			It("exits with status code of 0", func() {
 				Eventually(sess).Should(gexec.Exit(0))
+			})
+
+			Context("when timeout flag is present", func() {
+				BeforeEach(func() {
+					cfdotArgs = append(cfdotArgs, "--timeout", "1")
+				})
+
+				Context("when request exceeds timeout", func() {
+					BeforeEach(func() {
+						serverTimeout = 2
+					})
+
+					It("exits with code 4 and a timeout message", func() {
+						Eventually(sess, 2).Should(gexec.Exit(4))
+						Expect(sess.Err).To(gbytes.Say(`Timeout exceeded`))
+					})
+				})
+
+				Context("when request is within the timeout", func() {
+					It("exits with status code of 0", func() {
+						Eventually(sess).Should(gexec.Exit(0))
+					})
+				})
 			})
 		})
 
@@ -96,7 +129,7 @@ var _ = Describe("create-task", func() {
 				defer f.Close()
 				_, err = f.Write(spec)
 				Expect(err).NotTo(HaveOccurred())
-				args = []string{"@" + f.Name()}
+				cmdArgs = []string{"@" + f.Name()}
 			})
 
 			It("exits with status code 0", func() {
@@ -106,7 +139,7 @@ var _ = Describe("create-task", func() {
 
 		Context("empty spec", func() {
 			BeforeEach(func() {
-				args = nil
+				cmdArgs = nil
 			})
 
 			It("exits with status code of 3", func() {
@@ -116,7 +149,7 @@ var _ = Describe("create-task", func() {
 
 		Context("invalid spec", func() {
 			BeforeEach(func() {
-				args = []string{"foo"}
+				cmdArgs = []string{"foo"}
 			})
 
 			It("exits with status code of 3 and prints the error", func() {
@@ -127,7 +160,7 @@ var _ = Describe("create-task", func() {
 
 		Context("non-existing spec file", func() {
 			BeforeEach(func() {
-				args = []string{"@/path/to/non/existing/file"}
+				cmdArgs = []string{"@/path/to/non/existing/file"}
 			})
 
 			It("exits with status 3 and prints the error", func() {
@@ -165,4 +198,5 @@ var _ = Describe("create-task", func() {
 			Expect(sess.Err).To(gbytes.Say("deadlock"))
 		})
 	})
+
 })

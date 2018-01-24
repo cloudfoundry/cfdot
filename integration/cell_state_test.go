@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"time"
 
 	"code.cloudfoundry.org/bbs/models"
 	"code.cloudfoundry.org/cfhttp"
@@ -114,6 +115,62 @@ var _ = Describe("cell-state", func() {
 			Expect(bytes.TrimSpace(sess.Out.Contents())).To(Equal(jsonData))
 		})
 
+		Context("when timeout flag is present", func() {
+			var (
+				serverTimeout int
+				sess          *gexec.Session
+			)
+
+			JustBeforeEach(func() {
+				bbsServer.SetHandler(0,
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/v1/cells/list.r1"),
+						func(w http.ResponseWriter, req *http.Request) {
+							time.Sleep(time.Duration(serverTimeout) * time.Second)
+						},
+						ghttp.RespondWithProto(200, &models.CellsResponse{
+							Cells: []*models.CellPresence{presence1, presence2},
+						}),
+					),
+				)
+
+				cfdotCmd := exec.Command(
+					cfdotPath,
+					"--bbsURL", bbsServer.URL(),
+					"--timeout", "1",
+					"cell-state", "cell-2",
+				)
+				var err error
+				sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			Context("when exceeds timeout", func() {
+				BeforeEach(func() {
+					serverTimeout = 2
+				})
+
+				It("exits with code 4 and a timeout message", func() {
+					Eventually(sess, 2).Should(gexec.Exit(4))
+					Expect(sess.Err).To(gbytes.Say(`Timeout exceeded`))
+				})
+
+			})
+
+			Context("when within timeout", func() {
+				BeforeEach(func() {
+					serverTimeout = 0
+				})
+
+				It("should succeed", func() {
+					Eventually(sess).Should(gexec.Exit(0))
+					jsonData, err := json.Marshal(cellState2)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(bytes.TrimSpace(sess.Out.Contents())).To(Equal(jsonData))
+				})
+			})
+		})
+
 		Context("when the rep has mutual TLS enabled", func() {
 			var args []string
 
@@ -159,6 +216,71 @@ var _ = Describe("cell-state", func() {
 					err = decoder.Decode(&receivedState)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(receivedState).To(Equal(*cellState2))
+				})
+			})
+
+			Context("when timeout flag is present", func() {
+				var (
+					serverTimeout int
+					sess          *gexec.Session
+				)
+
+				JustBeforeEach(func() {
+					bbsServer.SetHandler(0,
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("POST", "/v1/cells/list.r1"),
+							func(w http.ResponseWriter, req *http.Request) {
+								time.Sleep(time.Duration(serverTimeout) * time.Second)
+							},
+							ghttp.RespondWithProto(200, &models.CellsResponse{
+								Cells: []*models.CellPresence{presence1, presence2},
+							}),
+						),
+					)
+
+					cfdotCmd := exec.Command(
+						cfdotPath,
+						"--bbsURL", bbsServer.URL(),
+						"--caCertFile", clientCAFile,
+						"--clientCertFile", clientCertFile,
+						"--clientKeyFile", clientKeyFile,
+						"--timeout", "1",
+						"cell-states",
+					)
+					var err error
+					sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				Context("when exceeds timeout", func() {
+					BeforeEach(func() {
+						serverTimeout = 2
+					})
+
+					It("exits with code 4 and a timeout message", func() {
+						Eventually(sess, 2).Should(gexec.Exit(4))
+						Expect(sess.Err).To(gbytes.Say(`Timeout exceeded`))
+					})
+				})
+
+				Context("when within timeout", func() {
+					BeforeEach(func() {
+						serverTimeout = 0
+					})
+
+					It("should succeed", func() {
+						Eventually(sess).Should(gexec.Exit(0))
+						decoder := json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(sess.Out.Contents())))
+						var receivedState rep.CellState
+
+						err := decoder.Decode(&receivedState)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(receivedState).To(Equal(*cellState1))
+
+						err = decoder.Decode(&receivedState)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(receivedState).To(Equal(*cellState2))
+					})
 				})
 			})
 		})

@@ -23,7 +23,7 @@ var createTaskCmd = &cobra.Command{
 }
 
 func init() {
-	AddBBSFlags(createTaskCmd)
+	AddBBSAndTimeoutFlags(createTaskCmd)
 	RootCmd.AddCommand(createTaskCmd)
 }
 

@@ -1,7 +1,9 @@
 package integration_test
 
 import (
+	"net/http"
 	"os/exec"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -58,11 +60,22 @@ var _ = Describe("delete-task", func() {
 	})
 
 	Context("when bbs responds with 200 status code", func() {
+		var (
+			serverTimeout int
+			cfdotArgs     []string
+		)
 		BeforeEach(func() {
+			cfdotArgs = []string{"--bbsURL", bbsServer.URL()}
+			serverTimeout = 0
+		})
+		JustBeforeEach(func() {
 			taskGuid := "task-guid"
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/v1/tasks/resolving"),
+					func(w http.ResponseWriter, req *http.Request) {
+						time.Sleep(time.Duration(serverTimeout) * time.Second)
+					},
 					ghttp.VerifyProtoRepresenting(&models.TaskGuidRequest{
 						TaskGuid: taskGuid,
 					}),
@@ -77,9 +90,10 @@ var _ = Describe("delete-task", func() {
 				),
 			)
 
+			execArgs := append(cfdotArgs, "delete-task", taskGuid)
 			cfdotCmd := exec.Command(
 				cfdotPath,
-				[]string{"--bbsURL", bbsServer.URL(), "delete-task", taskGuid}...,
+				execArgs...,
 			)
 			var err error
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
@@ -88,6 +102,29 @@ var _ = Describe("delete-task", func() {
 
 		It("exits with status code of 0", func() {
 			Eventually(sess).Should(gexec.Exit(0))
+		})
+
+		Context("when timeout flag is present", func() {
+			BeforeEach(func() {
+				cfdotArgs = append(cfdotArgs, "--timeout", "1")
+			})
+
+			Context("when request exceeds timeout", func() {
+				BeforeEach(func() {
+					serverTimeout = 2
+				})
+
+				It("exits with code 4 and a timeout message", func() {
+					Eventually(sess, 2).Should(gexec.Exit(4))
+					Expect(sess.Err).To(gbytes.Say(`Timeout exceeded`))
+				})
+			})
+
+			Context("when request is within the timeout", func() {
+				It("exits with status code of 0", func() {
+					Eventually(sess).Should(gexec.Exit(0))
+				})
+			})
 		})
 	})
 

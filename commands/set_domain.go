@@ -28,7 +28,7 @@ var setDomainCmd = &cobra.Command{
 }
 
 func init() {
-	AddBBSFlags(setDomainCmd)
+	AddBBSAndTimeoutFlags(setDomainCmd)
 	setDomainCmd.Flags().DurationVarP(&setDomainTTLFlag, "ttl", "t", 0*time.Second, "ttl of domain")
 	RootCmd.AddCommand(setDomainCmd)
 }

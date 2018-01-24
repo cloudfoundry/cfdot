@@ -1,7 +1,9 @@
 package integration_test
 
 import (
+	"net/http"
 	"os/exec"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -34,10 +36,23 @@ var _ = Describe("desired-lrp-scheduling-infos", func() {
 	})
 
 	Context("when no filters are passed", func() {
+		var (
+			serverTimeout int
+			cfdotArgs     []string
+		)
+
 		BeforeEach(func() {
+			cfdotArgs = []string{"--bbsURL", bbsServer.URL()}
+			serverTimeout = 0
+		})
+
+		JustBeforeEach(func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/v1/desired_lrp_scheduling_infos/list"),
+					func(w http.ResponseWriter, req *http.Request) {
+						time.Sleep(time.Duration(serverTimeout) * time.Second)
+					},
 					ghttp.RespondWithProto(200, &models.DesiredLRPSchedulingInfosResponse{
 						DesiredLrpSchedulingInfos: []*models.DesiredLRPSchedulingInfo{
 							{
@@ -47,10 +62,12 @@ var _ = Describe("desired-lrp-scheduling-infos", func() {
 					}),
 				),
 			)
-		})
 
-		JustBeforeEach(func() {
-			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "desired-lrp-scheduling-infos")
+			execArgs := append(cfdotArgs, "desired-lrp-scheduling-infos")
+			cfdotCmd := exec.Command(
+				cfdotPath,
+				execArgs...,
+			)
 
 			var err error
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
@@ -60,6 +77,30 @@ var _ = Describe("desired-lrp-scheduling-infos", func() {
 		It("exits with 0  and returns the json encoding of the desired lrp scheduling info", func() {
 			Eventually(sess).Should(gexec.Exit(0))
 			Expect(sess.Out).To(gbytes.Say(`"instances":1`))
+		})
+
+		Context("when timeout flag is present", func() {
+			BeforeEach(func() {
+				cfdotArgs = append(cfdotArgs, "--timeout", "1")
+			})
+
+			Context("when request exceeds timeout", func() {
+				BeforeEach(func() {
+					serverTimeout = 2
+				})
+
+				It("exits with code 4 and a timeout message", func() {
+					Eventually(sess, 2).Should(gexec.Exit(4))
+					Expect(sess.Err).To(gbytes.Say(`Timeout exceeded`))
+				})
+			})
+
+			Context("when request is within the timeout", func() {
+				It("exits with status code of 0", func() {
+					Eventually(sess).Should(gexec.Exit(0))
+					Expect(sess.Out).To(gbytes.Say(`"instances":1`))
+				})
+			})
 		})
 	})
 

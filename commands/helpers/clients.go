@@ -2,8 +2,10 @@ package helpers
 
 import (
 	"strings"
+	"time"
 
 	"code.cloudfoundry.org/bbs"
+	"code.cloudfoundry.org/cfhttp"
 	"code.cloudfoundry.org/lager"
 	"code.cloudfoundry.org/locket"
 	locketmodels "code.cloudfoundry.org/locket/models"
@@ -23,33 +25,31 @@ type TLSConfig struct {
 	CertFile          string
 	KeyFile           string
 	SkipCertVerify    bool
+	Timeout           int
 }
 
 func NewBBSClient(cmd *cobra.Command, bbsClientConfig TLSConfig) (bbs.Client, error) {
 	var err error
 	var client bbs.Client
 
+	cfhttp.Initialize(time.Duration(bbsClientConfig.Timeout) * time.Second)
+
 	if !strings.HasPrefix(bbsClientConfig.BBSUrl, "https") {
-		client = bbs.NewClient(bbsClientConfig.BBSUrl)
+		client, err = bbs.NewClientWithConfig(bbs.ClientConfig{URL: bbsClientConfig.BBSUrl, Retries: 1})
 	} else {
-		if bbsClientConfig.SkipCertVerify {
-			client, err = bbs.NewSecureSkipVerifyClient(
-				bbsClientConfig.BBSUrl,
-				bbsClientConfig.CertFile,
-				bbsClientConfig.KeyFile,
-				clientSessionCacheSize,
-				maxIdleConnsPerHost,
-			)
-		} else {
-			client, err = bbs.NewSecureClient(
-				bbsClientConfig.BBSUrl,
-				bbsClientConfig.CACertFile,
-				bbsClientConfig.CertFile,
-				bbsClientConfig.KeyFile,
-				clientSessionCacheSize,
-				maxIdleConnsPerHost,
-			)
-		}
+		client, err = bbs.NewClientWithConfig(
+			bbs.ClientConfig{
+				URL:                    bbsClientConfig.BBSUrl,
+				IsTLS:                  true,
+				InsecureSkipVerify:     bbsClientConfig.SkipCertVerify,
+				CAFile:                 bbsClientConfig.CACertFile,
+				CertFile:               bbsClientConfig.CertFile,
+				KeyFile:                bbsClientConfig.KeyFile,
+				ClientSessionCacheSize: clientSessionCacheSize,
+				MaxIdleConnsPerHost:    maxIdleConnsPerHost,
+				Retries:                1,
+			},
+		)
 	}
 
 	return client, err
@@ -85,6 +85,15 @@ func NewLocketClient(logger lager.Logger, cmd *cobra.Command, locketClientConfig
 }
 
 func (config *TLSConfig) Merge(newConfig TLSConfig) {
+	if newConfig.BBSUrl != "" {
+		config.BBSUrl = newConfig.BBSUrl
+	}
+	if newConfig.LocketApiLocation != "" {
+		config.LocketApiLocation = newConfig.LocketApiLocation
+	}
+	if newConfig.Timeout != 0 {
+		config.Timeout = newConfig.Timeout
+	}
 	if newConfig.KeyFile != "" {
 		config.KeyFile = newConfig.KeyFile
 	}

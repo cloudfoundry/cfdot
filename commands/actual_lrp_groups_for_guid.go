@@ -26,7 +26,7 @@ var actualLRPGroupsByProcessGuidCmd = &cobra.Command{
 }
 
 func init() {
-	AddBBSFlags(actualLRPGroupsByProcessGuidCmd)
+	AddBBSAndTimeoutFlags(actualLRPGroupsByProcessGuidCmd)
 
 	// String flag because logic for optional int flag is not clear
 	actualLRPGroupsByProcessGuidCmd.Flags().StringVarP(&actualLRPGroupsGuidIndexFlag, "index", "i", "", "retrieve actual lrp for the given index")

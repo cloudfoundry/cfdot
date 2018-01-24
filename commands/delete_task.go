@@ -16,7 +16,7 @@ var deleteTaskCmd = &cobra.Command{
 }
 
 func init() {
-	AddBBSFlags(deleteTaskCmd)
+	AddBBSAndTimeoutFlags(deleteTaskCmd)
 	RootCmd.AddCommand(deleteTaskCmd)
 }
 

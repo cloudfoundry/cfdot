@@ -1,7 +1,9 @@
 package integration_test
 
 import (
+	"net/http"
 	"os/exec"
+	"time"
 
 	"code.cloudfoundry.org/bbs/models"
 
@@ -19,10 +21,22 @@ var _ = Describe("actual-lrp-groups", func() {
 	itHasNoArgs("actual-lrp-groups", false)
 
 	Context("when no filters are passed", func() {
+		var (
+			serverTimeout int
+			cfdotArgs     []string
+		)
 		BeforeEach(func() {
+			cfdotArgs = []string{"--bbsURL", bbsServer.URL()}
+			serverTimeout = 0
+		})
+
+		JustBeforeEach(func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/v1/actual_lrp_groups/list"),
+					func(w http.ResponseWriter, req *http.Request) {
+						time.Sleep(time.Duration(serverTimeout) * time.Second)
+					},
 					ghttp.RespondWithProto(200, &models.ActualLRPGroupsResponse{
 						ActualLrpGroups: []*models.ActualLRPGroup{
 							{
@@ -34,10 +48,11 @@ var _ = Describe("actual-lrp-groups", func() {
 					}),
 				),
 			)
-		})
-
-		JustBeforeEach(func() {
-			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "actual-lrp-groups")
+			execArgs := append(cfdotArgs, "actual-lrp-groups")
+			cfdotCmd := exec.Command(
+				cfdotPath,
+				execArgs...,
+			)
 
 			var err error
 			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
@@ -48,6 +63,30 @@ var _ = Describe("actual-lrp-groups", func() {
 		It("returns the json encoding of the actual lrp", func() {
 			Eventually(sess).Should(gexec.Exit(0))
 			Expect(sess.Out).To(gbytes.Say(`"state":"running"`))
+		})
+
+		Context("when timeout flag is present", func() {
+			BeforeEach(func() {
+				cfdotArgs = append(cfdotArgs, "--timeout", "1")
+			})
+
+			Context("when request exceeds timeout", func() {
+				BeforeEach(func() {
+					serverTimeout = 2
+				})
+
+				It("exits with code 4 and a timeout message", func() {
+					Eventually(sess, 2).Should(gexec.Exit(4))
+					Expect(sess.Err).To(gbytes.Say(`Timeout exceeded`))
+				})
+			})
+
+			Context("when request is within the timeout", func() {
+				It("exits with status code of 0", func() {
+					Eventually(sess).Should(gexec.Exit(0))
+					Expect(sess.Out).To(gbytes.Say(`"state":"running"`))
+				})
+			})
 		})
 	})
 

@@ -1,6 +1,7 @@
 package integration_test
 
 import (
+	"net/http"
 	"os/exec"
 	"time"
 
@@ -17,10 +18,19 @@ var _ = Describe("set-domain", func() {
 	itValidatesBBSFlags("set-domain", "domain1")
 
 	Context("when the server responds for set-domain", func() {
+		var (
+			serverTimeout int
+		)
 		BeforeEach(func() {
+			serverTimeout = 0
+		})
+		JustBeforeEach(func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/v1/domains/upsert"),
+					func(w http.ResponseWriter, req *http.Request) {
+						time.Sleep(time.Duration(serverTimeout) * time.Second)
+					},
 					ghttp.RespondWithProto(200, &models.UpsertDomainResponse{}),
 				),
 			)
@@ -73,6 +83,33 @@ var _ = Describe("set-domain", func() {
 			Eventually(sess).Should(gexec.Exit(3))
 			Expect(sess.Err).To(gbytes.Say(`invalid duration`))
 			Expect(sess.Err).To(gbytes.Say(`Usage:`))
+		})
+
+		Context("when timeout flag is present", func() {
+			Context("when request exceeds timeout", func() {
+				BeforeEach(func() {
+					serverTimeout = 2
+				})
+
+				It("exits with code 4 and a timeout message", func() {
+					cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "--timeout", "1", "set-domain", "any-domain")
+
+					sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+					Expect(err).NotTo(HaveOccurred())
+					Eventually(sess, 2).Should(gexec.Exit(4))
+					Expect(sess.Err).To(gbytes.Say(`Timeout exceeded`))
+				})
+			})
+
+			Context("when request is within the timeout", func() {
+				It("exits with status code of 0", func() {
+					cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "--timeout", "1", "set-domain", "any-domain")
+
+					sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+					Expect(err).NotTo(HaveOccurred())
+					Eventually(sess).Should(gexec.Exit(0))
+				})
+			})
 		})
 	})
 

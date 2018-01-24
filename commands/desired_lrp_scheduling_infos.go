@@ -23,7 +23,7 @@ var desiredLRPSchedulingInfosCmd = &cobra.Command{
 }
 
 func init() {
-	AddBBSFlags(desiredLRPSchedulingInfosCmd)
+	AddBBSAndTimeoutFlags(desiredLRPSchedulingInfosCmd)
 	desiredLRPSchedulingInfosCmd.Flags().StringVarP(&desiredLRPSchedulingInfosDomainFlag, "domain", "d", "", "retrieve only scheduling infos for the given domain")
 	RootCmd.AddCommand(desiredLRPSchedulingInfosCmd)
 }

@@ -17,7 +17,7 @@ var cancelTaskCmd = &cobra.Command{
 }
 
 func init() {
-	AddBBSFlags(cancelTaskCmd)
+	AddBBSAndTimeoutFlags(cancelTaskCmd)
 	RootCmd.AddCommand(cancelTaskCmd)
 }
 

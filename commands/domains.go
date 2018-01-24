@@ -18,7 +18,7 @@ var domainsCmd = &cobra.Command{
 }
 
 func init() {
-	AddBBSFlags(domainsCmd)
+	AddBBSAndTimeoutFlags(domainsCmd)
 	RootCmd.AddCommand(domainsCmd)
 }
 

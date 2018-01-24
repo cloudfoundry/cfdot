@@ -18,7 +18,7 @@ var cellsCmd = &cobra.Command{
 }
 
 func init() {
-	AddBBSFlags(cellsCmd)
+	AddBBSAndTimeoutFlags(cellsCmd)
 
 	RootCmd.AddCommand(cellsCmd)
 }
