@@ -73,7 +73,7 @@ var _ = BeforeEach(func() {
 	node := GinkgoParallelNode()
 	startPort := 1050 * node
 	portRange := 1000
-	endPort := startPort + portRange*(node+1)
+	endPort := startPort + portRange
 	portAllocator, err := portauthority.New(startPort, endPort)
 	Expect(err).NotTo(HaveOccurred())
 

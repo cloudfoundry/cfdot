@@ -121,31 +121,52 @@ var _ = Describe("desired-lrp", func() {
 
 					Expect(sess.Out).To(gbytes.Say(string(jsonData)))
 				})
+			})
 
-				Context("when timeout flag is present", func() {
+			Context("when the timeout flag is present", func() {
+				JustBeforeEach(func() {
+					desiredLRP = &models.DesiredLRP{
+						ProcessGuid: "test-guid",
+						Instances:   2,
+					}
+
+					bbsServer.AppendHandlers(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("POST", "/v1/desired_lrps/get_by_process_guid.r2"),
+							func(w http.ResponseWriter, req *http.Request) {
+								time.Sleep(time.Duration(serverTimeout) * time.Second)
+							},
+							ghttp.VerifyProtoRepresenting(&models.DesiredLRPByProcessGuidRequest{
+								ProcessGuid: "test-guid",
+							}),
+							ghttp.RespondWithProto(200, &models.DesiredLRPResponse{
+								DesiredLrp: desiredLRP,
+								Error:      nil,
+							}),
+						),
+					)
+
+				})
+
+				Context("when request exceeds timeout", func() {
 					BeforeEach(func() {
+						serverTimeout = 2
 						cfdotArgs = append(cfdotArgs, "--timeout", "1")
 					})
 
-					Context("when request exceeds timeout", func() {
-						BeforeEach(func() {
-							serverTimeout = 2
-						})
-
-						It("exits with code 4 and a timeout message", func() {
-							Eventually(sess, 2).Should(gexec.Exit(4))
-							Expect(sess.Err).To(gbytes.Say(`Timeout exceeded`))
-						})
+					It("exits with code 4 and a timeout message", func() {
+						Eventually(sess, 2).Should(gexec.Exit(4))
+						Expect(sess.Err).To(gbytes.Say(`Timeout exceeded`))
 					})
+				})
 
-					Context("when request is within the timeout", func() {
-						It("exits with status code of 0", func() {
-							Eventually(sess).Should(gexec.Exit(0))
-							jsonData, err := json.Marshal(desiredLRP)
-							Expect(err).NotTo(HaveOccurred())
+				Context("when request is within the timeout", func() {
+					It("exits with status code of 0", func() {
+						Eventually(sess).Should(gexec.Exit(0))
+						jsonData, err := json.Marshal(desiredLRP)
+						Expect(err).NotTo(HaveOccurred())
 
-							Expect(sess.Out).To(gbytes.Say(string(jsonData)))
-						})
+						Expect(sess.Out).To(gbytes.Say(string(jsonData)))
 					})
 				})
 			})

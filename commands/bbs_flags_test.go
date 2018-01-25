@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"code.cloudfoundry.org/cfdot/commands"
+	"code.cloudfoundry.org/cfdot/commands/helpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -18,6 +19,7 @@ var _ = Describe("BBS Flags", func() {
 	var output *gbytes.Buffer
 
 	BeforeEach(func() {
+		commands.Config = helpers.TLSConfig{}
 		dummyCmd = &cobra.Command{
 			Use: "dummy",
 			Run: func(cmd *cobra.Command, args []string) {},
@@ -39,6 +41,10 @@ var _ = Describe("BBS Flags", func() {
 
 	JustBeforeEach(func() {
 		err = dummyCmd.PreRunE(dummyCmd, dummyCmd.Flags().Args())
+	})
+
+	AfterEach(func() {
+		commands.Config = helpers.TLSConfig{}
 	})
 
 	Describe("bbsURL", func() {

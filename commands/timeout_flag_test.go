@@ -42,6 +42,10 @@ var _ = Describe("Timeout Flag", func() {
 		err = dummyCmd.PreRunE(dummyCmd, dummyCmd.Flags().Args())
 	})
 
+	AfterEach(func() {
+		commands.Config = helpers.TLSConfig{}
+	})
+
 	Context("when flags are passed in as arguments", func() {
 		BeforeEach(func() {
 			validFlags["--timeout"] = "10"

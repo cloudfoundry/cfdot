@@ -9,20 +9,20 @@ import (
 )
 
 var (
-	timeoutConfig helpers.TLSConfig
-	prehooks      = []func(cmd *cobra.Command, args []string) error{}
+	timeoutConfig   helpers.TLSConfig
+	timeoutPreHooks = []func(cmd *cobra.Command, args []string) error{}
 )
 
 func AddBBSAndTimeoutFlags(cmd *cobra.Command) {
 	AddBBSFlags(cmd)
 	cmd.Flags().IntVar(&timeoutConfig.Timeout, "timeout", 0, "cfdot request timeout in seconds")
-	prehooks = append(prehooks, cmd.PreRunE)
+	timeoutPreHooks = append(timeoutPreHooks, cmd.PreRunE)
 	cmd.PreRunE = TimeoutPrehook
 }
 
 func TimeoutPrehook(cmd *cobra.Command, args []string) error {
 	var err error
-	for _, f := range prehooks {
+	for _, f := range timeoutPreHooks {
 		if f == nil {
 			continue
 		}
