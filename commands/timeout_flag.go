@@ -15,7 +15,7 @@ var (
 
 func AddBBSAndTimeoutFlags(cmd *cobra.Command) {
 	AddBBSFlags(cmd)
-	cmd.Flags().IntVar(&timeoutConfig.Timeout, "timeout", 0, "cfdot request timeout in seconds")
+	cmd.Flags().IntVar(&timeoutConfig.Timeout, "timeout", 0, "timeout for BBS requests in seconds [environment variable equivalent: CFDOT_TIMEOUT]")
 	timeoutPreHooks = append(timeoutPreHooks, cmd.PreRunE)
 	cmd.PreRunE = TimeoutPrehook
 }
