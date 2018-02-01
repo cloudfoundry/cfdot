@@ -47,9 +47,9 @@ var _ = Describe("Locket Flags", func() {
 			})
 
 			It("returns an error message", func() {
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).Should(Equal(
-					"Locket API Location not set. Please specify one with the '--locketAPILocation' flag or the 'LOCKET_API_LOCATION' environment variable."))
+				Expect(err).To(MatchError(
+					"Locket API Location not set. Please specify one with the '--locketAPILocation' flag or the 'LOCKET_API_LOCATION' environment variable.",
+				))
 			})
 
 			It("exits with code 3", func() {
