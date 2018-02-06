@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"time"
 
 	"google.golang.org/grpc/grpclog"
 
@@ -113,7 +114,7 @@ var _ = AfterEach(func() {
 	bbsServer.CloseClientConnections()
 	bbsServer.Close()
 	ginkgomon.Interrupt(locketProcess)
-	ginkgomon.Interrupt(dbProcess)
+	ginkgomon.Interrupt(dbProcess, 5*time.Second) // we've been seeing the sql teardown take longer than the default of 1s
 	consulRunner.Stop()
 })
 
