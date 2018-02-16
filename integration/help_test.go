@@ -68,6 +68,7 @@ var _ = Describe("help", func() {
 		BeforeEach(func() {
 			cfdotCmd = exec.Command(cfdotPath, "help", "set-domain")
 		})
+
 		It("displays the set-domain usage message", func() {
 			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
@@ -77,13 +78,34 @@ var _ = Describe("help", func() {
 			Expect(sess.Out).To(gbytes.Say("Usage:"))
 			Expect(sess.Out).To(gbytes.Say("cfdot set-domain DOMAIN"))
 			Expect(sess.Out).To(gbytes.Say("Flags:"))
-			Expect(sess.Out).To(gbytes.Say("--bbsCACertFile"))
-			Expect(sess.Out).To(gbytes.Say("--bbsCertFile"))
-			Expect(sess.Out).To(gbytes.Say("--bbsSkipCertVerify"))
 			Expect(sess.Out).To(gbytes.Say("--bbsURL"))
+			Expect(sess.Out).To(gbytes.Say("--caCertFile"))
+			Expect(sess.Out).To(gbytes.Say("--clientCertFile"))
+			Expect(sess.Out).To(gbytes.Say("--skipCertVerify"))
 			Expect(sess.Out).To(gbytes.Say("--timeout"))
 			Expect(sess.Out).To(gbytes.Say("-t"))
 			Expect(sess.Out).To(gbytes.Say("--ttl"))
+		})
+	})
+
+	Context("called `cfdot help locks`", func() {
+		BeforeEach(func() {
+			cfdotCmd = exec.Command(cfdotPath, "help", "locks")
+		})
+
+		It("displays the locks usage message", func() {
+			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(sess).Should(gexec.Exit(0))
+			Expect(sess.Out).To(gbytes.Say("List locks from Locket"))
+			Expect(sess.Out).To(gbytes.Say("Usage:"))
+			Expect(sess.Out).To(gbytes.Say("cfdot locks"))
+			Expect(sess.Out).To(gbytes.Say("Flags:"))
+			Expect(sess.Out).To(gbytes.Say("--caCertFile"))
+			Expect(sess.Out).To(gbytes.Say("--clientCertFile"))
+			Expect(sess.Out).To(gbytes.Say("--locketAPILocation"))
+			Expect(sess.Out).To(gbytes.Say("--skipCertVerify"))
 		})
 	})
 

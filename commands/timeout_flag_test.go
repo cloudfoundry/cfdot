@@ -30,11 +30,11 @@ var _ = Describe("Timeout Flag", func() {
 		dummyCmd.SetOutput(output)
 
 		validFlags = map[string]string{
-			"--bbsSkipCertVerify": "false",
-			"--bbsURL":            "https://example.com",
-			"--bbsCACertFile":     "fixtures/bbsCACert.crt",
-			"--bbsCertFile":       "fixtures/bbsClient.crt",
-			"--bbsKeyFile":        "fixtures/bbsClient.key",
+			"--bbsURL":         "https://example.com",
+			"--skipCertVerify": "false",
+			"--caCertFile":     "fixtures/bbsCACert.crt",
+			"--clientCertFile": "fixtures/bbsClient.crt",
+			"--clientKeyFile":  "fixtures/bbsClient.key",
 		}
 	})
 

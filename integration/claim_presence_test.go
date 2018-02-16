@@ -28,11 +28,17 @@ var _ = Describe("claim-presence", func() {
 		wd, _ := os.Getwd()
 		locketClientCertFile = fmt.Sprintf("%s/fixtures/locketClient.crt", wd)
 		locketClientKeyFile = fmt.Sprintf("%s/fixtures/locketClient.key", wd)
-		os.Setenv("LOCKET_CA_CERT_FILE", locketCACertFile)
-		os.Setenv("LOCKET_CERT_FILE", locketClientCertFile)
-		os.Setenv("LOCKET_KEY_FILE", locketClientKeyFile)
+		os.Setenv("CA_CERT_FILE", locketCACertFile)
+		os.Setenv("CLIENT_CERT_FILE", locketClientCertFile)
+		os.Setenv("CLIENT_KEY_FILE", locketClientKeyFile)
 
 		logger = lagertest.NewTestLogger("locket")
+	})
+
+	AfterEach(func() {
+		os.Unsetenv("CA_CERT_FILE")
+		os.Unsetenv("CLIENT_CERT_FILE")
+		os.Unsetenv("CLIENT_KEY_FILE")
 	})
 
 	It("claim-lock exists successfully with code 0", func() {
