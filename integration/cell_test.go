@@ -3,7 +3,6 @@ package integration_test
 import (
 	"encoding/json"
 	"net/http"
-	"os/exec"
 	"time"
 
 	"code.cloudfoundry.org/bbs/models"
@@ -22,9 +21,6 @@ var _ = Describe("cell", func() {
 		var (
 			presence      *models.CellPresence
 			serverTimeout int
-			sess          *gexec.Session
-			cfdotArgs     []string
-			cmdArgs       []string
 		)
 
 		BeforeEach(func() {
@@ -32,8 +28,6 @@ var _ = Describe("cell", func() {
 				CellId:     "cell-1",
 				RepAddress: "rep-1",
 			}
-			cfdotArgs = []string{"--bbsURL", bbsServer.URL()}
-			cmdArgs = []string{"cell-1"}
 			serverTimeout = 0
 		})
 
@@ -49,18 +43,10 @@ var _ = Describe("cell", func() {
 					}),
 				),
 			)
-			execArgs := append(append(cfdotArgs, "cell"), cmdArgs...)
-			cfdotCmd := exec.Command(
-				cfdotPath,
-				execArgs...,
-			)
-
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("returns the json encoding of the cell presences", func() {
+			sess := RunCFDot("cell", "cell-1")
 			Eventually(sess).Should(gexec.Exit(0))
 
 			jsonData, err := json.Marshal(presence)
@@ -69,17 +55,17 @@ var _ = Describe("cell", func() {
 		})
 
 		Context("when the cell does not exist", func() {
-			BeforeEach(func() {
-				cmdArgs = []string{"cell-id-dsafasdklfjasdlkf"}
-			})
 			It("exits with status code of 5", func() {
+				sess := RunCFDot("cell", "cell-id-dsafasdklfjasdlkf")
 				Eventually(sess).Should(gexec.Exit(5))
 			})
 		})
 
 		Context("when timeout flag is present", func() {
+			var sess *gexec.Session
+
 			BeforeEach(func() {
-				cfdotArgs = append(cfdotArgs, "--timeout", "1")
+				sess = RunCFDot("--timeout", "1", "cell", "cell-1")
 			})
 
 			Context("when request exceeds timeout", func() {
@@ -107,10 +93,7 @@ var _ = Describe("cell", func() {
 
 	Context("when cell command is called with extra arguments", func() {
 		It("exits with status code of 3", func() {
-			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "cell", "cell-id", "extra-argument")
-
-			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
+			sess := RunCFDot("cell", "cell-id", "extra-argument")
 			Eventually(sess).Should(gexec.Exit(3))
 		})
 	})

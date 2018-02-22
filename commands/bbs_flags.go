@@ -11,8 +11,7 @@ import (
 )
 
 var (
-	bbsUrl      string
-	bbsPreHooks = []func(cmd *cobra.Command, args []string) error{}
+	bbsUrl string
 )
 
 // errors
@@ -23,28 +22,14 @@ var (
 func AddBBSFlags(cmd *cobra.Command) {
 	AddTLSFlags(cmd)
 	cmd.Flags().StringVar(&bbsUrl, "bbsURL", "", "URL of BBS server to target [environment variable equivalent: BBS_URL]")
-	bbsPreHooks = append(bbsPreHooks, cmd.PreRunE)
 	cmd.PreRunE = BBSPrehook
 }
 
 func BBSPrehook(cmd *cobra.Command, args []string) error {
-	var err error
-	for _, f := range bbsPreHooks {
-		if f == nil {
-			continue
-		}
-		err = f(cmd, args)
-		if err != nil {
-			return err
-		}
-	}
-
-	err = setBBSFlags(cmd, args)
-	if err != nil {
+	if err := setBBSFlags(cmd, args); err != nil {
 		return err
 	}
-
-	return nil
+	return tlsPreHook(cmd, args)
 }
 
 func setBBSFlags(cmd *cobra.Command, args []string) error {
@@ -72,48 +57,11 @@ func setBBSFlags(cmd *cobra.Command, args []string) error {
 		return returnErr
 	}
 
-	if parsedURL.Scheme == "https" {
-		if !Config.SkipCertVerify {
-			if Config.CACertFile == "" {
-				returnErr = NewCFDotValidationError(cmd, errMissingCACertFile)
-				return returnErr
-			}
-
-			err := validateReadableFile(cmd, Config.CACertFile, "CA cert")
-			if err != nil {
-				return err
-			}
-		}
-
-		if (Config.KeyFile == "") || (Config.CertFile == "") {
-			returnErr = NewCFDotValidationError(cmd, errMissingClientCertAndKeyFiles)
-			return returnErr
-		}
-
-		if Config.KeyFile != "" {
-			err := validateReadableFile(cmd, Config.KeyFile, "key")
-
-			if err != nil {
-				return err
-			}
-		}
-
-		if Config.CertFile != "" {
-			err := validateReadableFile(cmd, Config.CertFile, "cert")
-
-			if err != nil {
-				return err
-			}
-		}
-
-		return nil
-	}
-
-	if parsedURL.Scheme != "http" {
+	if parsedURL.Scheme != "https" {
 		returnErr = NewCFDotValidationError(
 			cmd,
 			fmt.Errorf(
-				"The URL '%s' does not have an 'http' or 'https' scheme. Please "+
+				"The URL '%s' does not have an 'https' scheme. Please "+
 					"specify one with the '--bbsURL' flag or the 'BBS_URL' environment "+
 					"variable.", Config.BBSUrl),
 		)

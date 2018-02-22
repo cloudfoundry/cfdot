@@ -2,7 +2,6 @@ package integration_test
 
 import (
 	"net/http"
-	"os/exec"
 	"time"
 
 	"code.cloudfoundry.org/bbs/models"
@@ -15,18 +14,15 @@ import (
 )
 
 var _ = Describe("actual-lrp-groups", func() {
-	var sess *gexec.Session
-
 	itValidatesBBSFlags("actual-lrp-groups")
 	itHasNoArgs("actual-lrp-groups", false)
 
 	Context("when no filters are passed", func() {
 		var (
 			serverTimeout int
-			cfdotArgs     []string
 		)
+
 		BeforeEach(func() {
-			cfdotArgs = []string{"--bbsURL", bbsServer.URL()}
 			serverTimeout = 0
 		})
 
@@ -48,34 +44,22 @@ var _ = Describe("actual-lrp-groups", func() {
 					}),
 				),
 			)
-			execArgs := append(cfdotArgs, "actual-lrp-groups")
-			cfdotCmd := exec.Command(
-				cfdotPath,
-				execArgs...,
-			)
-
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-
 		})
 
 		It("returns the json encoding of the actual lrp", func() {
+			sess := RunCFDot("actual-lrp-groups")
 			Eventually(sess).Should(gexec.Exit(0))
 			Expect(sess.Out).To(gbytes.Say(`"state":"running"`))
 		})
 
 		Context("when timeout flag is present", func() {
-			BeforeEach(func() {
-				cfdotArgs = append(cfdotArgs, "--timeout", "1")
-			})
-
 			Context("when request exceeds timeout", func() {
 				BeforeEach(func() {
 					serverTimeout = 2
 				})
 
 				It("exits with code 4 and a timeout message", func() {
+					sess := RunCFDot("actual-lrp-groups", "--timeout", "1")
 					Eventually(sess, 2).Should(gexec.Exit(4))
 					Expect(sess.Err).To(gbytes.Say(`Timeout exceeded`))
 				})
@@ -83,6 +67,7 @@ var _ = Describe("actual-lrp-groups", func() {
 
 			Context("when request is within the timeout", func() {
 				It("exits with status code of 0", func() {
+					sess := RunCFDot("actual-lrp-groups", "--timeout", "1")
 					Eventually(sess).Should(gexec.Exit(0))
 					Expect(sess.Out).To(gbytes.Say(`"state":"running"`))
 				})
@@ -113,34 +98,19 @@ var _ = Describe("actual-lrp-groups", func() {
 		})
 
 		It("exits with status code of 0", func() {
-			cfdotCmd := exec.Command(
-				cfdotPath,
-				"--bbsURL", bbsServer.URL(),
-				"actual-lrp-groups",
+			sess := RunCFDot("actual-lrp-groups",
 				"-d", "cf-apps",
 				"-c", "cell_z1-0",
 			)
-
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-
 			Eventually(sess).Should(gexec.Exit(0))
 		})
 
 		It("exits with status code of 0", func() {
-			cfdotCmd := exec.Command(
-				cfdotPath,
-				"--bbsURL", bbsServer.URL(),
-				"actual-lrp-groups",
+			sess := RunCFDot("actual-lrp-groups",
+				"-d", "cf-apps",
 				"--domain", "cf-apps",
 				"--cell-id", "cell_z1-0",
 			)
-
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-
 			Eventually(sess).Should(gexec.Exit(0))
 		})
 	})

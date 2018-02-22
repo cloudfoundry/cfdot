@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"os/exec"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -18,20 +17,11 @@ import (
 )
 
 var _ = Describe("update-desired-lrp", func() {
-	var sess *gexec.Session
-
 	itValidatesBBSFlags("update-desired-lrp")
 
 	Context("when not enough args are provided", func() {
-		JustBeforeEach(func() {
-			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "update-desired-lrp")
-
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-		})
-
 		It("exits with status 3 and prints an error on stderr", func() {
+			sess := RunCFDot("update-desired-lrp")
 			Eventually(sess).Should(gexec.Exit(3))
 			Expect(sess.Err).To(gbytes.Say(`Missing arguments`))
 			Expect(sess.Err).To(gbytes.Say("cfdot update-desired-lrp process-guid \\(SPEC\\|@FILE\\) .*"))
@@ -41,9 +31,6 @@ var _ = Describe("update-desired-lrp", func() {
 	Context("when bbs responds with 200 status code", func() {
 		var (
 			lrpUpdate     *models.DesiredLRPUpdate
-			sess          *gexec.Session
-			cfdotArgs     []string
-			cmdArgs       []string
 			serverTimeout int
 		)
 
@@ -52,7 +39,6 @@ var _ = Describe("update-desired-lrp", func() {
 			lrpUpdate = &models.DesiredLRPUpdate{
 				Instances: &updatedInstanceCount,
 			}
-			cfdotArgs = []string{"--bbsURL", bbsServer.URL()}
 			serverTimeout = 0
 		})
 
@@ -72,39 +58,30 @@ var _ = Describe("update-desired-lrp", func() {
 					}),
 				),
 			)
-
-			execArgs := append(append(cfdotArgs, "update-desired-lrp"), cmdArgs...)
-			cfdotCmd := exec.Command(
-				cfdotPath,
-				execArgs...,
-			)
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
 		})
 
 		Context("as json", func() {
+			var lrpArg string
+
 			BeforeEach(func() {
 				spec, err := json.Marshal(lrpUpdate)
 				Expect(err).NotTo(HaveOccurred())
-				cmdArgs = []string{"process-guid", string(spec)}
+				lrpArg = string(spec)
 			})
 
 			It("exits with status code of 0", func() {
+				sess := RunCFDot("update-desired-lrp", "process-guid", lrpArg)
 				Eventually(sess).Should(gexec.Exit(0))
 			})
 
 			Context("when timeout flag is present", func() {
-				BeforeEach(func() {
-					cfdotArgs = append(cfdotArgs, "--timeout", "1")
-				})
-
 				Context("when request exceeds timeout", func() {
 					BeforeEach(func() {
 						serverTimeout = 2
 					})
 
 					It("exits with code 4 and a timeout message", func() {
+						sess := RunCFDot("update-desired-lrp", "process-guid", lrpArg, "--timeout", "1")
 						Eventually(sess, 2).Should(gexec.Exit(4))
 						Expect(sess.Err).To(gbytes.Say(`Timeout exceeded`))
 					})
@@ -112,6 +89,7 @@ var _ = Describe("update-desired-lrp", func() {
 
 				Context("when request is within the timeout", func() {
 					It("exits with status code of 0", func() {
+						sess := RunCFDot("update-desired-lrp", "process-guid", lrpArg, "--timeout", "1")
 						Eventually(sess).Should(gexec.Exit(0))
 					})
 				})
@@ -119,49 +97,41 @@ var _ = Describe("update-desired-lrp", func() {
 		})
 
 		Context("as a file", func() {
+			var lrpArg string
+
 			BeforeEach(func() {
-				spec, err := json.Marshal(lrpUpdate)
-				Expect(err).NotTo(HaveOccurred())
 				f, err := ioutil.TempFile(os.TempDir(), "update_lrp_spec")
 				Expect(err).NotTo(HaveOccurred())
 				defer f.Close()
-				_, err = f.Write(spec)
-				Expect(err).NotTo(HaveOccurred())
-				cmdArgs = []string{"process-guid", "@" + f.Name()}
+				Expect(json.NewEncoder(f).Encode(lrpUpdate)).To(Succeed())
+
+				lrpArg = "@" + f.Name()
 			})
 
 			It("exits with status code 0", func() {
+				sess := RunCFDot("update-desired-lrp", "process-guid", lrpArg)
 				Eventually(sess).Should(gexec.Exit(0))
 			})
 		})
 
 		Context("empty spec", func() {
-			BeforeEach(func() {
-				cmdArgs = []string{"process-guid"}
-			})
-
 			It("exits with status code of 3", func() {
+				sess := RunCFDot("update-desired-lrp", "process-guid")
 				Eventually(sess).Should(gexec.Exit(3))
 			})
 		})
 
 		Context("invalid spec", func() {
-			BeforeEach(func() {
-				cmdArgs = []string{"process-guid", "foo"}
-			})
-
 			It("exits with status code of 3 and prints the error", func() {
+				sess := RunCFDot("update-desired-lrp", "process-guid", "foo")
 				Eventually(sess).Should(gexec.Exit(3))
 				Expect(sess.Err).To(gbytes.Say("Invalid JSON:"))
 			})
 		})
 
 		Context("non-existing spec file", func() {
-			BeforeEach(func() {
-				cmdArgs = []string{"process-guid1", "@/path/to/non/existing/file"}
-			})
-
 			It("exits with status 3 and prints the error", func() {
+				sess := RunCFDot("update-desired-lrp", "process-guid1", "@/path/to/non/existing/file")
 				Eventually(sess).Should(gexec.Exit(3))
 				Expect(sess.Err).To(gbytes.Say("no such file"))
 			})
@@ -181,18 +151,10 @@ var _ = Describe("update-desired-lrp", func() {
 					}),
 				),
 			)
-
-			cfdotCmd := exec.Command(
-				cfdotPath,
-				"--bbsURL", bbsServer.URL(), "update-desired-lrp", "process-guid", "{}",
-			)
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(sess.Exited).Should(BeClosed())
 		})
 
 		It("exits with status 4 and prints the error", func() {
+			sess := RunCFDot("update-desired-lrp", "process-guid1", "{}")
 			Eventually(sess).Should(gexec.Exit(4))
 			Expect(sess.Err).To(gbytes.Say("Deadlock"))
 		})

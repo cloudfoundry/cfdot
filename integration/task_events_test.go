@@ -1,8 +1,6 @@
 package integration_test
 
 import (
-	"os/exec"
-
 	"code.cloudfoundry.org/bbs/events"
 	"code.cloudfoundry.org/bbs/models"
 
@@ -33,12 +31,7 @@ var _ = Describe("task-events", func() {
 		})
 
 		It("prints out the event stream", func() {
-			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "task-events")
-
-			var err error
-			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-
+			sess := RunCFDot("task-events")
 			Eventually(sess).Should(gexec.Exit(0))
 			Expect(sess.Out).To(gbytes.Say("some-guid"))
 		})
@@ -55,12 +48,7 @@ var _ = Describe("task-events", func() {
 		})
 
 		It("responds with a status code 4", func() {
-			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "task-events")
-
-			var err error
-			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-
+			sess := RunCFDot("task-events")
 			Eventually(sess).Should(gexec.Exit(4))
 		})
 	})

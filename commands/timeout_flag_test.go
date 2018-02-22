@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"code.cloudfoundry.org/cfdot/commands"
-	"code.cloudfoundry.org/cfdot/commands/helpers"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/spf13/cobra"
 
@@ -19,8 +18,6 @@ var _ = Describe("Timeout Flag", func() {
 	var output *gbytes.Buffer
 
 	BeforeEach(func() {
-		commands.Config = helpers.TLSConfig{}
-
 		dummyCmd = &cobra.Command{
 			Use: "dummy",
 			Run: func(cmd *cobra.Command, args []string) {},
@@ -40,10 +37,6 @@ var _ = Describe("Timeout Flag", func() {
 
 	JustBeforeEach(func() {
 		err = dummyCmd.PreRunE(dummyCmd, dummyCmd.Flags().Args())
-	})
-
-	AfterEach(func() {
-		commands.Config = helpers.TLSConfig{}
 	})
 
 	Context("when flags are passed in as arguments", func() {

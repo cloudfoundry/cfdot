@@ -36,7 +36,6 @@ var _ = Describe("CellState", func() {
 			fakeRepClient1, fakeRepClient2 *repfakes.FakeClient
 			fakeRepClientFactory           *repfakes.FakeClientFactory
 			stdout, stderr                 *gbytes.Buffer
-			registrations                  []*models.CellPresence
 			state1, state2                 rep.CellState
 			fakeBBSClient                  *fake_bbs.FakeClient
 		)
@@ -63,10 +62,6 @@ var _ = Describe("CellState", func() {
 
 			stdout = gbytes.NewBuffer()
 			stderr = gbytes.NewBuffer()
-
-			registrations = []*models.CellPresence{
-				{},
-			}
 
 			fakeBBSClient = &fake_bbs.FakeClient{}
 			fakeBBSClient.CellsReturns([]*models.CellPresence{

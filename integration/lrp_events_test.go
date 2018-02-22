@@ -1,8 +1,6 @@
 package integration_test
 
 import (
-	"os/exec"
-
 	"code.cloudfoundry.org/bbs/events"
 	"code.cloudfoundry.org/bbs/models"
 
@@ -19,26 +17,6 @@ var _ = Describe("lrp-events", func() {
 	itHasNoArgs("lrp-events", false)
 
 	Context("events filtering by cell id", func() {
-		var (
-			session *gexec.Session
-			cmd     *exec.Cmd
-		)
-
-		BeforeEach(func() {
-			var err error
-			Expect(err).NotTo(HaveOccurred())
-		})
-
-		JustBeforeEach(func() {
-			var err error
-			session, err = gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-		})
-
-		AfterEach(func() {
-			Eventually(session).Should(gexec.Exit())
-		})
-
 		Context("when the cell id is specified", func() {
 			BeforeEach(func() {
 				expectedRequest := &models.EventsByCellId{CellId: "some-cell-id"}
@@ -50,7 +28,8 @@ var _ = Describe("lrp-events", func() {
 						ghttp.VerifyBody(expectedBody),
 					),
 				)
-				cmd = exec.Command(cfdotPath, "lrp-events", "--bbsURL", bbsServer.URL(), "-c", "some-cell-id")
+				sess := RunCFDot("lrp-events", "-c", "some-cell-id")
+				Eventually(sess).Should(gexec.Exit(0))
 			})
 
 			It("passes the cell id to the bbs client", func() {
@@ -69,7 +48,8 @@ var _ = Describe("lrp-events", func() {
 						ghttp.VerifyBody(expectedBody),
 					),
 				)
-				cmd = exec.Command(cfdotPath, "lrp-events", "--bbsURL", bbsServer.URL())
+				sess := RunCFDot("lrp-events")
+				Eventually(sess).Should(gexec.Exit(0))
 			})
 
 			It("passes empty cell id to the bbs client", func() {
@@ -95,12 +75,7 @@ var _ = Describe("lrp-events", func() {
 		})
 
 		It("prints out the event stream", func() {
-			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "lrp-events")
-
-			var err error
-			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-
+			sess := RunCFDot("lrp-events")
 			Eventually(sess).Should(gexec.Exit(0))
 			Expect(sess.Out).To(gbytes.Say("some-guid"))
 		})
@@ -117,12 +92,7 @@ var _ = Describe("lrp-events", func() {
 		})
 
 		It("responds with a status code 4", func() {
-			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "lrp-events")
-
-			var err error
-			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-
+			sess := RunCFDot("lrp-events")
 			Eventually(sess).Should(gexec.Exit(4))
 		})
 	})

@@ -64,13 +64,11 @@ var _ = Describe("ReleaseLock", func() {
 		var (
 			key   string
 			owner string
-			value string
 		)
 
 		BeforeEach(func() {
 			key = "key"
 			owner = "owner"
-			value = "value"
 		})
 
 		It("should not allow for any arguments", func() {

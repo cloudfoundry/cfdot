@@ -2,7 +2,6 @@ package integration_test
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/exec"
 	"time"
@@ -23,15 +22,10 @@ var _ = Describe("Presences", func() {
 	itHasNoArgs("presences", true)
 
 	var (
-		locketClientCertFile string
-		locketClientKeyFile  string
-		logger               *lagertest.TestLogger
+		logger *lagertest.TestLogger
 	)
 
 	BeforeEach(func() {
-		wd, _ := os.Getwd()
-		locketClientCertFile = fmt.Sprintf("%s/fixtures/locketClient.crt", wd)
-		locketClientKeyFile = fmt.Sprintf("%s/fixtures/locketClient.key", wd)
 		os.Setenv("CA_CERT_FILE", locketCACertFile)
 		os.Setenv("CLIENT_CERT_FILE", locketClientCertFile)
 		os.Setenv("CLIENT_KEY_FILE", locketClientKeyFile)

@@ -62,7 +62,7 @@ func cellState(cmd *cobra.Command, args []string) error {
 		cellRegistration,
 	)
 	if err != nil {
-		return NewCFDotComponentError(cmd, fmt.Errorf("Rep error: Failed getting rep state for %s: %s", args[0], err.Error()))
+		return NewCFDotComponentError(cmd, fmt.Errorf("Rep error: Failed to get cell state for cell %s: %s", args[0], err.Error()))
 	}
 
 	return nil

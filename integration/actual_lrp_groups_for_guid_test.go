@@ -2,7 +2,6 @@ package integration_test
 
 import (
 	"net/http"
-	"os/exec"
 	"time"
 
 	"code.cloudfoundry.org/bbs/models"
@@ -15,32 +14,12 @@ import (
 )
 
 var _ = Describe("actual-lrp-groups-for-guid", func() {
-	var sess *gexec.Session
-
 	itValidatesBBSFlags("actual-lrp-groups-for-guid", "test-guid")
 
 	Context("when there is no filter", func() {
-		var cfdotArgs []string
-		BeforeEach(func() {
-			cfdotArgs = []string{"--bbsURL", bbsServer.URL()}
-		})
-		JustBeforeEach(func() {
-			execArgs := append(
-				cfdotArgs,
-				"actual-lrp-groups-for-guid",
-				"random-guid",
-			)
-			cfdotCmd := exec.Command(
-				cfdotPath,
-				execArgs...,
-			)
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-		})
-
 		Context("when the server returns a valid response", func() {
 			var serverTimeout int
+
 			BeforeEach(func() {
 				serverTimeout = 0
 			})
@@ -69,21 +48,19 @@ var _ = Describe("actual-lrp-groups-for-guid", func() {
 			})
 
 			It("returns the json encoding of the actual lrp", func() {
+				sess := RunCFDot("actual-lrp-groups-for-guid", "random-guid")
 				Eventually(sess).Should(gexec.Exit(0))
 				Expect(sess.Out).To(gbytes.Say(`"state":"running"`))
 			})
 
 			Context("when timeout flag is present", func() {
-				BeforeEach(func() {
-					cfdotArgs = append(cfdotArgs, "--timeout", "1")
-				})
-
 				Context("when request exceeds timeout", func() {
 					BeforeEach(func() {
 						serverTimeout = 2
 					})
 
 					It("exits with code 4 and a timeout message", func() {
+						sess := RunCFDot("actual-lrp-groups-for-guid", "random-guid", "--timeout", "1")
 						Eventually(sess, 2).Should(gexec.Exit(4))
 						Expect(sess.Err).To(gbytes.Say(`Timeout exceeded`))
 					})
@@ -91,6 +68,7 @@ var _ = Describe("actual-lrp-groups-for-guid", func() {
 
 				Context("when request is within the timeout", func() {
 					It("exits with status code of 0", func() {
+						sess := RunCFDot("actual-lrp-groups-for-guid", "random-guid", "--timeout", "1")
 						Eventually(sess).Should(gexec.Exit(0))
 						Expect(sess.Out).To(gbytes.Say(`"state":"running"`))
 					})
@@ -115,6 +93,7 @@ var _ = Describe("actual-lrp-groups-for-guid", func() {
 			})
 
 			It("exits with status code 4 and should print the type and message of the error", func() {
+				sess := RunCFDot("actual-lrp-groups-for-guid", "random-guid")
 				Eventually(sess).Should(gexec.Exit(4))
 				Expect(sess.Err).To(gbytes.Say("BBS error"))
 				Expect(sess.Err).To(gbytes.Say("Type 28: Deadlock"))
@@ -122,27 +101,13 @@ var _ = Describe("actual-lrp-groups-for-guid", func() {
 			})
 
 			It("should not print the usage", func() {
+				sess := RunCFDot("actual-lrp-groups-for-guid", "random-guid")
 				Expect(sess.Err).NotTo(gbytes.Say("Usage:"))
 			})
 		})
 	})
 
 	Context("when passing index as filter", func() {
-		JustBeforeEach(func() {
-			cfdotCmd := exec.Command(
-				cfdotPath,
-				"--bbsURL", bbsServer.URL(),
-				"actual-lrp-groups-for-guid", "test-process-guid",
-				"-i", "1",
-			)
-
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-
-			Eventually(sess).Should(gexec.Exit(0))
-		})
-
 		BeforeEach(func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
@@ -168,6 +133,8 @@ var _ = Describe("actual-lrp-groups-for-guid", func() {
 		})
 
 		It("returns the json encoding of the actual lrp", func() {
+			sess := RunCFDot("actual-lrp-groups-for-guid", "test-process-guid", "-i", "1")
+			Eventually(sess).Should(gexec.Exit(0))
 			Expect(sess.Out).To(gbytes.Say(`"state":"running"`))
 		})
 	})

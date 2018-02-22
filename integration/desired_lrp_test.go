@@ -3,7 +3,6 @@ package integration_test
 import (
 	"encoding/json"
 	"net/http"
-	"os/exec"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -16,38 +15,12 @@ import (
 )
 
 var _ = Describe("desired-lrp", func() {
-	var sess *gexec.Session
-
 	itValidatesBBSFlags("desired-lrp", "test-guid")
 
 	Context("when BBS flags are valid", func() {
-		var (
-			cfdotArgs []string
-			cmdArgs   []string
-		)
-
-		BeforeEach(func() {
-			cfdotArgs = []string{"--bbsURL", bbsServer.URL()}
-		})
-
-		JustBeforeEach(func() {
-			execArgs := append(append(cfdotArgs, "desired-lrp"), cmdArgs...)
-			cfdotCmd := exec.Command(
-				cfdotPath,
-				execArgs...,
-			)
-
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-		})
-
 		Context("when no arguments are provided", func() {
-			BeforeEach(func() {
-				cmdArgs = []string{}
-			})
-
 			It("fails with exit code 3 and prints the usage to stderr", func() {
+				sess := RunCFDot("desired-lrp")
 				Eventually(sess).Should(gexec.Exit(3))
 				Expect(sess.Err).To(gbytes.Say("Missing arguments"))
 				Expect(sess.Err).To(gbytes.Say("cfdot desired-lrp PROCESS_GUID \\[flags\\]"))
@@ -55,11 +28,8 @@ var _ = Describe("desired-lrp", func() {
 		})
 
 		Context("when two arguments are provided", func() {
-			BeforeEach(func() {
-				cmdArgs = []string{"arg1", "arg2"}
-			})
-
 			It("fails with exit code 3 and prints the usage to stderr", func() {
+				sess := RunCFDot("desired-lrp", "arg1", "arg2")
 				Eventually(sess).Should(gexec.Exit(3))
 				Expect(sess.Err).To(gbytes.Say("Too many arguments specified"))
 				Expect(sess.Err).To(gbytes.Say("cfdot desired-lrp PROCESS_GUID \\[flags\\]"))
@@ -67,11 +37,8 @@ var _ = Describe("desired-lrp", func() {
 		})
 
 		Context("when an empty argument is provided", func() {
-			BeforeEach(func() {
-				cmdArgs = []string{""}
-			})
-
 			It("fails with exit code 3 and prints the usage to stderr", func() {
+				sess := RunCFDot("desired-lrp", "")
 				Eventually(sess).Should(gexec.Exit(3))
 				Expect(sess.Err).To(gbytes.Say("Process guid should be non empty string"))
 				Expect(sess.Err).To(gbytes.Say("cfdot desired-lrp PROCESS_GUID \\[flags\\]"))
@@ -85,7 +52,6 @@ var _ = Describe("desired-lrp", func() {
 			)
 
 			BeforeEach(func() {
-				cmdArgs = []string{"test-guid"}
 				serverTimeout = 0
 			})
 
@@ -115,6 +81,7 @@ var _ = Describe("desired-lrp", func() {
 				})
 
 				It("exits with status 0 and returns the json encoding of the desired lrp scheduling info", func() {
+					sess := RunCFDot("desired-lrp", "test-guid")
 					Eventually(sess).Should(gexec.Exit(0))
 					jsonData, err := json.Marshal(desiredLRP)
 					Expect(err).NotTo(HaveOccurred())
@@ -145,16 +112,15 @@ var _ = Describe("desired-lrp", func() {
 							}),
 						),
 					)
-
 				})
 
 				Context("when request exceeds timeout", func() {
 					BeforeEach(func() {
 						serverTimeout = 2
-						cfdotArgs = append(cfdotArgs, "--timeout", "1")
 					})
 
 					It("exits with code 4 and a timeout message", func() {
+						sess := RunCFDot("desired-lrp", "--timeout", "1", "test-guid")
 						Eventually(sess, 2).Should(gexec.Exit(4))
 						Expect(sess.Err).To(gbytes.Say(`Timeout exceeded`))
 					})
@@ -162,6 +128,7 @@ var _ = Describe("desired-lrp", func() {
 
 				Context("when request is within the timeout", func() {
 					It("exits with status code of 0", func() {
+						sess := RunCFDot("desired-lrp", "--timeout", "1", "test-guid")
 						Eventually(sess).Should(gexec.Exit(0))
 						jsonData, err := json.Marshal(desiredLRP)
 						Expect(err).NotTo(HaveOccurred())
@@ -187,6 +154,7 @@ var _ = Describe("desired-lrp", func() {
 				})
 
 				It("exits with status 4 and prints the error", func() {
+					sess := RunCFDot("desired-lrp", "test-guid")
 					Eventually(sess).Should(gexec.Exit(4))
 					Expect(sess.Err).To(gbytes.Say("deadlock"))
 				})

@@ -2,7 +2,6 @@ package integration_test
 
 import (
 	"net/http"
-	"os/exec"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -15,18 +14,15 @@ import (
 )
 
 var _ = Describe("desired-lrps", func() {
-	var sess *gexec.Session
-
 	itValidatesBBSFlags("desired-lrps")
 	itHasNoArgs("desired-lrps", false)
 
 	Context("when no filters are passed", func() {
 		var (
 			serverTimeout int
-			cfdotArgs     []string
 		)
+
 		BeforeEach(func() {
-			cfdotArgs = []string{"--bbsURL", bbsServer.URL()}
 			serverTimeout = 0
 		})
 
@@ -46,34 +42,22 @@ var _ = Describe("desired-lrps", func() {
 					}),
 				),
 			)
-
-			execArgs := append(cfdotArgs, "desired-lrps")
-			cfdotCmd := exec.Command(
-				cfdotPath,
-				execArgs...,
-			)
-
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("returns the json encoding of the desired lrp scheduling info", func() {
+			sess := RunCFDot("desired-lrps")
 			Eventually(sess).Should(gexec.Exit(0))
 			Expect(sess.Out).To(gbytes.Say(`"instances":1`))
 		})
 
 		Context("when timeout flag is present", func() {
-			BeforeEach(func() {
-				cfdotArgs = append(cfdotArgs, "--timeout", "1")
-			})
-
 			Context("when request exceeds timeout", func() {
 				BeforeEach(func() {
 					serverTimeout = 2
 				})
 
 				It("exits with code 4 and a timeout message", func() {
+					sess := RunCFDot("desired-lrps", "--timeout", "1")
 					Eventually(sess, 2).Should(gexec.Exit(4))
 					Expect(sess.Err).To(gbytes.Say(`Timeout exceeded`))
 				})
@@ -81,6 +65,7 @@ var _ = Describe("desired-lrps", func() {
 
 			Context("when request is within the timeout", func() {
 				It("exits with status code of 0", func() {
+					sess := RunCFDot("desired-lrps", "--timeout", "1")
 					Eventually(sess).Should(gexec.Exit(0))
 					Expect(sess.Out).To(gbytes.Say(`"instances":1`))
 				})
@@ -109,30 +94,21 @@ var _ = Describe("desired-lrps", func() {
 
 		Context("when -d is used as a filter flag", func() {
 			It("exits with a status code of 0", func() {
-				cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "desired-lrps", "-d", "cf-apps")
-				sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-				Expect(err).NotTo(HaveOccurred())
-
+				sess := RunCFDot("desired-lrps", "-d", "cf-apps")
 				Eventually(sess).Should(gexec.Exit(0))
 			})
 		})
 
 		Context("when --domain is used as a filter flag", func() {
 			It("exits with a status code of 0", func() {
-				cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "desired-lrps", "--domain", "cf-apps")
-				sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-				Expect(err).NotTo(HaveOccurred())
-
+				sess := RunCFDot("desired-lrps", "--domain", "cf-apps")
 				Eventually(sess).Should(gexec.Exit(0))
 			})
 		})
 
 		Context("when --domain and -d are supplied as filter flags", func() {
 			It("exits with a status code of 3", func() {
-				cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "desired-lrps", "--domain", "cf-apps", "-d", "cf-apps")
-				sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-				Expect(err).NotTo(HaveOccurred())
-
+				sess := RunCFDot("desired-lrps", "--domain", "cf-apps", "-d", "cf-apps")
 				Eventually(sess).Should(gexec.Exit(3))
 			})
 		})

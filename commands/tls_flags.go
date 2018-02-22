@@ -59,5 +59,38 @@ func tlsPreHook(cmd *cobra.Command, args []string) error {
 		Config.KeyFile = os.Getenv("CLIENT_KEY_FILE")
 	}
 
+	if !Config.SkipCertVerify {
+		if Config.CACertFile == "" {
+			returnErr = NewCFDotValidationError(cmd, errMissingCACertFile)
+			return returnErr
+		}
+
+		err := validateReadableFile(cmd, Config.CACertFile, "CA cert")
+		if err != nil {
+			return err
+		}
+	}
+
+	if (Config.KeyFile == "") || (Config.CertFile == "") {
+		returnErr = NewCFDotValidationError(cmd, errMissingClientCertAndKeyFiles)
+		return returnErr
+	}
+
+	if Config.KeyFile != "" {
+		err := validateReadableFile(cmd, Config.KeyFile, "key")
+
+		if err != nil {
+			return err
+		}
+	}
+
+	if Config.CertFile != "" {
+		err := validateReadableFile(cmd, Config.CertFile, "cert")
+
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

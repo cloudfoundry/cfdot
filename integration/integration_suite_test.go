@@ -12,6 +12,7 @@ import (
 
 	"code.cloudfoundry.org/bbs/test_helpers"
 	"code.cloudfoundry.org/bbs/test_helpers/sqlrunner"
+	"code.cloudfoundry.org/cfhttp"
 	"code.cloudfoundry.org/consuladapter/consulrunner"
 	"code.cloudfoundry.org/inigo/helpers/portauthority"
 	"code.cloudfoundry.org/locket/cmd/locket/config"
@@ -38,7 +39,10 @@ var (
 	consulRunner          *consulrunner.ClusterRunner
 	locketAPILocation     string
 	locketCACertFile      string
+	locketClientCertFile  string
+	locketClientKeyFile   string
 	portAllocator         portauthority.PortAllocator
+	certArgs              []string
 )
 
 var bbsServer *ghttp.Server
@@ -69,7 +73,8 @@ var _ = SynchronizedAfterSuite(func() {
 })
 
 var _ = BeforeEach(func() {
-	bbsServer = ghttp.NewServer()
+	bbsServer = ghttp.NewUnstartedServer()
+	defer bbsServer.HTTPTestServer.StartTLS()
 
 	node := GinkgoParallelNode()
 	startPort := 1050 * node
@@ -82,8 +87,22 @@ var _ = BeforeEach(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	locketAPILocation = fmt.Sprintf("localhost:%d", port)
-	wd, _ := os.Getwd()
+	wd, err := os.Getwd()
+	Expect(err).NotTo(HaveOccurred())
 	locketCACertFile = fmt.Sprintf("%s/fixtures/locketCA.crt", wd)
+	locketClientCertFile = fmt.Sprintf("%s/fixtures/locketClient.crt", wd)
+	locketClientKeyFile = fmt.Sprintf("%s/fixtures/locketClient.key", wd)
+
+	tlsConfig, err := cfhttp.NewTLSConfig(locketClientCertFile,
+		locketClientKeyFile, locketCACertFile)
+	Expect(err).NotTo(HaveOccurred())
+	bbsServer.HTTPTestServer.TLS = tlsConfig
+
+	certArgs = []string{
+		"--caCertFile", locketCACertFile,
+		"--clientCertFile", locketClientCertFile,
+		"--clientKeyFile", locketClientKeyFile,
+	}
 
 	dbName := fmt.Sprintf("diego_%d", GinkgoParallelNode())
 	dbRunner = test_helpers.NewSQLRunner(dbName)
@@ -198,4 +217,17 @@ func itHasNoArgs(command string, locketFlags bool) {
 			Expect(sess.Err).To(gbytes.Say(fmt.Sprintf("cfdot %s \\[flags\\]", command)))
 		})
 	})
+}
+
+func RunCFDot(args ...string) *gexec.Session {
+	cmdArgs := []string{
+		"--bbsURL", bbsServer.URL(),
+		"--caCertFile", locketCACertFile,
+		"--clientCertFile", locketClientCertFile,
+		"--clientKeyFile", locketClientKeyFile,
+	}
+	cmdArgs = append(cmdArgs, args...)
+	sess, err := gexec.Start(exec.Command(cfdotPath, cmdArgs...), GinkgoWriter, GinkgoWriter)
+	Expect(err).NotTo(HaveOccurred())
+	return sess
 }

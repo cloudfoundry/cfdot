@@ -3,11 +3,8 @@ package integration_test
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"os/exec"
 	"time"
 
 	"code.cloudfoundry.org/bbs/models"
@@ -25,23 +22,16 @@ var _ = Describe("cell-state", func() {
 	itValidatesTLSFlags("cell-state")
 
 	Context("when cell-state command is called", func() {
-		var presence1, presence2 *models.CellPresence
-		var rep1Server, rep2Server *ghttp.Server
-		var cellState1, cellState2 *rep.CellState
 		var (
-			clientCAFile   string
-			clientCertFile string
-			clientKeyFile  string
+			presence1, presence2   *models.CellPresence
+			rep1Server, rep2Server *ghttp.Server
+			cellState1, cellState2 *rep.CellState
 		)
 
 		BeforeEach(func() {
 			rep1Server = ghttp.NewUnstartedServer()
-			wd, _ := os.Getwd()
-			clientCAFile = fmt.Sprintf("%s/fixtures/locketCA.crt", wd)
-			clientCertFile = fmt.Sprintf("%s/fixtures/locketClient.crt", wd)
-			clientKeyFile = fmt.Sprintf("%s/fixtures/locketClient.key", wd)
 
-			tlsConfig, err := cfhttp.NewTLSConfig(clientCertFile, clientKeyFile, clientCAFile)
+			tlsConfig, err := cfhttp.NewTLSConfig(locketClientCertFile, locketClientKeyFile, locketCACertFile)
 			Expect(err).NotTo(HaveOccurred())
 			rep1Server.HTTPTestServer.TLS = tlsConfig
 			rep1Server.HTTPTestServer.StartTLS()
@@ -105,9 +95,7 @@ var _ = Describe("cell-state", func() {
 		})
 
 		It("returns the json encoding of the correct cell-state", func() {
-			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "cell-state", "cell-2")
-			sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
+			sess := RunCFDot("cell-state", "cell-2")
 			Eventually(sess).Should(gexec.Exit(0))
 
 			jsonData, err := json.Marshal(cellState2)
@@ -134,15 +122,7 @@ var _ = Describe("cell-state", func() {
 					),
 				)
 
-				cfdotCmd := exec.Command(
-					cfdotPath,
-					"--bbsURL", bbsServer.URL(),
-					"--timeout", "1",
-					"cell-state", "cell-2",
-				)
-				var err error
-				sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-				Expect(err).NotTo(HaveOccurred())
+				sess = RunCFDot("--timeout", "1", "cell-state", "cell-2")
 			})
 
 			Context("when exceeds timeout", func() {
@@ -172,19 +152,8 @@ var _ = Describe("cell-state", func() {
 		})
 
 		Context("when the rep has mutual TLS enabled", func() {
-			var args []string
-
 			It("uses the correct TLS config", func() {
-				args = []string{
-					"--bbsURL", bbsServer.URL(),
-					"--caCertFile", clientCAFile,
-					"--clientCertFile", clientCertFile,
-					"--clientKeyFile", clientKeyFile,
-					"cell-state", "cell-1",
-				}
-				cfdotCmd := exec.Command(cfdotPath, args...)
-				sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-				Expect(err).NotTo(HaveOccurred())
+				sess := RunCFDot("cell-state", "cell-1")
 				Eventually(sess).Should(gexec.Exit(0))
 
 				jsonData, err := json.Marshal(cellState1)
@@ -194,22 +163,13 @@ var _ = Describe("cell-state", func() {
 
 			Context("cell-states", func() {
 				It("returns the json encoding of the cell-states", func() {
-					args = []string{
-						"--bbsURL", bbsServer.URL(),
-						"--caCertFile", clientCAFile,
-						"--clientCertFile", clientCertFile,
-						"--clientKeyFile", clientKeyFile,
-						"cell-states",
-					}
-					cfdotCmd := exec.Command(cfdotPath, args...)
-					sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-					Expect(err).NotTo(HaveOccurred())
+					sess := RunCFDot("cell-states")
 					Eventually(sess).Should(gexec.Exit(0))
 
 					decoder := json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(sess.Out.Contents())))
 					var receivedState rep.CellState
 
-					err = decoder.Decode(&receivedState)
+					err := decoder.Decode(&receivedState)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(receivedState).To(Equal(*cellState1))
 
@@ -238,18 +198,7 @@ var _ = Describe("cell-state", func() {
 						),
 					)
 
-					cfdotCmd := exec.Command(
-						cfdotPath,
-						"--bbsURL", bbsServer.URL(),
-						"--caCertFile", clientCAFile,
-						"--clientCertFile", clientCertFile,
-						"--clientKeyFile", clientKeyFile,
-						"--timeout", "1",
-						"cell-states",
-					)
-					var err error
-					sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-					Expect(err).NotTo(HaveOccurred())
+					sess = RunCFDot("--timeout", "1", "cell-states")
 				})
 
 				Context("when exceeds timeout", func() {
@@ -287,10 +236,7 @@ var _ = Describe("cell-state", func() {
 
 		Context("when the cell does not exist", func() {
 			It("exits with status code of 5", func() {
-				cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "cell-state", "cell-id-dsafasdklfjasdlkf")
-
-				sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-				Expect(err).NotTo(HaveOccurred())
+				sess := RunCFDot("cell-state", "cell-id-dsafasdklfjasdlkf")
 				Eventually(sess).Should(gexec.Exit(5))
 			})
 		})
@@ -308,20 +254,14 @@ var _ = Describe("cell-state", func() {
 			})
 
 			It("exits with status code of 4", func() {
-				cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "cell-state", "cell-2")
-
-				sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-				Expect(err).NotTo(HaveOccurred())
+				sess := RunCFDot("cell-state", "cell-2")
 				Eventually(sess).Should(gexec.Exit(4))
 				Expect(sess.Err).To(gbytes.Say("BBS error"))
 			})
 
 			Context("cell-states", func() {
 				It("exits with status code of 4", func() {
-					cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "cell-states")
-
-					sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-					Expect(err).NotTo(HaveOccurred())
+					sess := RunCFDot("cell-states")
 					Eventually(sess).Should(gexec.Exit(4))
 					Expect(sess.Err).To(gbytes.Say("BBS error"))
 					Expect(sess.Err).To(gbytes.Say("Failed to get cell registrations from BBS"))
@@ -331,26 +271,24 @@ var _ = Describe("cell-state", func() {
 
 		Context("when the Rep request fails", func() {
 			BeforeEach(func() {
+				rep1Server.RouteToHandler("GET", "/state", func(resp http.ResponseWriter, req *http.Request) {
+					resp.WriteHeader(503)
+				})
 				rep2Server.RouteToHandler("GET", "/state", func(resp http.ResponseWriter, req *http.Request) {
 					resp.WriteHeader(503)
 				})
 			})
 
 			It("exits with status code of 4", func() {
-				cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "cell-state", "cell-2")
-
-				sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-				Expect(err).NotTo(HaveOccurred())
+				sess := RunCFDot("cell-state", "cell-1")
 				Eventually(sess).Should(gexec.Exit(4))
 				Expect(sess.Err).To(gbytes.Say("Rep error"))
+				Expect(sess.Err).To(gbytes.Say("Failed to get cell state for cell cell-1"))
 			})
 
 			Context("cell-states", func() {
 				It("exits with status code of 4", func() {
-					cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "cell-states")
-
-					sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-					Expect(err).NotTo(HaveOccurred())
+					sess := RunCFDot("cell-states")
 					Eventually(sess).Should(gexec.Exit(4))
 					Expect(sess.Err).To(gbytes.Say("Rep error"))
 					Expect(sess.Err).To(gbytes.Say("Failed to get cell state for cell cell-1"))
@@ -361,19 +299,13 @@ var _ = Describe("cell-state", func() {
 
 		Context("when cell command is called with extra arguments", func() {
 			It("exits with status code of 3", func() {
-				cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "cell-state", "cell-id", "extra-argument")
-
-				sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-				Expect(err).NotTo(HaveOccurred())
+				sess := RunCFDot("cell-state", "cell-id", "extra-argument")
 				Eventually(sess).Should(gexec.Exit(3))
 			})
 
 			Context("cell-states", func() {
 				It("exits with status code of 3", func() {
-					cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "cell-states", "extra-argument")
-
-					sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-					Expect(err).NotTo(HaveOccurred())
+					sess := RunCFDot("cell-states", "extra-argument")
 					Eventually(sess).Should(gexec.Exit(3))
 				})
 			})

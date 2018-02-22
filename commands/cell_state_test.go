@@ -38,10 +38,9 @@ var _ = Describe("CellState", func() {
 
 	Context("FetchCellRegistration", func() {
 		var (
-			fakeBBSClient  *fake_bbs.FakeClient
-			stdout, stderr *gbytes.Buffer
-			presence       *models.CellPresence
-			cellId         string
+			fakeBBSClient *fake_bbs.FakeClient
+			presence      *models.CellPresence
+			cellId        string
 		)
 
 		BeforeEach(func() {
@@ -50,8 +49,6 @@ var _ = Describe("CellState", func() {
 				CellId: cellId,
 			}
 
-			stdout = gbytes.NewBuffer()
-			stderr = gbytes.NewBuffer()
 			fakeBBSClient = &fake_bbs.FakeClient{}
 			fakeBBSClient.CellsReturns([]*models.CellPresence{
 				{

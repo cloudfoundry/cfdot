@@ -2,7 +2,6 @@ package integration_test
 
 import (
 	"net/http"
-	"os/exec"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -15,62 +14,39 @@ import (
 )
 
 var _ = Describe("delete-desired-lrp", func() {
-	var sess *gexec.Session
-
 	itValidatesBBSFlags("delete-desired-lrp")
 
-	itFailsWithValidationError := func() {
-		It("exits with status 3 and prints the usage and the error", func() {
-			Eventually(sess).Should(gexec.Exit(3))
-			Expect(sess.Err).To(gbytes.Say(`Error:`))
-			Expect(sess.Err).To(gbytes.Say("cfdot delete-desired-lrp PROCESS_GUID .*"))
-		})
-	}
-
 	Context("when a set of invalid arguments is passed", func() {
-		var (
-			args []string
-		)
-
-		JustBeforeEach(func() {
-			args = append([]string{"--bbsURL", bbsServer.URL(), "delete-desired-lrp"}, args...)
-
-			cfdotCmd := exec.Command(cfdotPath, args...)
-
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-		})
-
 		Context("when two arguments are passed", func() {
-			BeforeEach(func() {
-				args = []string{"arg-1", "arg-2"}
+			It("exits with status 3 and prints the usage and the error", func() {
+				sess := RunCFDot("delete-desired-lrp", "arg1", "arg2")
+				Eventually(sess).Should(gexec.Exit(3))
+				Expect(sess.Err).To(gbytes.Say(`Error:`))
+				Expect(sess.Err).To(gbytes.Say("cfdot delete-desired-lrp PROCESS_GUID .*"))
 			})
-
-			itFailsWithValidationError()
 		})
 
 		Context("when no arguments are passed", func() {
-			BeforeEach(func() {
-				args = []string{}
+			It("exits with status 3 and prints the usage and the error", func() {
+				sess := RunCFDot("delete-desired-lrp")
+				Eventually(sess).Should(gexec.Exit(3))
+				Expect(sess.Err).To(gbytes.Say(`Error:`))
+				Expect(sess.Err).To(gbytes.Say("cfdot delete-desired-lrp PROCESS_GUID .*"))
 			})
-
-			itFailsWithValidationError()
 		})
 	})
 
 	Context("when bbs responds with 200 status code", func() {
+		const processGuid = "process-guid"
 		var (
 			serverTimeout int
-			sess          *gexec.Session
-			cfdotArgs     []string
 		)
+
 		BeforeEach(func() {
-			cfdotArgs = []string{"--bbsURL", bbsServer.URL()}
 			serverTimeout = 0
 		})
+
 		JustBeforeEach(func() {
-			processGuid := "process-guid"
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/v1/desired_lrp/remove"),
@@ -83,24 +59,18 @@ var _ = Describe("delete-desired-lrp", func() {
 					ghttp.RespondWithProto(200, &models.DesiredLRPLifecycleResponse{}),
 				),
 			)
-
-			execArgs := append(cfdotArgs, "delete-desired-lrp", processGuid)
-			cfdotCmd := exec.Command(
-				cfdotPath,
-				execArgs...,
-			)
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("exits with status code of 0", func() {
+			sess := RunCFDot("delete-desired-lrp", processGuid)
 			Eventually(sess).Should(gexec.Exit(0))
 		})
 
 		Context("when timeout flag is present", func() {
+			var sess *gexec.Session
+
 			BeforeEach(func() {
-				cfdotArgs = append(cfdotArgs, "--timeout", "1")
+				sess = RunCFDot("delete-desired-lrp", "--timeout", "1", processGuid)
 			})
 
 			Context("when request exceeds timeout", func() {
@@ -135,17 +105,10 @@ var _ = Describe("delete-desired-lrp", func() {
 					}),
 				),
 			)
-
-			cfdotCmd := exec.Command(
-				cfdotPath,
-				"--bbsURL", bbsServer.URL(), "delete-desired-lrp", "any-process-guid",
-			)
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("exits with status code 4 and prints the error", func() {
+			sess := RunCFDot("delete-desired-lrp", "any-process-guid")
 			Eventually(sess).Should(gexec.Exit(4))
 			Expect(sess.Err).To(gbytes.Say("deadlock"))
 		})

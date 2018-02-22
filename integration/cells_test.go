@@ -2,7 +2,6 @@ package integration_test
 
 import (
 	"net/http"
-	"os/exec"
 	"time"
 
 	"code.cloudfoundry.org/bbs/models"
@@ -15,18 +14,13 @@ import (
 )
 
 var _ = Describe("cells", func() {
-	var (
-		serverTimeout int
-		sess          *gexec.Session
-		cfdotArgs     []string
-	)
+	var serverTimeout int
 
 	itValidatesBBSFlags("cells")
 	itHasNoArgs("cells", false)
 
 	Context("when cells command is called", func() {
 		BeforeEach(func() {
-			cfdotArgs = []string{"--bbsURL", bbsServer.URL()}
 			serverTimeout = 0
 		})
 
@@ -59,27 +53,19 @@ var _ = Describe("cells", func() {
 					}),
 				),
 			)
-
-			execArgs := append(cfdotArgs, "cells")
-			cfdotCmd := exec.Command(
-				cfdotPath,
-				execArgs...,
-			)
-
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-
 		})
 
 		It("returns the json encoding of the cell presences", func() {
+			sess := RunCFDot("cells")
 			Eventually(sess).Should(gexec.Exit(0))
 			Expect(sess.Out).To(gbytes.Say(`"rep_url":"http://rep1.com"`))
 		})
 
 		Context("when timeout flag is present", func() {
+			var sess *gexec.Session
+
 			BeforeEach(func() {
-				cfdotArgs = append(cfdotArgs, "--timeout", "1")
+				sess = RunCFDot("--timeout", "1", "cells")
 			})
 
 			Context("when request exceeds timeout", func() {
@@ -104,11 +90,7 @@ var _ = Describe("cells", func() {
 
 	Context("when cells command is called with extra arguments", func() {
 		It("exits with status code of 3", func() {
-			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "cells", "extra-args")
-
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
+			sess := RunCFDot("cells", "extra-args")
 			Eventually(sess).Should(gexec.Exit(3))
 		})
 	})

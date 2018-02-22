@@ -2,7 +2,6 @@ package integration_test
 
 import (
 	"net/http"
-	"os/exec"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -15,21 +14,12 @@ import (
 )
 
 var _ = Describe("desired-lrp-scheduling-infos", func() {
-	var sess *gexec.Session
-
 	itValidatesBBSFlags("desired-lrp-scheduling-infos")
 	itHasNoArgs("desired-lrp-scheduling-infos", false)
 
 	Context("when extra arguments are passed", func() {
-		BeforeEach(func() {
-			cfdotCmd := exec.Command(cfdotPath, "--bbsURL", bbsServer.URL(), "desired-lrp-scheduling-infos", "extra-arg")
-
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-		})
-
 		It("exits with status code of 3 and prints the usage", func() {
+			sess := RunCFDot("desired-lrp-scheduling-infos", "extra-arg")
 			Eventually(sess).Should(gexec.Exit(3))
 			Expect(sess.Err).To(gbytes.Say("cfdot desired-lrp-scheduling-infos \\[flags\\]"))
 		})
@@ -38,11 +28,9 @@ var _ = Describe("desired-lrp-scheduling-infos", func() {
 	Context("when no filters are passed", func() {
 		var (
 			serverTimeout int
-			cfdotArgs     []string
 		)
 
 		BeforeEach(func() {
-			cfdotArgs = []string{"--bbsURL", bbsServer.URL()}
 			serverTimeout = 0
 		})
 
@@ -62,26 +50,19 @@ var _ = Describe("desired-lrp-scheduling-infos", func() {
 					}),
 				),
 			)
-
-			execArgs := append(cfdotArgs, "desired-lrp-scheduling-infos")
-			cfdotCmd := exec.Command(
-				cfdotPath,
-				execArgs...,
-			)
-
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("exits with 0  and returns the json encoding of the desired lrp scheduling info", func() {
+			sess := RunCFDot("desired-lrp-scheduling-infos")
 			Eventually(sess).Should(gexec.Exit(0))
 			Expect(sess.Out).To(gbytes.Say(`"instances":1`))
 		})
 
 		Context("when timeout flag is present", func() {
+			var sess *gexec.Session
+
 			BeforeEach(func() {
-				cfdotArgs = append(cfdotArgs, "--timeout", "1")
+				sess = RunCFDot("desired-lrp-scheduling-infos", "--timeout", "1")
 			})
 
 			Context("when request exceeds timeout", func() {
@@ -124,49 +105,13 @@ var _ = Describe("desired-lrp-scheduling-infos", func() {
 		})
 
 		It("exits with status code of 0", func() {
-			cfdotCmd := exec.Command(
-				cfdotPath,
-				"--bbsURL", bbsServer.URL(),
-				"desired-lrp-scheduling-infos",
-				"-d", "cf-apps",
-			)
-
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-
+			sess := RunCFDot("desired-lrp-scheduling-infos", "-d", "cf-apps")
 			Eventually(sess).Should(gexec.Exit(0))
 		})
 
 		It("exits with status code of 0", func() {
-			cfdotCmd := exec.Command(
-				cfdotPath,
-				"--bbsURL", bbsServer.URL(),
-				"desired-lrp-scheduling-infos",
-				"--domain", "cf-apps",
-			)
-
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-
+			sess := RunCFDot("desired-lrp-scheduling-infos", "--domain", "cf-apps")
 			Eventually(sess).Should(gexec.Exit(0))
-		})
-
-		It("exits with status code of 3", func() {
-			cfdotCmd := exec.Command(
-				cfdotPath,
-				"--bbsURL", bbsServer.URL(),
-				"desired-lrp-scheduling-infos",
-				"--domain", "cf-apps",
-				"-d", "cf-apps",
-			)
-
-			var err error
-			sess, err = gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-
-			Eventually(sess).Should(gexec.Exit(3))
 		})
 	})
 })
