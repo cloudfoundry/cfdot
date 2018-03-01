@@ -132,7 +132,7 @@ var _ = BeforeEach(func() {
 var _ = AfterEach(func() {
 	bbsServer.CloseClientConnections()
 	bbsServer.Close()
-	ginkgomon.Interrupt(locketProcess)
+	ginkgomon.Interrupt(locketProcess, 5*time.Second)
 	ginkgomon.Interrupt(dbProcess, 5*time.Second) // we've been seeing the sql teardown take longer than the default of 1s
 	consulRunner.Stop()
 })
