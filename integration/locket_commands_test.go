@@ -124,7 +124,7 @@ var _ = Describe("Locket commands", func() {
 				sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
 
-				Eventually(sess, 2*time.Second).Should(gexec.Exit(4))
+				Eventually(sess, 11*time.Second).Should(gexec.Exit(4))
 				Expect(sess.Err).To(gbytes.Say("connection refused"))
 			})
 		})
@@ -172,7 +172,7 @@ var _ = Describe("Locket commands", func() {
 				sess, err := gexec.Start(cfdotCmd, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
 
-				Eventually(sess, 2*time.Second).Should(gexec.Exit(4))
+				Eventually(sess, 11*time.Second).Should(gexec.Exit(4))
 				Expect(sess.Err).To(gbytes.Say("connection refused"))
 			})
 		})
