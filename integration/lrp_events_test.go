@@ -27,13 +27,17 @@ var _ = Describe("lrp-events", func() {
 						ghttp.VerifyRequest("GET", "/v1/events"),
 						ghttp.VerifyBody(expectedBody),
 					),
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/v1/events/lrp_instances"),
+						ghttp.VerifyBody(expectedBody),
+					),
 				)
 				sess := RunCFDot("lrp-events", "-c", "some-cell-id")
 				Eventually(sess).Should(gexec.Exit(0))
 			})
 
 			It("passes the cell id to the bbs client", func() {
-				Eventually(bbsServer.ReceivedRequests).Should(HaveLen(1))
+				Eventually(bbsServer.ReceivedRequests).Should(HaveLen(2))
 			})
 		})
 
@@ -47,13 +51,17 @@ var _ = Describe("lrp-events", func() {
 						ghttp.VerifyRequest("GET", "/v1/events"),
 						ghttp.VerifyBody(expectedBody),
 					),
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/v1/events/lrp_instances"),
+						ghttp.VerifyBody(expectedBody),
+					),
 				)
 				sess := RunCFDot("lrp-events")
 				Eventually(sess).Should(gexec.Exit(0))
 			})
 
 			It("passes empty cell id to the bbs client", func() {
-				Eventually(bbsServer.ReceivedRequests).Should(HaveLen(1))
+				Eventually(bbsServer.ReceivedRequests).Should(HaveLen(2))
 			})
 		})
 
@@ -71,12 +79,17 @@ var _ = Describe("lrp-events", func() {
 					ghttp.VerifyRequest("GET", "/v1/events"),
 					ghttp.RespondWith(200, sseEvent.Encode()),
 				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/v1/events/lrp_instances"),
+					ghttp.RespondWith(200, sseEvent.Encode()),
+				),
 			)
 		})
 
 		It("prints out the event stream", func() {
 			sess := RunCFDot("lrp-events")
 			Eventually(sess).Should(gexec.Exit(0))
+			Expect(sess.Out).To(gbytes.Say("some-guid"))
 			Expect(sess.Out).To(gbytes.Say("some-guid"))
 		})
 	})
@@ -86,6 +99,10 @@ var _ = Describe("lrp-events", func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/v1/events"),
+					ghttp.RespondWith(418, ""),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/v1/events/lrp_instances"),
 					ghttp.RespondWith(418, ""),
 				),
 			)
