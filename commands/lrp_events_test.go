@@ -1,14 +1,15 @@
 package commands_test
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"io"
+	"strings"
 
 	"code.cloudfoundry.org/bbs/events/eventfakes"
 	"code.cloudfoundry.org/bbs/fake_bbs"
 	"code.cloudfoundry.org/bbs/models"
+	"code.cloudfoundry.org/bbs/models/test/model_helpers"
 	"code.cloudfoundry.org/cfdot/commands"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -17,10 +18,12 @@ import (
 
 var _ = Describe("LRP Events", func() {
 	var (
-		fakeBBSClient   *fake_bbs.FakeClient
-		fakeEventSource *eventfakes.FakeEventSource
-		stdout, stderr  *gbytes.Buffer
-		lrp             *models.DesiredLRP
+		fakeBBSClient           *fake_bbs.FakeClient
+		fakeEventSource         *eventfakes.FakeEventSource
+		fakeInstanceEventSource *eventfakes.FakeEventSource
+		stdout, stderr          *gbytes.Buffer
+		lrp                     *models.DesiredLRP
+		actualLRP               *models.ActualLRP
 	)
 
 	BeforeEach(func() {
@@ -28,43 +31,63 @@ var _ = Describe("LRP Events", func() {
 		stderr = gbytes.NewBuffer()
 		fakeBBSClient = &fake_bbs.FakeClient{}
 		fakeEventSource = &eventfakes.FakeEventSource{}
+		fakeInstanceEventSource = &eventfakes.FakeEventSource{}
 		fakeBBSClient.SubscribeToEventsByCellIDReturns(fakeEventSource, nil)
+		fakeBBSClient.SubscribeToInstanceEventsByCellIDReturns(fakeInstanceEventSource, nil)
 
 		lrp = &models.DesiredLRP{
 			ProcessGuid: "some-desired-lrp",
 		}
-		count := 0
+
+		actualLRP = model_helpers.NewValidActualLRP("some-actual", 0)
+
+		desiredCounter := 0
 		fakeEventSource.NextStub = func() (models.Event, error) {
-			count += 1
-			if count > 2 {
+			desiredCounter += 1
+			if desiredCounter > 2 {
 				return nil, io.EOF
 			}
 			return models.NewDesiredLRPCreatedEvent(lrp), nil
 		}
+
+		actualCounter := 0
+		fakeInstanceEventSource.NextStub = func() (models.Event, error) {
+			actualCounter += 1
+			if actualCounter > 2 {
+				return nil, io.EOF
+			}
+			return models.NewActualLRPInstanceCreatedEvent(actualLRP), nil
+		}
 	})
 
 	It("prints a JSON object", func() {
-		event := models.NewDesiredLRPCreatedEvent(lrp)
+		desiredEvent := models.NewDesiredLRPCreatedEvent(lrp)
 
-		lrpEvent := commands.LRPEvent{
-			Type: event.EventType(),
-			Data: event,
+		desiredLRPEvent := commands.LRPEvent{
+			Type: desiredEvent.EventType(),
+			Data: desiredEvent,
 		}
-		data, err := json.Marshal(lrpEvent)
+		data, err := json.Marshal(desiredLRPEvent)
 		Expect(err).NotTo(HaveOccurred())
+		desiredData := string(data)
 
-		expectedLines := []string{string(data), string(data)}
+		actualEvent := models.NewActualLRPInstanceCreatedEvent(actualLRP)
+		actualLRPEvent := commands.LRPEvent{
+			Type: actualEvent.EventType(),
+			Data: actualEvent,
+		}
+		data, err = json.Marshal(actualLRPEvent)
+		Expect(err).NotTo(HaveOccurred())
+		actualData := string(data)
 
 		err = commands.LRPEvents(stdout, stderr, fakeBBSClient, "")
 		Expect(err).NotTo(HaveOccurred())
 
 		stdoutData := stdout.Contents()
-		lines := bytes.SplitN(stdoutData, []byte{'\n'}, 3)
-		Expect(lines).To(HaveLen(3))
+		lines := strings.Split(string(stdoutData), "\n")
+		Expect(lines).To(HaveLen(5))
 
-		for i := 0; i < 2; i++ {
-			Expect(string(lines[i])).To(Equal(expectedLines[i]))
-		}
+		Expect(lines).To(ConsistOf(desiredData, desiredData, actualData, actualData, ""))
 	})
 
 	It("closes the event stream", func() {

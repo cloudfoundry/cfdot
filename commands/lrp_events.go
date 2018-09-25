@@ -5,8 +5,10 @@ import (
 	"io"
 
 	"code.cloudfoundry.org/bbs"
+	"code.cloudfoundry.org/bbs/events"
 	"code.cloudfoundry.org/bbs/models"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/spf13/cobra"
 )
 
@@ -62,28 +64,71 @@ func validateLRPEventsArguments(args []string) error {
 func LRPEvents(stdout, stderr io.Writer, bbsClient bbs.Client, cellID string) error {
 	logger := globalLogger.Session("lrp-events")
 
-	es, err := bbsClient.SubscribeToEventsByCellID(logger, cellID)
+	oldES, err := bbsClient.SubscribeToEventsByCellID(logger, cellID)
 	if err != nil {
 		return models.ConvertError(err)
 	}
-	defer es.Close()
+	defer oldES.Close()
+
+	instanceES, err := bbsClient.SubscribeToInstanceEventsByCellID(logger, cellID)
+	if err != nil {
+		return models.ConvertError(err)
+	}
+	defer instanceES.Close()
+
 	encoder := json.NewEncoder(stdout)
 
+	oldEventStream := make(chan models.Event)
+	newEventStream := make(chan models.Event)
+	oldErrChan := make(chan error)
+	newErrChan := make(chan error)
+
+	readEvent := func(es events.EventSource, eventStreamChan chan models.Event, errChan chan error) {
+		for {
+			event, err := es.Next()
+			if err != nil {
+				errChan <- err
+				return
+			}
+			eventStreamChan <- event
+		}
+	}
+
+	go readEvent(oldES, oldEventStream, oldErrChan)
+	go readEvent(instanceES, newEventStream, newErrChan)
+
+	ret := &multierror.Error{}
+	var event models.Event
 	var lrpEvent LRPEvent
 	for {
-		event, err := es.Next()
-		switch err {
-		case nil:
-			lrpEvent.Type = event.EventType()
-			lrpEvent.Data = event
-			err = encoder.Encode(lrpEvent)
-			if err != nil {
-				logger.Error("failed-to-marshal", err)
+		var err error
+		select {
+		case event = <-oldEventStream:
+		case event = <-newEventStream:
+		case err = <-oldErrChan:
+			multierror.Append(ret, err)
+		case err = <-newErrChan:
+			multierror.Append(ret, err)
+		}
+
+		if len(ret.Errors) >= 2 {
+			for _, err := range ret.Errors {
+				if err != io.EOF {
+					return ret.ErrorOrNil()
+				}
 			}
-		case io.EOF:
 			return nil
-		default:
-			return err
+		}
+
+		if err != nil {
+			continue
+		}
+
+		lrpEvent.Type = event.EventType()
+		lrpEvent.Data = event
+		err = encoder.Encode(lrpEvent)
+		if err != nil {
+			logger.Error("failed-to-marshal", err)
 		}
 	}
 }
