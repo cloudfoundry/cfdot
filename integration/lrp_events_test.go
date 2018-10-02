@@ -3,6 +3,7 @@ package integration_test
 import (
 	"code.cloudfoundry.org/bbs/events"
 	"code.cloudfoundry.org/bbs/models"
+	"code.cloudfoundry.org/bbs/models/test/model_helpers"
 
 	"github.com/gogo/protobuf/proto"
 	. "github.com/onsi/ginkgo"
@@ -69,6 +70,36 @@ var _ = Describe("lrp-events", func() {
 
 	Context("when the server responds with events", func() {
 		BeforeEach(func() {
+			actualLrp := model_helpers.NewValidActualLRP("some-guid", 0)
+			lrpCreatedEvent := models.NewActualLRPCreatedEvent(actualLrp.ToActualLRPGroup())
+			sseEvent, err := events.NewEventFromModelEvent(1, lrpCreatedEvent)
+			lrpInstanceCreatedEvent := models.NewActualLRPInstanceCreatedEvent(actualLrp)
+			sseInstanceEvent, err := events.NewEventFromModelEvent(1, lrpInstanceCreatedEvent)
+			Expect(err).ToNot(HaveOccurred())
+
+			bbsServer.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/v1/events"),
+					ghttp.RespondWith(200, sseEvent.Encode()),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/v1/events/lrp_instances"),
+					ghttp.RespondWith(200, sseInstanceEvent.Encode()),
+				),
+			)
+		})
+
+		It("prints out the event stream", func() {
+			sess := RunCFDot("lrp-events")
+			Eventually(sess).Should(gexec.Exit(0))
+			stdOut := string(sess.Out.Contents())
+			Expect(stdOut).To(ContainSubstring(models.EventTypeActualLRPCreated))
+			Expect(stdOut).To(ContainSubstring(models.EventTypeActualLRPInstanceCreated))
+		})
+	})
+
+	Context("when duplicate events are reported by the instance event stream and legacy event stream", func() {
+		BeforeEach(func() {
 			lrp := models.DesiredLRP{ProcessGuid: "some-guid"}
 			desiredLRPEvent := models.NewDesiredLRPRemovedEvent(&lrp)
 			sseEvent, err := events.NewEventFromModelEvent(1, desiredLRPEvent)
@@ -86,11 +117,11 @@ var _ = Describe("lrp-events", func() {
 			)
 		})
 
-		It("prints out the event stream", func() {
+		It("prints out a single event", func() {
 			sess := RunCFDot("lrp-events")
 			Eventually(sess).Should(gexec.Exit(0))
 			Expect(sess.Out).To(gbytes.Say("some-guid"))
-			Expect(sess.Out).To(gbytes.Say("some-guid"))
+			Expect(sess.Out).NotTo(gbytes.Say("some-guid"))
 		})
 	})
 
