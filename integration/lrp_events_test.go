@@ -98,7 +98,64 @@ var _ = Describe("lrp-events", func() {
 		})
 	})
 
-	Context("when duplicate events are reported by the instance event stream and legacy event stream", func() {
+	Context("when both an ActualLRP Instance event and an ActualLRPGroup event are reported by the instance event stream and legacy event stream respectively", func() {
+		BeforeEach(func() {
+			actualLRP := model_helpers.NewValidActualLRP("some-guid", 0)
+			actualLRPEvent1 := models.NewActualLRPCreatedEvent(actualLRP.ToActualLRPGroup())
+			actualLRPEvent2 := models.NewActualLRPInstanceCreatedEvent(actualLRP)
+			sseEvent1, err := events.NewEventFromModelEvent(1, actualLRPEvent1)
+			sseEvent2, err := events.NewEventFromModelEvent(1, actualLRPEvent2)
+			Expect(err).ToNot(HaveOccurred())
+
+			bbsServer.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/v1/events"),
+					ghttp.RespondWith(200, sseEvent1.Encode()),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/v1/events/lrp_instances"),
+					ghttp.RespondWith(200, sseEvent2.Encode()),
+				),
+			)
+		})
+
+		It("prints out multiple events", func() {
+			sess := RunCFDot("lrp-events")
+			Eventually(sess).Should(gexec.Exit(0))
+			Expect(sess.Out).To(gbytes.Say("some-guid"))
+			Expect(sess.Out).To(gbytes.Say("some-guid"))
+		})
+	})
+
+	Context("when duplicate ActualLRPCrashed events are reported by the instance event stream and legacy event stream", func() {
+		BeforeEach(func() {
+			actualLRP := model_helpers.NewValidActualLRP("some-guid", 0)
+			actualLRP2 := model_helpers.NewValidActualLRP("other-guid", 0)
+			actualLRPEvent := models.NewActualLRPCrashedEvent(actualLRP, actualLRP2)
+			sseEvent, err := events.NewEventFromModelEvent(1, actualLRPEvent)
+			Expect(err).ToNot(HaveOccurred())
+
+			bbsServer.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/v1/events"),
+					ghttp.RespondWith(200, sseEvent.Encode()),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/v1/events/lrp_instances"),
+					ghttp.RespondWith(200, sseEvent.Encode()),
+				),
+			)
+		})
+
+		It("prints out a single event", func() {
+			sess := RunCFDot("lrp-events")
+			Eventually(sess).Should(gexec.Exit(0))
+			Expect(sess.Out).To(gbytes.Say("some-guid"))
+			Expect(sess.Out).NotTo(gbytes.Say("some-guid"))
+		})
+	})
+
+	Context("when duplicate DesiredLRP events are reported by the instance event stream and legacy event stream", func() {
 		BeforeEach(func() {
 			lrp := models.DesiredLRP{ProcessGuid: "some-guid"}
 			desiredLRPEvent := models.NewDesiredLRPRemovedEvent(&lrp)

@@ -103,14 +103,14 @@ func LRPEvents(stdout, stderr io.Writer, bbsClient bbs.Client, cellID string) er
 	for {
 		var err error
 		select {
-		case event = <-oldEventStream:
-		case e := <-newEventStream:
+		case e := <-oldEventStream:
 			switch e.EventType() {
-			case models.EventTypeDesiredLRPCreated, models.EventTypeDesiredLRPChanged, models.EventTypeDesiredLRPRemoved:
-				continue
-			default:
+			case models.EventTypeActualLRPCreated, models.EventTypeActualLRPChanged, models.EventTypeActualLRPRemoved:
 				event = e
+			default:
+				continue
 			}
+		case event = <-newEventStream:
 		case err = <-oldErrChan:
 			multierror.Append(ret, err)
 		case err = <-newErrChan:
