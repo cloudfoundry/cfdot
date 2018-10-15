@@ -29,7 +29,7 @@ var _ = Describe("desired-lrps", func() {
 		JustBeforeEach(func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/v1/desired_lrps/list.r2"),
+					ghttp.VerifyRequest("POST", "/v1/desired_lrps/list.r3"),
 					func(w http.ResponseWriter, req *http.Request) {
 						time.Sleep(time.Duration(serverTimeout) * time.Second)
 					},
@@ -77,7 +77,7 @@ var _ = Describe("desired-lrps", func() {
 		BeforeEach(func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/v1/desired_lrps/list.r2"),
+					ghttp.VerifyRequest("POST", "/v1/desired_lrps/list.r3"),
 					ghttp.VerifyProtoRepresenting(&models.DesiredLRPsRequest{
 						Domain: "cf-apps",
 					}),

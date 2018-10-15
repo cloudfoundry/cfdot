@@ -28,7 +28,7 @@ var _ = Describe("retire-actual-lrp", func() {
 		JustBeforeEach(func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/v1/desired_lrps/get_by_process_guid.r2"),
+					ghttp.VerifyRequest("POST", "/v1/desired_lrps/get_by_process_guid.r3"),
 					func(w http.ResponseWriter, req *http.Request) {
 						time.Sleep(time.Duration(serverTimeout) * time.Second)
 					},
@@ -76,7 +76,7 @@ var _ = Describe("retire-actual-lrp", func() {
 		BeforeEach(func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/v1/desired_lrps/get_by_process_guid.r2"),
+					ghttp.VerifyRequest("POST", "/v1/desired_lrps/get_by_process_guid.r3"),
 					ghttp.RespondWithProto(200, &models.DesiredLRPResponse{
 						Error: &models.Error{
 							Type:    models.Error_Deadlock,

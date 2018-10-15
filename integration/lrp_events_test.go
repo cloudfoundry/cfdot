@@ -25,11 +25,11 @@ var _ = Describe("lrp-events", func() {
 				Expect(err).NotTo(HaveOccurred())
 				bbsServer.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/v1/events"),
+						ghttp.VerifyRequest("GET", "/v1/events.r1"),
 						ghttp.VerifyBody(expectedBody),
 					),
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("POST", "/v1/events/lrp_instances"),
+						ghttp.VerifyRequest("POST", "/v1/events/lrp_instances.r1"),
 						ghttp.VerifyBody(expectedBody),
 					),
 				)
@@ -49,11 +49,11 @@ var _ = Describe("lrp-events", func() {
 				Expect(err).NotTo(HaveOccurred())
 				bbsServer.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/v1/events"),
+						ghttp.VerifyRequest("GET", "/v1/events.r1"),
 						ghttp.VerifyBody(expectedBody),
 					),
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("POST", "/v1/events/lrp_instances"),
+						ghttp.VerifyRequest("POST", "/v1/events/lrp_instances.r1"),
 						ghttp.VerifyBody(expectedBody),
 					),
 				)
@@ -79,11 +79,11 @@ var _ = Describe("lrp-events", func() {
 
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/v1/events"),
+					ghttp.VerifyRequest("GET", "/v1/events.r1"),
 					ghttp.RespondWith(200, sseEvent.Encode()),
 				),
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/v1/events/lrp_instances"),
+					ghttp.VerifyRequest("POST", "/v1/events/lrp_instances.r1"),
 					ghttp.RespondWith(200, sseInstanceEvent.Encode()),
 				),
 			)
@@ -109,11 +109,11 @@ var _ = Describe("lrp-events", func() {
 
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/v1/events"),
+					ghttp.VerifyRequest("GET", "/v1/events.r1"),
 					ghttp.RespondWith(200, sseEvent1.Encode()),
 				),
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/v1/events/lrp_instances"),
+					ghttp.VerifyRequest("POST", "/v1/events/lrp_instances.r1"),
 					ghttp.RespondWith(200, sseEvent2.Encode()),
 				),
 			)
@@ -137,11 +137,11 @@ var _ = Describe("lrp-events", func() {
 
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/v1/events"),
+					ghttp.VerifyRequest("GET", "/v1/events.r1"),
 					ghttp.RespondWith(200, sseEvent.Encode()),
 				),
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/v1/events/lrp_instances"),
+					ghttp.VerifyRequest("POST", "/v1/events/lrp_instances.r1"),
 					ghttp.RespondWith(200, sseEvent.Encode()),
 				),
 			)
@@ -164,11 +164,11 @@ var _ = Describe("lrp-events", func() {
 
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/v1/events"),
+					ghttp.VerifyRequest("GET", "/v1/events.r1"),
 					ghttp.RespondWith(200, sseEvent.Encode()),
 				),
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/v1/events/lrp_instances"),
+					ghttp.VerifyRequest("POST", "/v1/events/lrp_instances.r1"),
 					ghttp.RespondWith(200, sseEvent.Encode()),
 				),
 			)
@@ -186,11 +186,11 @@ var _ = Describe("lrp-events", func() {
 		BeforeEach(func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/v1/events"),
+					ghttp.VerifyRequest("GET", "/v1/events.r1"),
 					ghttp.RespondWith(418, ""),
 				),
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/v1/events/lrp_instances"),
+					ghttp.VerifyRequest("POST", "/v1/events/lrp_instances.r1"),
 					ghttp.RespondWith(418, ""),
 				),
 			)

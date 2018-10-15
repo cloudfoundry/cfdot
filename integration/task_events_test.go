@@ -24,7 +24,7 @@ var _ = Describe("task-events", func() {
 
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/v1/events/tasks"),
+					ghttp.VerifyRequest("POST", "/v1/events/tasks.r1"),
 					ghttp.RespondWith(200, sseEvent.Encode()),
 				),
 			)
@@ -41,7 +41,7 @@ var _ = Describe("task-events", func() {
 		BeforeEach(func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/v1/events/tasks"),
+					ghttp.VerifyRequest("POST", "/v1/events/tasks.r1"),
 					ghttp.RespondWith(418, ""),
 				),
 			)

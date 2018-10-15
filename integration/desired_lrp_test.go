@@ -64,7 +64,7 @@ var _ = Describe("desired-lrp", func() {
 
 					bbsServer.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("POST", "/v1/desired_lrps/get_by_process_guid.r2"),
+							ghttp.VerifyRequest("POST", "/v1/desired_lrps/get_by_process_guid.r3"),
 							func(w http.ResponseWriter, req *http.Request) {
 								time.Sleep(time.Duration(serverTimeout) * time.Second)
 							},
@@ -99,7 +99,7 @@ var _ = Describe("desired-lrp", func() {
 
 					bbsServer.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("POST", "/v1/desired_lrps/get_by_process_guid.r2"),
+							ghttp.VerifyRequest("POST", "/v1/desired_lrps/get_by_process_guid.r3"),
 							func(w http.ResponseWriter, req *http.Request) {
 								time.Sleep(time.Duration(serverTimeout) * time.Second)
 							},
@@ -142,7 +142,7 @@ var _ = Describe("desired-lrp", func() {
 				BeforeEach(func() {
 					bbsServer.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("POST", "/v1/desired_lrps/get_by_process_guid.r2"),
+							ghttp.VerifyRequest("POST", "/v1/desired_lrps/get_by_process_guid.r3"),
 							ghttp.RespondWithProto(500, &models.DesiredLRPResponse{
 								Error: &models.Error{
 									Type:    models.Error_Deadlock,

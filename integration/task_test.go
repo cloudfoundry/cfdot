@@ -32,7 +32,7 @@ var _ = Describe("task", func() {
 		JustBeforeEach(func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/v1/tasks/get_by_task_guid.r2"),
+					ghttp.VerifyRequest("POST", "/v1/tasks/get_by_task_guid.r3"),
 					func(w http.ResponseWriter, req *http.Request) {
 						time.Sleep(time.Duration(serverTimeout) * time.Second)
 					},
@@ -77,7 +77,7 @@ var _ = Describe("task", func() {
 		It("exits with status code 4", func() {
 			bbsServer.RouteToHandler(
 				"POST",
-				"/v1/tasks/get_by_task_guid.r2",
+				"/v1/tasks/get_by_task_guid.r3",
 				ghttp.RespondWithProto(200, &models.TaskResponse{
 					Error: models.ErrUnknownError,
 				}),

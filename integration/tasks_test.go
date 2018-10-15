@@ -33,7 +33,7 @@ var _ = Describe("tasks", func() {
 		JustBeforeEach(func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/v1/tasks/list.r2"),
+					ghttp.VerifyRequest("POST", "/v1/tasks/list.r3"),
 					func(w http.ResponseWriter, req *http.Request) {
 						time.Sleep(time.Duration(serverTimeout) * time.Second)
 					},
@@ -88,7 +88,7 @@ var _ = Describe("tasks", func() {
 			BeforeEach(func() {
 				bbsServer.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("POST", "/v1/tasks/list.r2"),
+						ghttp.VerifyRequest("POST", "/v1/tasks/list.r3"),
 						ghttp.VerifyProtoRepresenting(&models.TasksRequest{
 							Domain: "domain",
 						}),
@@ -127,7 +127,7 @@ var _ = Describe("tasks", func() {
 			BeforeEach(func() {
 				bbsServer.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("POST", "/v1/tasks/list.r2"),
+						ghttp.VerifyRequest("POST", "/v1/tasks/list.r3"),
 						ghttp.VerifyProtoRepresenting(&models.TasksRequest{
 							CellId: "cell-id",
 						}),
@@ -166,7 +166,7 @@ var _ = Describe("tasks", func() {
 			BeforeEach(func() {
 				bbsServer.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("POST", "/v1/tasks/list.r2"),
+						ghttp.VerifyRequest("POST", "/v1/tasks/list.r3"),
 						ghttp.VerifyProtoRepresenting(&models.TasksRequest{
 							Domain: "domain",
 							CellId: "cell-id",
@@ -199,7 +199,7 @@ var _ = Describe("tasks", func() {
 		It("returns an error and exits with status 4", func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/v1/tasks/list.r2"),
+					ghttp.VerifyRequest("POST", "/v1/tasks/list.r3"),
 					ghttp.RespondWithProto(200, &models.TasksResponse{Error: models.ErrUnknownError}),
 				),
 			)
