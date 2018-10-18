@@ -19,6 +19,7 @@ Usage:
 Available Commands:
   actual-lrp-groups            List actual LRP groups
   actual-lrp-groups-for-guid   List actual LRP groups for a process guid
+  actual-lrps                  List actual LRPs
   cancel-task                  Cancel task
   cell                         Show the specified cell presence
   cell-state                   Show the specified cell state
