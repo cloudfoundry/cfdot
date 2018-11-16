@@ -60,7 +60,7 @@ var _ = Describe("claim-presence", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(sess, 11*time.Second).Should(gexec.Exit(4))
-			Expect(sess.Err).To(gbytes.Say("connection refused"))
+			Expect(sess.Err).To(gbytes.Say("context deadline exceeded"))
 		})
 	})
 })

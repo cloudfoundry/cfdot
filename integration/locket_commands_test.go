@@ -29,6 +29,7 @@ var _ = Describe("Locket commands", func() {
 		os.Setenv("CLIENT_KEY_FILE", locketClientKeyFile)
 
 		var err error
+		logger = lagertest.NewTestLogger("locket")
 		locketClient, err = locket.NewClient(logger, locket.ClientLocketConfig{
 			LocketAddress:        locketAPILocation,
 			LocketCACertFile:     locketCACertFile,
@@ -36,8 +37,6 @@ var _ = Describe("Locket commands", func() {
 			LocketClientKeyFile:  locketClientKeyFile,
 		})
 		Expect(err).NotTo(HaveOccurred())
-
-		logger = lagertest.NewTestLogger("locket")
 	})
 
 	AfterEach(func() {
@@ -125,7 +124,7 @@ var _ = Describe("Locket commands", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				Eventually(sess, 11*time.Second).Should(gexec.Exit(4))
-				Expect(sess.Err).To(gbytes.Say("connection refused"))
+				Expect(sess.Err).To(gbytes.Say("context deadline exceeded"))
 			})
 		})
 	})
@@ -173,7 +172,7 @@ var _ = Describe("Locket commands", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				Eventually(sess, 11*time.Second).Should(gexec.Exit(4))
-				Expect(sess.Err).To(gbytes.Say("connection refused"))
+				Expect(sess.Err).To(gbytes.Say("context deadline exceeded"))
 			})
 		})
 	})
