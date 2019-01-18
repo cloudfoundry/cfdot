@@ -2,13 +2,13 @@ package integration_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
+	"testing"
 	"time"
-
-	"google.golang.org/grpc/grpclog"
 
 	"code.cloudfoundry.org/bbs/test_helpers"
 	"code.cloudfoundry.org/bbs/test_helpers/sqlrunner"
@@ -17,7 +17,6 @@ import (
 	"code.cloudfoundry.org/inigo/helpers/portauthority"
 	"code.cloudfoundry.org/locket/cmd/locket/config"
 	"code.cloudfoundry.org/locket/cmd/locket/testrunner"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -25,9 +24,7 @@ import (
 	"github.com/onsi/gomega/ghttp"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/ginkgomon"
-
-	"fmt"
-	"testing"
+	"google.golang.org/grpc/grpclog"
 )
 
 var (
@@ -41,7 +38,6 @@ var (
 	locketCACertFile      string
 	locketClientCertFile  string
 	locketClientKeyFile   string
-	portAllocator         portauthority.PortAllocator
 	certArgs              []string
 )
 

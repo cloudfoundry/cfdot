@@ -49,13 +49,6 @@ func taskEvents(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func validateTaskEventsArguments(args []string) error {
-	if len(args) > 0 {
-		return errExtraArguments
-	}
-	return nil
-}
-
 func TaskEvents(stdout, stderr io.Writer, bbsClient bbs.Client, cellID string) error {
 	logger := globalLogger.Session("lrp-events")
 
