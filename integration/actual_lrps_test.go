@@ -29,9 +29,7 @@ var _ = Describe("actual-lrps", func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/v1/actual_lrps/list"),
-					ghttp.VerifyProtoRepresenting(&models.ActualLRPsRequest{
-						Index: nil,
-					}),
+					ghttp.VerifyProtoRepresenting(&models.ActualLRPsRequest{}),
 					func(w http.ResponseWriter, req *http.Request) {
 						time.Sleep(time.Duration(serverTimeout) * time.Second)
 					},
@@ -77,16 +75,17 @@ var _ = Describe("actual-lrps", func() {
 
 	Context("when passing filters", func() {
 		BeforeEach(func() {
-			index := int32(1)
+			alr := models.ActualLRPsRequest{
+				Domain:      "cf-apps",
+				CellId:      "cell_z1-0",
+				ProcessGuid: "pg-0",
+			}
+			alr.SetIndex(int32(1))
+
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/v1/actual_lrps/list"),
-					ghttp.VerifyProtoRepresenting(&models.ActualLRPsRequest{
-						Domain:      "cf-apps",
-						CellId:      "cell_z1-0",
-						ProcessGuid: "pg-0",
-						Index:       &index,
-					}),
+					ghttp.VerifyProtoRepresenting(&alr),
 					ghttp.RespondWithProto(200, &models.ActualLRPsResponse{
 						ActualLrps: []*models.ActualLRP{
 							&models.ActualLRP{

@@ -40,9 +40,10 @@ var _ = Describe("UpdateDesiredLRP", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		updatedInstanceCount := int32(4)
-		updatedDesiredLRP = &models.DesiredLRPUpdate{
-			Instances: &updatedInstanceCount,
-		}
+		dlu := models.DesiredLRPUpdate{}
+		dlu.SetInstances(updatedInstanceCount)
+		updatedDesiredLRP = &dlu
+
 		spec, err = json.Marshal(updatedDesiredLRP)
 		Expect(err).NotTo(HaveOccurred())
 	})

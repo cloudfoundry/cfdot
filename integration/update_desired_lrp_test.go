@@ -35,10 +35,8 @@ var _ = Describe("update-desired-lrp", func() {
 		)
 
 		BeforeEach(func() {
-			updatedInstanceCount := int32(5)
-			lrpUpdate = &models.DesiredLRPUpdate{
-				Instances: &updatedInstanceCount,
-			}
+			lrpUpdate = &models.DesiredLRPUpdate{}
+			lrpUpdate.SetInstances(int32(5))
 			serverTimeout = 0
 		})
 
