@@ -12,11 +12,11 @@ import (
 
 	"code.cloudfoundry.org/bbs/test_helpers"
 	"code.cloudfoundry.org/bbs/test_helpers/sqlrunner"
-	"code.cloudfoundry.org/cfhttp"
 	"code.cloudfoundry.org/consuladapter/consulrunner"
 	"code.cloudfoundry.org/inigo/helpers/portauthority"
 	"code.cloudfoundry.org/locket/cmd/locket/config"
 	"code.cloudfoundry.org/locket/cmd/locket/testrunner"
+	"code.cloudfoundry.org/tlsconfig"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -89,8 +89,10 @@ var _ = BeforeEach(func() {
 	locketClientCertFile = fmt.Sprintf("%s/fixtures/locketClient.crt", wd)
 	locketClientKeyFile = fmt.Sprintf("%s/fixtures/locketClient.key", wd)
 
-	tlsConfig, err := cfhttp.NewTLSConfig(locketClientCertFile,
-		locketClientKeyFile, locketCACertFile)
+	tlsConfig, err := tlsconfig.Build(
+		tlsconfig.WithInternalServiceDefaults(),
+		tlsconfig.WithIdentityFromFile(locketClientCertFile, locketClientKeyFile),
+	).Client(tlsconfig.WithAuthorityFromFile(locketCACertFile))
 	Expect(err).NotTo(HaveOccurred())
 	bbsServer.HTTPTestServer.TLS = tlsConfig
 

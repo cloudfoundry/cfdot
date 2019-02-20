@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/bbs/models"
-	"code.cloudfoundry.org/cfhttp"
 	"code.cloudfoundry.org/rep"
+	"code.cloudfoundry.org/tlsconfig"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -31,7 +31,10 @@ var _ = Describe("cell-state", func() {
 		BeforeEach(func() {
 			rep1Server = ghttp.NewUnstartedServer()
 
-			tlsConfig, err := cfhttp.NewTLSConfig(locketClientCertFile, locketClientKeyFile, locketCACertFile)
+			tlsConfig, err := tlsconfig.Build(
+				tlsconfig.WithInternalServiceDefaults(),
+				tlsconfig.WithIdentityFromFile(locketClientCertFile, locketClientKeyFile),
+			).Client(tlsconfig.WithAuthorityFromFile(locketCACertFile))
 			Expect(err).NotTo(HaveOccurred())
 			rep1Server.HTTPTestServer.TLS = tlsConfig
 			rep1Server.HTTPTestServer.StartTLS()
