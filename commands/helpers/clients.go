@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/bbs"
-	"code.cloudfoundry.org/cfhttp"
 	"code.cloudfoundry.org/lager"
 	"code.cloudfoundry.org/locket"
 	locketmodels "code.cloudfoundry.org/locket/models"
@@ -32,10 +31,12 @@ func NewBBSClient(cmd *cobra.Command, bbsClientConfig TLSConfig) (bbs.Client, er
 	var err error
 	var client bbs.Client
 
-	cfhttp.Initialize(time.Duration(bbsClientConfig.Timeout) * time.Second)
-
 	if !strings.HasPrefix(bbsClientConfig.BBSUrl, "https") {
-		client, err = bbs.NewClientWithConfig(bbs.ClientConfig{URL: bbsClientConfig.BBSUrl, Retries: 1})
+		client, err = bbs.NewClientWithConfig(bbs.ClientConfig{
+			URL:            bbsClientConfig.BBSUrl,
+			Retries:        1,
+			RequestTimeout: time.Duration(bbsClientConfig.Timeout) * time.Second,
+		})
 	} else {
 		client, err = bbs.NewClientWithConfig(
 			bbs.ClientConfig{
@@ -48,6 +49,7 @@ func NewBBSClient(cmd *cobra.Command, bbsClientConfig TLSConfig) (bbs.Client, er
 				ClientSessionCacheSize: clientSessionCacheSize,
 				MaxIdleConnsPerHost:    maxIdleConnsPerHost,
 				Retries:                1,
+				RequestTimeout:         time.Duration(bbsClientConfig.Timeout) * time.Second,
 			},
 		)
 	}

@@ -10,7 +10,7 @@ import (
 	"code.cloudfoundry.org/bbs"
 	"code.cloudfoundry.org/bbs/models"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
-	"code.cloudfoundry.org/cfhttp"
+	cfhttp "code.cloudfoundry.org/cfhttp/v2"
 	"code.cloudfoundry.org/rep"
 	"github.com/spf13/cobra"
 )
@@ -43,7 +43,9 @@ func cellState(cmd *cobra.Command, args []string) error {
 	}
 
 	httpClient := cfhttp.NewClient()
-	stateClient := cfhttp.NewCustomTimeoutClient(10 * time.Second)
+	stateClient := cfhttp.NewClient(
+		cfhttp.WithRequestTimeout(10 * time.Second),
+	)
 
 	repTLSConfig := &rep.TLSConfig{
 		CaCertFile: Config.CACertFile,
