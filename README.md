@@ -17,8 +17,6 @@ Usage:
   cfdot [command]
 
 Available Commands:
-  actual-lrp-groups            List actual LRP groups
-  actual-lrp-groups-for-guid   List actual LRP groups for a process guid
   actual-lrps                  List actual LRPs
   cancel-task                  Cancel task
   cell                         Show the specified cell presence
@@ -81,7 +79,7 @@ $ cfdot desired-lrp-scheduling-infos | jq '.instances' | jq -s 'add'
 568
 
 # show instance counts by state
-$ cfdot actual-lrp-groups | jq '.instance, .evacuating | values' | jq -s -r 'group_by(.state)[] | .[0].state + ": " + (length | tostring)'
+$ cfdot actual-lrps | jq -s -r 'group_by(.state)[] | .[0].state + ": " + (length | tostring)'
 CRASHED: 36
 RUNNING: 531
 UNCLAIMED: 1

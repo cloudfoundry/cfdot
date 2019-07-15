@@ -16,10 +16,11 @@ var (
 )
 
 var actualLRPGroupsCmd = &cobra.Command{
-	Use:   "actual-lrp-groups",
-	Short: "List actual LRP groups",
-	Long:  "List actual LRP groups from the BBS",
-	RunE:  actualLRPGroups,
+	Use:        "actual-lrp-groups",
+	Short:      "[deprecated] List actual LRP groups",
+	Long:       "List actual LRP groups from the BBS",
+	RunE:       actualLRPGroups,
+	Deprecated: "use actual-lrps command instead",
 }
 
 func init() {
