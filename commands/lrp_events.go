@@ -13,7 +13,8 @@ import (
 )
 
 var (
-	lrpEventsCellIdFlag string
+	lrpEventsCellIdFlag             string
+	lrpEventsExcludeActualLRPGroups bool
 )
 
 var lrpEventsCmd = &cobra.Command{
@@ -32,6 +33,7 @@ func init() {
 	AddBBSFlags(lrpEventsCmd)
 
 	lrpEventsCmd.Flags().StringVarP(&lrpEventsCellIdFlag, "cell-id", "c", "", "retrieve only events for the given cell id")
+	lrpEventsCmd.Flags().BoolVarP(&lrpEventsExcludeActualLRPGroups, "exclude-actual-lrp-groups", "x", false, "exclude actual lrp group events")
 
 	RootCmd.AddCommand(lrpEventsCmd)
 }
@@ -42,12 +44,19 @@ func lrpEvents(cmd *cobra.Command, args []string) error {
 		return NewCFDotValidationError(cmd, err)
 	}
 
+	if !lrpEventsExcludeActualLRPGroups {
+		err = printLRPGroupEventsWarning(cmd.OutOrStderr())
+		if err != nil {
+			return NewCFDotError(cmd, err)
+		}
+	}
+
 	bbsClient, err := helpers.NewBBSClient(cmd, Config)
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}
 
-	err = LRPEvents(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, lrpEventsCellIdFlag)
+	err = LRPEvents(cmd.OutOrStdout(), cmd.OutOrStderr(), bbsClient, lrpEventsCellIdFlag, lrpEventsExcludeActualLRPGroups)
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}
@@ -61,22 +70,8 @@ func validateLRPEventsArguments(args []string) error {
 	return nil
 }
 
-func LRPEvents(stdout, stderr io.Writer, bbsClient bbs.Client, cellID string) error {
+func LRPEvents(stdout, stderr io.Writer, bbsClient bbs.Client, cellID string, excludeActualLRPGroups bool) error {
 	logger := globalLogger.Session("lrp-events")
-
-	oldES, err := bbsClient.SubscribeToEventsByCellID(logger, cellID)
-	if err != nil {
-		return models.ConvertError(err)
-	}
-	defer oldES.Close()
-
-	instanceES, err := bbsClient.SubscribeToInstanceEventsByCellID(logger, cellID)
-	if err != nil {
-		return models.ConvertError(err)
-	}
-	defer instanceES.Close()
-
-	encoder := json.NewEncoder(stdout)
 
 	oldEventStream := make(chan models.Event)
 	newEventStream := make(chan models.Event)
@@ -94,7 +89,27 @@ func LRPEvents(stdout, stderr io.Writer, bbsClient bbs.Client, cellID string) er
 		}
 	}
 
-	go readEvent(oldES, oldEventStream, oldErrChan)
+	encoder := json.NewEncoder(stdout)
+	eventStreamCount := 1
+
+	if !excludeActualLRPGroups {
+		oldES, err := bbsClient.SubscribeToEventsByCellID(logger, cellID)
+		if err != nil {
+			return models.ConvertError(err)
+		}
+		defer oldES.Close()
+
+		eventStreamCount += 1
+
+		go readEvent(oldES, oldEventStream, oldErrChan)
+	}
+
+	instanceES, err := bbsClient.SubscribeToInstanceEventsByCellID(logger, cellID)
+	if err != nil {
+		return models.ConvertError(err)
+	}
+	defer instanceES.Close()
+
 	go readEvent(instanceES, newEventStream, newErrChan)
 
 	ret := &multierror.Error{}
@@ -117,7 +132,7 @@ func LRPEvents(stdout, stderr io.Writer, bbsClient bbs.Client, cellID string) er
 			multierror.Append(ret, err)
 		}
 
-		if len(ret.Errors) >= 2 {
+		if len(ret.Errors) >= eventStreamCount {
 			for _, err := range ret.Errors {
 				if err != io.EOF {
 					return ret.ErrorOrNil()
@@ -137,4 +152,11 @@ func LRPEvents(stdout, stderr io.Writer, bbsClient bbs.Client, cellID string) er
 			logger.Error("failed-to-marshal", err)
 		}
 	}
+}
+
+func printLRPGroupEventsWarning(stderr io.Writer) error {
+	_, err := io.WriteString(stderr,
+		`Event types "actual_lrp_created", "actual_lrp_changed" and "actual_lrp_removed" are deprecated. `+
+			`Use "--exclude-actual-lrp-groups" flag to exclude them.`+"\n")
+	return err
 }

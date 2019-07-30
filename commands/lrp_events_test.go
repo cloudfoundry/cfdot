@@ -64,17 +64,17 @@ var _ = Describe("LRP Events", func() {
 		}
 	})
 
-	It("prints a JSON object for each event that occurred", func() {
-		eventString := func(event models.Event) string {
-			lrpEvent := commands.LRPEvent{
-				Type: event.EventType(),
-				Data: event,
-			}
-			data, err := json.Marshal(lrpEvent)
-			Expect(err).NotTo(HaveOccurred())
-			return string(data)
+	var eventString = func(event models.Event) string {
+		lrpEvent := commands.LRPEvent{
+			Type: event.EventType(),
+			Data: event,
 		}
+		data, err := json.Marshal(lrpEvent)
+		Expect(err).NotTo(HaveOccurred())
+		return string(data)
+	}
 
+	It("prints a JSON object for each event that occurred", func() {
 		expectedEvents := []string{
 			eventString(models.NewActualLRPCreatedEvent(actualLRP.ToActualLRPGroup())),
 			eventString(models.NewActualLRPRemovedEvent(actualLRP.ToActualLRPGroup())),
@@ -82,7 +82,7 @@ var _ = Describe("LRP Events", func() {
 			eventString(models.NewActualLRPInstanceRemovedEvent(actualLRP)),
 		}
 
-		err := commands.LRPEvents(stdout, stderr, fakeBBSClient, "")
+		err := commands.LRPEvents(stdout, stderr, fakeBBSClient, "", false)
 		Expect(err).NotTo(HaveOccurred())
 
 		stdoutData := strings.TrimSpace(string(stdout.Contents()))
@@ -90,6 +90,24 @@ var _ = Describe("LRP Events", func() {
 		Expect(lines).To(HaveLen(4))
 
 		Expect(lines).To(ConsistOf(expectedEvents))
+	})
+
+	Context("when --exclude-actual-lrp-groups flag is set", func() {
+		It("only prints instance events", func() {
+			expectedEvents := []string{
+				eventString(models.NewActualLRPInstanceCreatedEvent(actualLRP)),
+				eventString(models.NewActualLRPInstanceRemovedEvent(actualLRP)),
+			}
+
+			err := commands.LRPEvents(stdout, stderr, fakeBBSClient, "", true)
+			Expect(err).NotTo(HaveOccurred())
+
+			stdoutData := strings.TrimSpace(string(stdout.Contents()))
+			lines := strings.Split(stdoutData, "\n")
+			Expect(lines).To(HaveLen(2))
+
+			Expect(lines).To(ConsistOf(expectedEvents))
+		})
 	})
 
 	Context("deduping DesiredLRP events", func() {
@@ -108,7 +126,7 @@ var _ = Describe("LRP Events", func() {
 			})
 
 			It("dedups them in the output", func() {
-				err := commands.LRPEvents(stdout, stderr, fakeBBSClient, "")
+				err := commands.LRPEvents(stdout, stderr, fakeBBSClient, "", false)
 				Expect(err).NotTo(HaveOccurred())
 
 				desiredLRPEvent := commands.LRPEvent{
@@ -130,7 +148,7 @@ var _ = Describe("LRP Events", func() {
 			})
 
 			It("dedups them in the output", func() {
-				err := commands.LRPEvents(stdout, stderr, fakeBBSClient, "")
+				err := commands.LRPEvents(stdout, stderr, fakeBBSClient, "", false)
 				Expect(err).NotTo(HaveOccurred())
 
 				desiredLRPEvent := commands.LRPEvent{
@@ -152,7 +170,7 @@ var _ = Describe("LRP Events", func() {
 			})
 
 			It("dedups them in the output", func() {
-				err := commands.LRPEvents(stdout, stderr, fakeBBSClient, "")
+				err := commands.LRPEvents(stdout, stderr, fakeBBSClient, "", false)
 				Expect(err).NotTo(HaveOccurred())
 
 				desiredLRPEvent := commands.LRPEvent{
@@ -170,7 +188,7 @@ var _ = Describe("LRP Events", func() {
 	})
 
 	It("closes the event streams", func() {
-		err := commands.LRPEvents(stdout, stderr, fakeBBSClient, "")
+		err := commands.LRPEvents(stdout, stderr, fakeBBSClient, "", false)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeEventSource.CloseCallCount()).To(Equal(1))
@@ -183,7 +201,7 @@ var _ = Describe("LRP Events", func() {
 		})
 
 		It("returns an error", func() {
-			err := commands.LRPEvents(stdout, stderr, fakeBBSClient, "")
+			err := commands.LRPEvents(stdout, stderr, fakeBBSClient, "", false)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("failed to connect"))
 		})
@@ -196,7 +214,7 @@ var _ = Describe("LRP Events", func() {
 		})
 
 		It("returns an error", func() {
-			err := commands.LRPEvents(stdout, stderr, fakeBBSClient, "")
+			err := commands.LRPEvents(stdout, stderr, fakeBBSClient, "", false)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("boom"))
 		})

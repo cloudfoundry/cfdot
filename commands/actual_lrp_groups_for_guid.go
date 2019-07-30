@@ -20,10 +20,10 @@ var (
 
 var actualLRPGroupsByProcessGuidCmd = &cobra.Command{
 	Use:        "actual-lrp-groups-for-guid PROCESS_GUID",
-	Short:      "[deprecated] List actual LRP groups for a process guid",
+	Short:      `[DEPRECATED] use "actual-lrps" command with the "--process-guid" flag instead. List actual LRP groups for a process guid`,
 	Long:       fmt.Sprintf("List actual LRP groups from the BBS for a given process guid. Process guids can be obtained by running %s actual-lrp-groups", os.Args[0]),
 	RunE:       actualLRPGroupsByProcessGuid,
-	Deprecated: "use actual-lrps command instead",
+	Deprecated: `use "actual-lrps" with the "--process-guid" flag instead.`,
 }
 
 func init() {
