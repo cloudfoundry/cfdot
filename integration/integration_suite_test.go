@@ -38,7 +38,8 @@ var (
 	locketCACertFile      string
 	locketClientCertFile  string
 	locketClientKeyFile   string
-	certArgs              []string
+	locketServerCertFile  string
+	locketServerKeyFile   string
 )
 
 var bbsServer *ghttp.Server
@@ -88,6 +89,8 @@ var _ = BeforeEach(func() {
 	locketCACertFile = fmt.Sprintf("%s/fixtures/locketCA.crt", wd)
 	locketClientCertFile = fmt.Sprintf("%s/fixtures/locketClient.crt", wd)
 	locketClientKeyFile = fmt.Sprintf("%s/fixtures/locketClient.key", wd)
+	locketServerCertFile = fmt.Sprintf("%s/fixtures/locketServer.crt", wd)
+	locketServerKeyFile = fmt.Sprintf("%s/fixtures/locketServer.key", wd)
 
 	tlsConfig, err := tlsconfig.Build(
 		tlsconfig.WithInternalServiceDefaults(),
@@ -95,12 +98,6 @@ var _ = BeforeEach(func() {
 	).Client(tlsconfig.WithAuthorityFromFile(locketCACertFile))
 	Expect(err).NotTo(HaveOccurred())
 	bbsServer.HTTPTestServer.TLS = tlsConfig
-
-	certArgs = []string{
-		"--caCertFile", locketCACertFile,
-		"--clientCertFile", locketClientCertFile,
-		"--clientKeyFile", locketClientKeyFile,
-	}
 
 	dbName := fmt.Sprintf("diego_%d", GinkgoParallelNode())
 	dbRunner = test_helpers.NewSQLRunner(dbName)
@@ -119,6 +116,8 @@ var _ = BeforeEach(func() {
 
 	locketRunner = testrunner.NewLocketRunner(locketPath, func(cfg *config.LocketConfig) {
 		cfg.CaFile = locketCACertFile
+		cfg.CertFile = locketServerCertFile
+		cfg.KeyFile = locketServerKeyFile
 		cfg.ListenAddress = locketAPILocation
 		cfg.ConsulCluster = consulRunner.ConsulCluster()
 		cfg.DatabaseDriver = dbRunner.DriverName()
