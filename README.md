@@ -6,10 +6,6 @@ Diego components.
 At present, its commands focus on the Diego BBS API, the main public interface
 to a Diego deployment.
 
-## Reporting issues and requesting features
-
-Please report all issues and feature requests in [cloudfoundry/diego-release](https://github.com/cloudfoundry/diego-release/issues).
-
 
 ## Current Commands
 
