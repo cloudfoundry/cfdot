@@ -73,7 +73,7 @@ var _ = BeforeEach(func() {
 	bbsServer = ghttp.NewUnstartedServer()
 	defer bbsServer.HTTPTestServer.StartTLS()
 
-	node := GinkgoParallelNode()
+	node := GinkgoParallelProcess()
 	startPort := 1050 * node
 	portRange := 1000
 	endPort := startPort + portRange
@@ -99,7 +99,7 @@ var _ = BeforeEach(func() {
 	Expect(err).NotTo(HaveOccurred())
 	bbsServer.HTTPTestServer.TLS = tlsConfig
 
-	dbName := fmt.Sprintf("diego_%d", GinkgoParallelNode())
+	dbName := fmt.Sprintf("diego_%d", GinkgoParallelProcess())
 	dbRunner = test_helpers.NewSQLRunner(dbName)
 	dbProcess = ginkgomon.Invoke(dbRunner)
 
