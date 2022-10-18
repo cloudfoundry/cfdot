@@ -12,7 +12,6 @@ import (
 
 	"code.cloudfoundry.org/bbs/test_helpers"
 	"code.cloudfoundry.org/bbs/test_helpers/sqlrunner"
-	"code.cloudfoundry.org/consuladapter/consulrunner"
 	"code.cloudfoundry.org/inigo/helpers/portauthority"
 	"code.cloudfoundry.org/locket/cmd/locket/config"
 	"code.cloudfoundry.org/locket/cmd/locket/testrunner"
@@ -33,7 +32,6 @@ var (
 	locketProcess         ifrit.Process
 	dbRunner              sqlrunner.SQLRunner
 	dbProcess             ifrit.Process
-	consulRunner          *consulrunner.ClusterRunner
 	locketAPILocation     string
 	locketCACertFile      string
 	locketClientCertFile  string
@@ -103,23 +101,11 @@ var _ = BeforeEach(func() {
 	dbRunner = test_helpers.NewSQLRunner(dbName)
 	dbProcess = ginkgomon.Invoke(dbRunner)
 
-	consulStartingPort, err := portAllocator.ClaimPorts(consulrunner.PortOffsetLength)
-	Expect(err).NotTo(HaveOccurred())
-	consulRunner = consulrunner.NewClusterRunner(
-		consulrunner.ClusterRunnerConfig{
-			StartingPort: int(consulStartingPort),
-			NumNodes:     1,
-			Scheme:       "http",
-		},
-	)
-	consulRunner.Start()
-
 	locketRunner = testrunner.NewLocketRunner(locketPath, func(cfg *config.LocketConfig) {
 		cfg.CaFile = locketCACertFile
 		cfg.CertFile = locketServerCertFile
 		cfg.KeyFile = locketServerKeyFile
 		cfg.ListenAddress = locketAPILocation
-		cfg.ConsulCluster = consulRunner.ConsulCluster()
 		cfg.DatabaseDriver = dbRunner.DriverName()
 		cfg.DatabaseConnectionString = dbRunner.ConnectionString()
 	})
@@ -131,7 +117,6 @@ var _ = AfterEach(func() {
 	bbsServer.Close()
 	ginkgomon.Interrupt(locketProcess, 5*time.Second)
 	ginkgomon.Interrupt(dbProcess, 5*time.Second) // we've been seeing the sql teardown take longer than the default of 1s
-	consulRunner.Stop()
 })
 
 func TestIntegration(t *testing.T) {
