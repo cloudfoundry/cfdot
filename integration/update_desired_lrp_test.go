@@ -43,7 +43,7 @@ var _ = Describe("update-desired-lrp", func() {
 		JustBeforeEach(func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/v1/desired_lrp/update"),
+					ghttp.VerifyRequest("POST", "/v1/desired_lrp/update.r1"),
 					func(w http.ResponseWriter, req *http.Request) {
 						time.Sleep(time.Duration(serverTimeout) * time.Second)
 					},
@@ -140,7 +140,7 @@ var _ = Describe("update-desired-lrp", func() {
 		JustBeforeEach(func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/v1/desired_lrp/update"),
+					ghttp.VerifyRequest("POST", "/v1/desired_lrp/update.r1"),
 					ghttp.RespondWithProto(500, &models.DesiredLRPLifecycleResponse{
 						Error: &models.Error{
 							Type:    models.Error_Deadlock,
