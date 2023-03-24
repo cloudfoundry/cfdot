@@ -5,7 +5,7 @@ import (
 
 	"code.cloudfoundry.org/cfdot/commands"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"testing"
