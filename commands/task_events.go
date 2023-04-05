@@ -76,5 +76,4 @@ func TaskEvents(stdout, stderr io.Writer, bbsClient bbs.Client, cellID string) e
 			return err
 		}
 	}
-	return nil
 }
