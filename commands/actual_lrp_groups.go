@@ -7,6 +7,7 @@ import (
 	"code.cloudfoundry.org/bbs"
 	"code.cloudfoundry.org/bbs/models"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
+	"github.com/openzipkin/zipkin-go/idgenerator"
 	"github.com/spf13/cobra"
 )
 
@@ -66,6 +67,7 @@ func ValidateActualLRPGroupsArguments(args []string) error {
 
 func ActualLRPGroups(stdout, stderr io.Writer, bbsClient bbs.Client, domain, cellID string) error {
 	logger := globalLogger.Session("actual-lrp-groups")
+	traceID := idgenerator.NewRandom128().TraceID().String()
 
 	encoder := json.NewEncoder(stdout)
 
@@ -74,7 +76,7 @@ func ActualLRPGroups(stdout, stderr io.Writer, bbsClient bbs.Client, domain, cel
 		Domain: domain,
 	}
 
-	actualLRPGroups, err := bbsClient.ActualLRPGroups(logger, actualLRPFilter)
+	actualLRPGroups, err := bbsClient.ActualLRPGroups(logger, traceID, actualLRPFilter)
 	if err != nil {
 		return err
 	}

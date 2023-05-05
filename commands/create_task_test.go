@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"github.com/openzipkin/zipkin-go/model"
 )
 
 var _ = Describe("CreateTask", func() {
@@ -44,10 +45,13 @@ var _ = Describe("CreateTask", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeBBSClient.DesireTaskCallCount()).To(Equal(1))
-		_, guid, domain, taskDefinition := fakeBBSClient.DesireTaskArgsForCall(0)
+		_, traceID, guid, domain, taskDefinition := fakeBBSClient.DesireTaskArgsForCall(0)
 		Expect(guid).To(Equal(expectedTask.TaskGuid))
 		Expect(domain).To(Equal(expectedTask.Domain))
 		Expect(taskDefinition).To(Equal(expectedTask.TaskDefinition))
+
+		_, err = model.TraceIDFromHex(traceID)
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	Context("when a file is passed as an argument", func() {

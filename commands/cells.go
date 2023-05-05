@@ -7,6 +7,7 @@ import (
 	"code.cloudfoundry.org/bbs"
 
 	"code.cloudfoundry.org/cfdot/commands/helpers"
+	"github.com/openzipkin/zipkin-go/idgenerator"
 	"github.com/spf13/cobra"
 )
 
@@ -58,7 +59,8 @@ func Cells(stdout, stderr io.Writer, bbsClient bbs.Client) error {
 
 	encoder := json.NewEncoder(stdout)
 
-	cellPresences, err := bbsClient.Cells(logger)
+	traceID := idgenerator.NewRandom128().TraceID().String()
+	cellPresences, err := bbsClient.Cells(logger, traceID)
 	if err != nil {
 		return err
 	}

@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"github.com/openzipkin/zipkin-go/model"
 )
 
 var _ = Describe("tasks", func() {
@@ -62,7 +63,10 @@ var _ = Describe("tasks", func() {
 					err := commands.Tasks(stdout, nil, bbsClient, "domain", "")
 					Expect(err).NotTo(HaveOccurred())
 
-					_, filter := bbsClient.TasksWithFilterArgsForCall(0)
+					_, traceID, filter := bbsClient.TasksWithFilterArgsForCall(0)
+
+					_, err = model.TraceIDFromHex(traceID)
+					Expect(err).NotTo(HaveOccurred())
 					Expect(filter).To(Equal(models.TaskFilter{Domain: "domain"}))
 
 					expectedOutput1, err := json.Marshal(&testTask1)
@@ -77,7 +81,10 @@ var _ = Describe("tasks", func() {
 					err := commands.Tasks(stdout, nil, bbsClient, "", "cell-id")
 					Expect(err).NotTo(HaveOccurred())
 
-					_, filter := bbsClient.TasksWithFilterArgsForCall(0)
+					_, traceID, filter := bbsClient.TasksWithFilterArgsForCall(0)
+
+					_, err = model.TraceIDFromHex(traceID)
+					Expect(err).NotTo(HaveOccurred())
 					Expect(filter).To(Equal(models.TaskFilter{CellID: "cell-id"}))
 
 					expectedOutput1, err := json.Marshal(&testTask1)
@@ -92,7 +99,10 @@ var _ = Describe("tasks", func() {
 					err := commands.Tasks(stdout, nil, bbsClient, "domain", "cell-id")
 					Expect(err).NotTo(HaveOccurred())
 
-					_, filter := bbsClient.TasksWithFilterArgsForCall(0)
+					_, traceID, filter := bbsClient.TasksWithFilterArgsForCall(0)
+
+					_, err = model.TraceIDFromHex(traceID)
+					Expect(err).NotTo(HaveOccurred())
 					Expect(filter).To(Equal(models.TaskFilter{Domain: "domain", CellID: "cell-id"}))
 
 					expectedOutput1, err := json.Marshal(&testTask1)

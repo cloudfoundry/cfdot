@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"github.com/openzipkin/zipkin-go/model"
 )
 
 var _ = Describe("ActualLRPGroups", func() {
@@ -49,8 +50,10 @@ var _ = Describe("ActualLRPGroups", func() {
 
 			Expect(fakeBBSClient.ActualLRPGroupsCallCount()).To(Equal(1))
 
-			_, filter := fakeBBSClient.ActualLRPGroupsArgsForCall(0)
+			_, traceID, filter := fakeBBSClient.ActualLRPGroupsArgsForCall(0)
 			Expect(filter).To(Equal(models.ActualLRPFilter{CellID: "cell-1", Domain: "domain-1"}))
+			_, err = model.TraceIDFromHex(traceID)
+			Expect(err).NotTo(HaveOccurred())
 
 			expectedOutput := ""
 			for _, group := range actualLRPGroups {

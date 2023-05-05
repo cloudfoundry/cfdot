@@ -8,6 +8,7 @@ import (
 	"code.cloudfoundry.org/bbs"
 
 	"code.cloudfoundry.org/cfdot/commands/helpers"
+	"github.com/openzipkin/zipkin-go/idgenerator"
 	"github.com/spf13/cobra"
 )
 
@@ -75,7 +76,8 @@ func ValidateSetDomainArgs(args []string) (string, error) {
 func SetDomain(stdout, stderr io.Writer, bbsClient bbs.Client, domain string, ttlDuration time.Duration) error {
 	logger := globalLogger.Session("set-domain")
 
-	err := bbsClient.UpsertDomain(logger, domain, ttlDuration)
+	traceID := idgenerator.NewRandom128().TraceID().String()
+	err := bbsClient.UpsertDomain(logger, traceID, domain, ttlDuration)
 	if err != nil {
 		return err
 	}

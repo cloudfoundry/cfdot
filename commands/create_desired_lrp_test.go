@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"github.com/openzipkin/zipkin-go/model"
 )
 
 var _ = Describe("CreateDesiredLRP", func() {
@@ -40,7 +41,11 @@ var _ = Describe("CreateDesiredLRP", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeBBSClient.DesireLRPCallCount()).To(Equal(1))
-		_, lrp := fakeBBSClient.DesireLRPArgsForCall(0)
+		_, traceID, lrp := fakeBBSClient.DesireLRPArgsForCall(0)
+
+		_, err = model.TraceIDFromHex(traceID)
+		Expect(err).NotTo(HaveOccurred())
+
 		Expect(lrp).To(Equal(expectedDesiredLRP))
 	})
 

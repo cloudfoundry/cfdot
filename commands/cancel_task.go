@@ -3,6 +3,7 @@ package commands
 import (
 	"io"
 
+	"github.com/openzipkin/zipkin-go/idgenerator"
 	"github.com/spf13/cobra"
 
 	"code.cloudfoundry.org/bbs"
@@ -42,7 +43,8 @@ func cancelTask(cmd *cobra.Command, args []string) error {
 func CancelTaskByGuid(stdout, _ io.Writer, bbsClient bbs.Client, taskGuid string) error {
 	logger := globalLogger.Session("cancel-task-by-guid")
 
-	err := bbsClient.CancelTask(logger, taskGuid)
+	traceID := idgenerator.NewRandom128().TraceID().String()
+	err := bbsClient.CancelTask(logger, traceID, taskGuid)
 	if err != nil {
 		return err
 	}

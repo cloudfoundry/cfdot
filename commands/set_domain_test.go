@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"github.com/openzipkin/zipkin-go/model"
 )
 
 var _ = Describe("Set Domain", func() {
@@ -63,7 +64,10 @@ var _ = Describe("Set Domain", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeBBSClient.UpsertDomainCallCount()).To(Equal(1))
-			_, domain, ttl := fakeBBSClient.UpsertDomainArgsForCall(0)
+			_, traceID, domain, ttl := fakeBBSClient.UpsertDomainArgsForCall(0)
+
+			_, err = model.TraceIDFromHex(traceID)
+			Expect(err).NotTo(HaveOccurred())
 			Expect(domain).To(Equal("anything"))
 			Expect(ttl).To(Equal(5 * time.Second))
 		})

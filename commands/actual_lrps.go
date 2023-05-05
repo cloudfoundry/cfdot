@@ -7,6 +7,7 @@ import (
 	"code.cloudfoundry.org/bbs"
 	"code.cloudfoundry.org/bbs/models"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
+	"github.com/openzipkin/zipkin-go/idgenerator"
 	"github.com/spf13/cobra"
 )
 
@@ -85,7 +86,8 @@ func ActualLRPs(stdout, stderr io.Writer, bbsClient bbs.Client, domain, cellID, 
 		Index:       index,
 	}
 
-	actualLRPs, err := bbsClient.ActualLRPs(logger, actualLRPFilter)
+	traceID := idgenerator.NewRandom128().TraceID().String()
+	actualLRPs, err := bbsClient.ActualLRPs(logger, traceID, actualLRPFilter)
 	if err != nil {
 		return err
 	}

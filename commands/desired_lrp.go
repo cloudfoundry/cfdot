@@ -7,6 +7,7 @@ import (
 	"code.cloudfoundry.org/cfdot/commands/helpers"
 
 	"code.cloudfoundry.org/bbs"
+	"github.com/openzipkin/zipkin-go/idgenerator"
 	"github.com/spf13/cobra"
 )
 
@@ -60,7 +61,8 @@ func ValidateDesiredLRPArguments(args []string) (string, error) {
 func DesiredLRP(stdout, stderr io.Writer, bbsClient bbs.Client, processGuid string) error {
 	logger := globalLogger.Session("desired-lrp")
 
-	desiredLRP, err := bbsClient.DesiredLRPByProcessGuid(logger, processGuid)
+	traceID := idgenerator.NewRandom128().TraceID().String()
+	desiredLRP, err := bbsClient.DesiredLRPByProcessGuid(logger, traceID, processGuid)
 	if err != nil {
 		return err
 	}

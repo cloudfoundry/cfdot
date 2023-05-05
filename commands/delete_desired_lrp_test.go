@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"github.com/openzipkin/zipkin-go/model"
 )
 
 var _ = Describe("DeleteDesiredLRP", func() {
@@ -31,8 +32,12 @@ var _ = Describe("DeleteDesiredLRP", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeBBSClient.RemoveDesiredLRPCallCount()).To(Equal(1))
-		_, lrp := fakeBBSClient.RemoveDesiredLRPArgsForCall(0)
+		_, traceID, lrp := fakeBBSClient.RemoveDesiredLRPArgsForCall(0)
+
+		_, err = model.TraceIDFromHex(traceID)
+		Expect(err).NotTo(HaveOccurred())
 		Expect(lrp).To(Equal(processGuid))
+
 	})
 
 	Context("when the bbs errors", func() {

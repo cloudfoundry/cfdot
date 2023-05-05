@@ -10,6 +10,7 @@ import (
 	"code.cloudfoundry.org/bbs"
 
 	"code.cloudfoundry.org/cfdot/commands/helpers"
+	"github.com/openzipkin/zipkin-go/idgenerator"
 	"github.com/spf13/cobra"
 )
 
@@ -82,9 +83,10 @@ func ValidateActualLRPGroupsForGuidArgs(args []string, indexFlag string) (string
 func ActualLRPGroupsForGuid(stdout, stderr io.Writer, bbsClient bbs.Client, processGuid string, index int) error {
 	logger := globalLogger.Session("actual-lrp-groups-for-guid")
 
+	traceID := idgenerator.NewRandom128().TraceID().String()
 	encoder := json.NewEncoder(stdout)
 	if index < 0 {
-		actualLRPGroups, err := bbsClient.ActualLRPGroupsByProcessGuid(logger, processGuid)
+		actualLRPGroups, err := bbsClient.ActualLRPGroupsByProcessGuid(logger, traceID, processGuid)
 		if err != nil {
 			return err
 		}
@@ -98,7 +100,7 @@ func ActualLRPGroupsForGuid(stdout, stderr io.Writer, bbsClient bbs.Client, proc
 
 		return nil
 	} else {
-		actualLRPGroup, err := bbsClient.ActualLRPGroupByProcessGuidAndIndex(logger, processGuid, index)
+		actualLRPGroup, err := bbsClient.ActualLRPGroupByProcessGuidAndIndex(logger, traceID, processGuid, index)
 		if err != nil {
 			return err
 		}

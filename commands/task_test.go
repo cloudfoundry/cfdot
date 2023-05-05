@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"github.com/openzipkin/zipkin-go/model"
 )
 
 var _ = Describe("Task", func() {
@@ -41,7 +42,10 @@ var _ = Describe("Task", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(stdout.Contents()).To(MatchJSON(taskJSON))
 
-				_, guid := fakeBBSClient.TaskByGuidArgsForCall(0)
+				_, traceID, guid := fakeBBSClient.TaskByGuidArgsForCall(0)
+
+				_, err = model.TraceIDFromHex(traceID)
+				Expect(err).NotTo(HaveOccurred())
 				Expect(guid).To(Equal(taskGuid))
 			})
 		})

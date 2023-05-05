@@ -5,6 +5,7 @@ import (
 
 	"code.cloudfoundry.org/bbs"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
+	"github.com/openzipkin/zipkin-go/idgenerator"
 	"github.com/spf13/cobra"
 )
 
@@ -58,7 +59,8 @@ func ValidateDeleteDesiredLRPArguments(args []string) (string, error) {
 func DeleteDesiredLRP(stdout, stderr io.Writer, bbsClient bbs.Client, processGuid string) error {
 	logger := globalLogger.Session("delete-desired-lrp")
 
-	err := bbsClient.RemoveDesiredLRP(logger, processGuid)
+	traceID := idgenerator.NewRandom128().TraceID().String()
+	err := bbsClient.RemoveDesiredLRP(logger, traceID, processGuid)
 	if err != nil {
 		return err
 	}

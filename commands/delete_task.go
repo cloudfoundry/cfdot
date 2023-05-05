@@ -5,6 +5,7 @@ import (
 
 	"code.cloudfoundry.org/bbs"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
+	"github.com/openzipkin/zipkin-go/idgenerator"
 	"github.com/spf13/cobra"
 )
 
@@ -57,11 +58,13 @@ func ValidateDeleteTaskArguments(args []string) (string, error) {
 
 func DeleteTask(stdout, stderr io.Writer, bbsClient bbs.Client, taskGuid string) error {
 	logger := globalLogger.Session("delete-task")
-	err := bbsClient.ResolvingTask(logger, taskGuid)
+
+	traceID := idgenerator.NewRandom128().TraceID().String()
+	err := bbsClient.ResolvingTask(logger, traceID, taskGuid)
 	if err != nil {
 		return err
 	}
-	err = bbsClient.DeleteTask(logger, taskGuid)
+	err = bbsClient.DeleteTask(logger, traceID, taskGuid)
 	if err != nil {
 		return err
 	}
