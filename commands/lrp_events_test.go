@@ -55,9 +55,9 @@ var _ = Describe("LRP Events", func() {
 			actualCounter += 1
 			switch actualCounter {
 			case 1:
-				return models.NewActualLRPInstanceCreatedEvent(actualLRP), nil
+				return models.NewActualLRPInstanceCreatedEvent(actualLRP, "some-trace-id"), nil
 			case 2:
-				return models.NewActualLRPInstanceRemovedEvent(actualLRP), nil
+				return models.NewActualLRPInstanceRemovedEvent(actualLRP, "some-trace-id"), nil
 			default:
 				return nil, io.EOF
 			}
@@ -78,8 +78,8 @@ var _ = Describe("LRP Events", func() {
 		expectedEvents := []string{
 			eventString(models.NewActualLRPCreatedEvent(actualLRP.ToActualLRPGroup())),
 			eventString(models.NewActualLRPRemovedEvent(actualLRP.ToActualLRPGroup())),
-			eventString(models.NewActualLRPInstanceCreatedEvent(actualLRP)),
-			eventString(models.NewActualLRPInstanceRemovedEvent(actualLRP)),
+			eventString(models.NewActualLRPInstanceCreatedEvent(actualLRP, "some-trace-id")),
+			eventString(models.NewActualLRPInstanceRemovedEvent(actualLRP, "some-trace-id")),
 		}
 
 		err := commands.LRPEvents(stdout, stderr, fakeBBSClient, "", false)
@@ -95,8 +95,8 @@ var _ = Describe("LRP Events", func() {
 	Context("when --exclude-actual-lrp-groups flag is set", func() {
 		It("only prints instance events", func() {
 			expectedEvents := []string{
-				eventString(models.NewActualLRPInstanceCreatedEvent(actualLRP)),
-				eventString(models.NewActualLRPInstanceRemovedEvent(actualLRP)),
+				eventString(models.NewActualLRPInstanceCreatedEvent(actualLRP, "some-trace-id")),
+				eventString(models.NewActualLRPInstanceRemovedEvent(actualLRP, "some-trace-id")),
 			}
 
 			err := commands.LRPEvents(stdout, stderr, fakeBBSClient, "", true)
@@ -122,7 +122,7 @@ var _ = Describe("LRP Events", func() {
 
 		Context("when there are duplicate DesiredLRPCreatedEvents", func() {
 			BeforeEach(func() {
-				event = models.NewDesiredLRPCreatedEvent(lrp)
+				event = models.NewDesiredLRPCreatedEvent(lrp, "some-trace-id")
 			})
 
 			It("dedups them in the output", func() {
@@ -144,7 +144,7 @@ var _ = Describe("LRP Events", func() {
 
 		Context("when there are duplicate DesiredLRPChangedEvents", func() {
 			BeforeEach(func() {
-				event = models.NewDesiredLRPChangedEvent(lrp, lrp)
+				event = models.NewDesiredLRPChangedEvent(lrp, lrp, "some-trace-id")
 			})
 
 			It("dedups them in the output", func() {
@@ -166,7 +166,7 @@ var _ = Describe("LRP Events", func() {
 
 		Context("when there are duplicate DesiredLRPRemovedEvents", func() {
 			BeforeEach(func() {
-				event = models.NewDesiredLRPRemovedEvent(lrp)
+				event = models.NewDesiredLRPRemovedEvent(lrp, "some-trace-id")
 			})
 
 			It("dedups them in the output", func() {

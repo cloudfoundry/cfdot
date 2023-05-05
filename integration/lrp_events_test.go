@@ -73,7 +73,7 @@ var _ = Describe("lrp-events", func() {
 			actualLrp := model_helpers.NewValidActualLRP("some-process-guid", 0)
 			lrpCreatedEvent := models.NewActualLRPCreatedEvent(actualLrp.ToActualLRPGroup())
 			sseEvent, err := events.NewEventFromModelEvent(1, lrpCreatedEvent)
-			lrpInstanceCreatedEvent := models.NewActualLRPInstanceCreatedEvent(actualLrp)
+			lrpInstanceCreatedEvent := models.NewActualLRPInstanceCreatedEvent(actualLrp, "some-trace-id")
 			sseInstanceEvent, err := events.NewEventFromModelEvent(1, lrpInstanceCreatedEvent)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -122,7 +122,7 @@ var _ = Describe("lrp-events", func() {
 	Context("when ActualLRPGroup events are excluded", func() {
 		BeforeEach(func() {
 			actualLRP := model_helpers.NewValidActualLRP("some-process-guid", 0)
-			actualLRPEvent := models.NewActualLRPInstanceCreatedEvent(actualLRP)
+			actualLRPEvent := models.NewActualLRPInstanceCreatedEvent(actualLRP, "some-trace-id")
 			sseEvent, err := events.NewEventFromModelEvent(1, actualLRPEvent)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -146,8 +146,9 @@ var _ = Describe("lrp-events", func() {
 		BeforeEach(func() {
 			actualLRP := model_helpers.NewValidActualLRP("some-process-guid", 0)
 			actualLRPEvent1 := models.NewActualLRPCreatedEvent(actualLRP.ToActualLRPGroup())
-			actualLRPEvent2 := models.NewActualLRPInstanceCreatedEvent(actualLRP)
+			actualLRPEvent2 := models.NewActualLRPInstanceCreatedEvent(actualLRP, "some-trace-id")
 			sseEvent1, err := events.NewEventFromModelEvent(1, actualLRPEvent1)
+			Expect(err).ToNot(HaveOccurred())
 			sseEvent2, err := events.NewEventFromModelEvent(1, actualLRPEvent2)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -202,7 +203,7 @@ var _ = Describe("lrp-events", func() {
 	Context("when duplicate DesiredLRP events are reported by the instance event stream and legacy event stream", func() {
 		BeforeEach(func() {
 			lrp := models.DesiredLRP{ProcessGuid: "some-process-guid"}
-			desiredLRPEvent := models.NewDesiredLRPRemovedEvent(&lrp)
+			desiredLRPEvent := models.NewDesiredLRPRemovedEvent(&lrp, "some-trace-id")
 			sseEvent, err := events.NewEventFromModelEvent(1, desiredLRPEvent)
 			Expect(err).ToNot(HaveOccurred())
 
