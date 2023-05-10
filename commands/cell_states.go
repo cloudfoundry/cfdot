@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/bbs"
+	"code.cloudfoundry.org/bbs/trace"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
 	cfhttp "code.cloudfoundry.org/cfhttp/v2"
 	"code.cloudfoundry.org/rep"
-	"github.com/openzipkin/zipkin-go/idgenerator"
 	"github.com/spf13/cobra"
 )
 
@@ -67,7 +67,7 @@ func ValidateCellStatesArguments(args []string) error {
 func FetchCellStates(cmd *cobra.Command, stdout, stderr io.Writer, clientFactory rep.ClientFactory, bbsClient bbs.Client) error {
 	logger := globalLogger.Session("cell-states")
 
-	traceID := idgenerator.NewRandom128().TraceID().String()
+	traceID := trace.GenerateTraceID()
 	registrations, err := bbsClient.Cells(logger, traceID)
 	if err != nil {
 		return NewCFDotComponentError(cmd, fmt.Errorf("BBS error: Failed to get cell registrations from BBS: %s", err))

@@ -9,10 +9,10 @@ import (
 
 	"code.cloudfoundry.org/bbs"
 	"code.cloudfoundry.org/bbs/models"
+	"code.cloudfoundry.org/bbs/trace"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
 	cfhttp "code.cloudfoundry.org/cfhttp/v2"
 	"code.cloudfoundry.org/rep"
-	"github.com/openzipkin/zipkin-go/idgenerator"
 	"github.com/spf13/cobra"
 )
 
@@ -39,7 +39,7 @@ func cellState(cmd *cobra.Command, args []string) error {
 		return NewCFDotError(cmd, err)
 	}
 
-	traceID := idgenerator.NewRandom128().TraceID().String()
+	traceID := trace.GenerateTraceID()
 	cellRegistration, err := FetchCellRegistration(bbsClient, traceID, args[0])
 	if err != nil {
 		return NewCFDotError(cmd, err)

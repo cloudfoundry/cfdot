@@ -11,8 +11,8 @@ import (
 
 	"code.cloudfoundry.org/bbs"
 	"code.cloudfoundry.org/bbs/models"
+	"code.cloudfoundry.org/bbs/trace"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
-	"github.com/openzipkin/zipkin-go/idgenerator"
 	"github.com/spf13/cobra"
 )
 
@@ -85,7 +85,7 @@ func CreateDesiredLRP(stdout, stderr io.Writer, bbsClient bbs.Client, spec []byt
 		return err
 	}
 
-	traceID := idgenerator.NewRandom128().TraceID().String()
+	traceID := trace.GenerateTraceID()
 	err = bbsClient.DesireLRP(logger, traceID, desiredLRP)
 	if err != nil {
 		return err

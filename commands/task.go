@@ -5,8 +5,8 @@ import (
 	"io"
 
 	"code.cloudfoundry.org/bbs"
+	"code.cloudfoundry.org/bbs/trace"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
-	"github.com/openzipkin/zipkin-go/idgenerator"
 	"github.com/spf13/cobra"
 )
 
@@ -43,7 +43,7 @@ func task(cmd *cobra.Command, args []string) error {
 func TaskByGuid(stdout, _ io.Writer, bbsClient bbs.Client, taskGuid string) error {
 	logger := globalLogger.Session("task-by-guid")
 
-	traceID := idgenerator.NewRandom128().TraceID().String()
+	traceID := trace.GenerateTraceID()
 	task, err := bbsClient.TaskByGuid(logger, traceID, taskGuid)
 	if err != nil {
 		return err

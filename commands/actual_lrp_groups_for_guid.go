@@ -8,9 +8,9 @@ import (
 	"strconv"
 
 	"code.cloudfoundry.org/bbs"
+	"code.cloudfoundry.org/bbs/trace"
 
 	"code.cloudfoundry.org/cfdot/commands/helpers"
-	"github.com/openzipkin/zipkin-go/idgenerator"
 	"github.com/spf13/cobra"
 )
 
@@ -83,7 +83,7 @@ func ValidateActualLRPGroupsForGuidArgs(args []string, indexFlag string) (string
 func ActualLRPGroupsForGuid(stdout, stderr io.Writer, bbsClient bbs.Client, processGuid string, index int) error {
 	logger := globalLogger.Session("actual-lrp-groups-for-guid")
 
-	traceID := idgenerator.NewRandom128().TraceID().String()
+	traceID := trace.GenerateTraceID()
 	encoder := json.NewEncoder(stdout)
 	if index < 0 {
 		actualLRPGroups, err := bbsClient.ActualLRPGroupsByProcessGuid(logger, traceID, processGuid)

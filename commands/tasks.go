@@ -6,8 +6,8 @@ import (
 
 	"code.cloudfoundry.org/bbs"
 	"code.cloudfoundry.org/bbs/models"
+	"code.cloudfoundry.org/bbs/trace"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
-	"github.com/openzipkin/zipkin-go/idgenerator"
 	"github.com/spf13/cobra"
 )
 
@@ -61,7 +61,7 @@ func Tasks(stdout, _ io.Writer, bbsClient bbs.Client, domain, cellID string) err
 	var tasks []*models.Task
 	var err error
 
-	traceID := idgenerator.NewRandom128().TraceID().String()
+	traceID := trace.GenerateTraceID()
 	tasks, err = bbsClient.TasksWithFilter(globalLogger, traceID, models.TaskFilter{Domain: domain, CellID: cellID})
 	if err != nil {
 		return err

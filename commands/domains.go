@@ -5,9 +5,9 @@ import (
 	"io"
 
 	"code.cloudfoundry.org/bbs"
+	"code.cloudfoundry.org/bbs/trace"
 
 	"code.cloudfoundry.org/cfdot/commands/helpers"
-	"github.com/openzipkin/zipkin-go/idgenerator"
 	"github.com/spf13/cobra"
 )
 
@@ -54,7 +54,7 @@ func Domains(stdout, stderr io.Writer, bbsClient bbs.Client) error {
 
 	encoder := json.NewEncoder(stdout)
 
-	traceID := idgenerator.NewRandom128().TraceID().String()
+	traceID := trace.GenerateTraceID()
 	domains, err := bbsClient.Domains(logger, traceID)
 	if err != nil {
 		return err
