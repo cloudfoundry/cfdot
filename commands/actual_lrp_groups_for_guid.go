@@ -81,9 +81,9 @@ func ValidateActualLRPGroupsForGuidArgs(args []string, indexFlag string) (string
 }
 
 func ActualLRPGroupsForGuid(stdout, stderr io.Writer, bbsClient bbs.Client, processGuid string, index int) error {
-	logger := globalLogger.Session("actual-lrp-groups-for-guid")
-
 	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("actual-lrp-groups-for-guid"), traceID)
+
 	encoder := json.NewEncoder(stdout)
 	if index < 0 {
 		actualLRPGroups, err := bbsClient.ActualLRPGroupsByProcessGuid(logger, traceID, processGuid)

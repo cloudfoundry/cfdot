@@ -41,9 +41,9 @@ func cancelTask(cmd *cobra.Command, args []string) error {
 }
 
 func CancelTaskByGuid(stdout, _ io.Writer, bbsClient bbs.Client, taskGuid string) error {
-	logger := globalLogger.Session("cancel-task-by-guid")
-
 	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("cancel-task-by-guid"), traceID)
+
 	err := bbsClient.CancelTask(logger, traceID, taskGuid)
 	if err != nil {
 		return err

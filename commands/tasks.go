@@ -62,7 +62,8 @@ func Tasks(stdout, _ io.Writer, bbsClient bbs.Client, domain, cellID string) err
 	var err error
 
 	traceID := trace.GenerateTraceID()
-	tasks, err = bbsClient.TasksWithFilter(globalLogger, traceID, models.TaskFilter{Domain: domain, CellID: cellID})
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("tasks"), traceID)
+	tasks, err = bbsClient.TasksWithFilter(logger, traceID, models.TaskFilter{Domain: domain, CellID: cellID})
 	if err != nil {
 		return err
 	}

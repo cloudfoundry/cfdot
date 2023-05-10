@@ -61,11 +61,11 @@ func ValidateDesiredLRPsArguments(args []string) error {
 }
 
 func DesiredLRPs(stdout, stderr io.Writer, bbsClient bbs.Client, domain string) error {
-	logger := globalLogger.Session("desiredLRPs")
+	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("desired-lrps"), traceID)
 
 	desiredLRPFilter := models.DesiredLRPFilter{Domain: domain}
 
-	traceID := trace.GenerateTraceID()
 	desiredLRPs, err := bbsClient.DesiredLRPs(logger, traceID, desiredLRPFilter)
 	if err != nil {
 		return err

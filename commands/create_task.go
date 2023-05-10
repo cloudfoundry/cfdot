@@ -78,7 +78,8 @@ func ValidateCreateTaskArguments(args []string) ([]byte, error) {
 }
 
 func CreateTask(stdout, stderr io.Writer, bbsClient bbs.Client, spec []byte) error {
-	logger := globalLogger.Session("create-task")
+	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("create-task"), traceID)
 
 	var task *models.Task
 	err := json.Unmarshal(spec, &task)
@@ -86,7 +87,6 @@ func CreateTask(stdout, stderr io.Writer, bbsClient bbs.Client, spec []byte) err
 		return err
 	}
 
-	traceID := trace.GenerateTraceID()
 	err = bbsClient.DesireTask(logger, traceID, task.TaskGuid, task.Domain, task.TaskDefinition)
 	if err != nil {
 		return err

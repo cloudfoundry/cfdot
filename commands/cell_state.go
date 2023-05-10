@@ -86,7 +86,7 @@ func ValidateCellStateArguments(args []string) error {
 }
 
 func FetchCellRegistration(bbsClient bbs.Client, traceID string, cellId string) (*models.CellPresence, error) {
-	logger := globalLogger.Session("fetch-cell-presence")
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("fetch-cell-presence"), traceID)
 
 	cells, err := bbsClient.Cells(logger, traceID)
 	if err != nil {
@@ -108,7 +108,7 @@ func FetchCellState(stdout, stderr io.Writer, clientFactory rep.ClientFactory, r
 		return err
 	}
 
-	logger := globalLogger.Session("cell-state")
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("cell-state"), traceID)
 	encoder := json.NewEncoder(stdout)
 
 	state, err := repClient.State(logger)

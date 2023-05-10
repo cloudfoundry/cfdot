@@ -77,7 +77,8 @@ func ValidateCreateDesiredLRPArguments(args []string) ([]byte, error) {
 }
 
 func CreateDesiredLRP(stdout, stderr io.Writer, bbsClient bbs.Client, spec []byte) error {
-	logger := globalLogger.Session("create-desired-lrp")
+	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("create-desired-lrp"), traceID)
 
 	var desiredLRP *models.DesiredLRP
 	err := json.Unmarshal(spec, &desiredLRP)
@@ -85,7 +86,6 @@ func CreateDesiredLRP(stdout, stderr io.Writer, bbsClient bbs.Client, spec []byt
 		return err
 	}
 
-	traceID := trace.GenerateTraceID()
 	err = bbsClient.DesireLRP(logger, traceID, desiredLRP)
 	if err != nil {
 		return err

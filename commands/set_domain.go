@@ -74,9 +74,9 @@ func ValidateSetDomainArgs(args []string) (string, error) {
 }
 
 func SetDomain(stdout, stderr io.Writer, bbsClient bbs.Client, domain string, ttlDuration time.Duration) error {
-	logger := globalLogger.Session("set-domain")
-
 	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("set-domain"), traceID)
+
 	err := bbsClient.UpsertDomain(logger, traceID, domain, ttlDuration)
 	if err != nil {
 		return err

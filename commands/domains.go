@@ -50,11 +50,11 @@ func ValidateDomainsArguments(args []string) error {
 }
 
 func Domains(stdout, stderr io.Writer, bbsClient bbs.Client) error {
-	logger := globalLogger.Session("domains")
+	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("domains"), traceID)
 
 	encoder := json.NewEncoder(stdout)
 
-	traceID := trace.GenerateTraceID()
 	domains, err := bbsClient.Domains(logger, traceID)
 	if err != nil {
 		return err

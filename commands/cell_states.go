@@ -65,9 +65,9 @@ func ValidateCellStatesArguments(args []string) error {
 }
 
 func FetchCellStates(cmd *cobra.Command, stdout, stderr io.Writer, clientFactory rep.ClientFactory, bbsClient bbs.Client) error {
-	logger := globalLogger.Session("cell-states")
-
 	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("cell-states"), traceID)
+
 	registrations, err := bbsClient.Cells(logger, traceID)
 	if err != nil {
 		return NewCFDotComponentError(cmd, fmt.Errorf("BBS error: Failed to get cell registrations from BBS: %s", err))

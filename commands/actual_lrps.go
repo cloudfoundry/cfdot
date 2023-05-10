@@ -75,7 +75,8 @@ func ValidateActualLRPsArguments(args []string) error {
 }
 
 func ActualLRPs(stdout, stderr io.Writer, bbsClient bbs.Client, domain, cellID, processGuid string, index *int32) error {
-	logger := globalLogger.Session("actual-lrps")
+	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("actual-lrps"), traceID)
 
 	encoder := json.NewEncoder(stdout)
 
@@ -86,7 +87,6 @@ func ActualLRPs(stdout, stderr io.Writer, bbsClient bbs.Client, domain, cellID, 
 		Index:       index,
 	}
 
-	traceID := trace.GenerateTraceID()
 	actualLRPs, err := bbsClient.ActualLRPs(logger, traceID, actualLRPFilter)
 	if err != nil {
 		return err

@@ -79,7 +79,8 @@ func ValidateUpdateDesiredLRPArguments(args []string) (string, []byte, error) {
 }
 
 func UpdateDesiredLRP(stdout, stderr io.Writer, bbsClient bbs.Client, processGuid string, spec []byte) error {
-	logger := globalLogger.Session("update-desired-lrp")
+	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("update-desired-lrp"), traceID)
 
 	var desiredLRP *models.DesiredLRPUpdate
 	err := json.Unmarshal(spec, &desiredLRP)
@@ -87,7 +88,6 @@ func UpdateDesiredLRP(stdout, stderr io.Writer, bbsClient bbs.Client, processGui
 		return err
 	}
 
-	traceID := trace.GenerateTraceID()
 	err = bbsClient.UpdateDesiredLRP(logger, traceID, processGuid, desiredLRP)
 	if err != nil {
 		return err

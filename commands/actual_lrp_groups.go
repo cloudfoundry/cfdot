@@ -66,8 +66,8 @@ func ValidateActualLRPGroupsArguments(args []string) error {
 }
 
 func ActualLRPGroups(stdout, stderr io.Writer, bbsClient bbs.Client, domain, cellID string) error {
-	logger := globalLogger.Session("actual-lrp-groups")
 	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("actual-lrp-groups"), traceID)
 
 	encoder := json.NewEncoder(stdout)
 

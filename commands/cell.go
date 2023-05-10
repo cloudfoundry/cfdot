@@ -60,11 +60,11 @@ func ValidateCellArguments(args []string) error {
 }
 
 func Cell(stdout, stderr io.Writer, bbsClient bbs.Client, cellId string) error {
-	logger := globalLogger.Session("cell-presence")
+	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("cell-presence"), traceID)
 
 	encoder := json.NewEncoder(stdout)
 
-	traceID := trace.GenerateTraceID()
 	cells, err := bbsClient.Cells(logger, traceID)
 	if err != nil {
 		return err

@@ -61,14 +61,14 @@ func ValidateDesiredLRPSchedulingInfosArguments(args []string) error {
 }
 
 func DesiredLRPSchedulingInfos(stdout, stderr io.Writer, bbsClient bbs.Client, domain string) error {
-	logger := globalLogger.Session("desired-lrp-scheduling-infos")
+	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("desired-lrp-scheduling-infos"), traceID)
 
 	encoder := json.NewEncoder(stdout)
 	desiredLRPFilter := models.DesiredLRPFilter{
 		Domain: domain,
 	}
 
-	traceID := trace.GenerateTraceID()
 	desiredLRPSchedulingInfos, err := bbsClient.DesiredLRPSchedulingInfos(logger, traceID, desiredLRPFilter)
 	if err != nil {
 		return err

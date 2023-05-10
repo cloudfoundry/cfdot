@@ -59,9 +59,9 @@ func ValidateDesiredLRPArguments(args []string) (string, error) {
 }
 
 func DesiredLRP(stdout, stderr io.Writer, bbsClient bbs.Client, processGuid string) error {
-	logger := globalLogger.Session("desired-lrp")
-
 	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("desired-lrp"), traceID)
+
 	desiredLRP, err := bbsClient.DesiredLRPByProcessGuid(logger, traceID, processGuid)
 	if err != nil {
 		return err

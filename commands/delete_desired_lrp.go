@@ -57,9 +57,8 @@ func ValidateDeleteDesiredLRPArguments(args []string) (string, error) {
 }
 
 func DeleteDesiredLRP(stdout, stderr io.Writer, bbsClient bbs.Client, processGuid string) error {
-	logger := globalLogger.Session("delete-desired-lrp")
-
 	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("delete-desired-lrp"), traceID)
 	err := bbsClient.RemoveDesiredLRP(logger, traceID, processGuid)
 	if err != nil {
 		return err
