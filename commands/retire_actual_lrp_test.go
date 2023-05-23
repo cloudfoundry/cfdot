@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"github.com/openzipkin/zipkin-go/model"
 )
 
 var _ = Describe("RetireActualLRP", func() {
@@ -76,11 +77,16 @@ var _ = Describe("RetireActualLRP", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeBBSClient.DesiredLRPByProcessGuidCallCount()).To(Equal(1))
-			_, processGuid := fakeBBSClient.DesiredLRPByProcessGuidArgsForCall(0)
+			_, traceID, processGuid := fakeBBSClient.DesiredLRPByProcessGuidArgsForCall(0)
+
+			_, err = model.TraceIDFromHex(traceID)
+			Expect(err).NotTo(HaveOccurred())
 			Expect(processGuid).To(Equal("process-guid"))
 
 			Expect(fakeBBSClient.RetireActualLRPCallCount()).To(Equal(1))
-			_, actualLRPKey := fakeBBSClient.RetireActualLRPArgsForCall(0)
+			_, traceID2, actualLRPKey := fakeBBSClient.RetireActualLRPArgsForCall(0)
+			Expect(traceID2).To(Equal(traceID))
+
 			Expect(actualLRPKey).To(Equal(&models.ActualLRPKey{
 				ProcessGuid: "process-guid",
 				Index:       1,

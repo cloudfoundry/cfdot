@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"github.com/openzipkin/zipkin-go/model"
 )
 
 var _ = Describe("ActualLRPGroupsForGuid", func() {
@@ -106,8 +107,10 @@ var _ = Describe("ActualLRPGroupsForGuid", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeBBSClient.ActualLRPGroupsByProcessGuidCallCount()).To(Equal(1))
-			_, guid := fakeBBSClient.ActualLRPGroupsByProcessGuidArgsForCall(0)
+			_, traceID, guid := fakeBBSClient.ActualLRPGroupsByProcessGuidArgsForCall(0)
 			Expect(guid).To(Equal("guid"))
+			_, err = model.TraceIDFromHex(traceID)
+			Expect(err).NotTo(HaveOccurred())
 
 			expectedOutput := ""
 			for _, group := range actualLRPGroups {
@@ -149,9 +152,11 @@ var _ = Describe("ActualLRPGroupsForGuid", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeBBSClient.ActualLRPGroupByProcessGuidAndIndexCallCount()).To(Equal(1))
-				_, guid, index := fakeBBSClient.ActualLRPGroupByProcessGuidAndIndexArgsForCall(0)
+				_, traceID, guid, index := fakeBBSClient.ActualLRPGroupByProcessGuidAndIndexArgsForCall(0)
 				Expect(guid).To(Equal("guid"))
 				Expect(index).To(Equal(2))
+				_, err = model.TraceIDFromHex(traceID)
+				Expect(err).NotTo(HaveOccurred())
 
 				jsonData, err := json.Marshal(actualLRPGroup)
 				Expect(err).NotTo(HaveOccurred())

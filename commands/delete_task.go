@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"code.cloudfoundry.org/bbs"
+	"code.cloudfoundry.org/bbs/trace"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
 	"github.com/spf13/cobra"
 )
@@ -56,12 +57,14 @@ func ValidateDeleteTaskArguments(args []string) (string, error) {
 }
 
 func DeleteTask(stdout, stderr io.Writer, bbsClient bbs.Client, taskGuid string) error {
-	logger := globalLogger.Session("delete-task")
-	err := bbsClient.ResolvingTask(logger, taskGuid)
+	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("delete-task"), traceID)
+
+	err := bbsClient.ResolvingTask(logger, traceID, taskGuid)
 	if err != nil {
 		return err
 	}
-	err = bbsClient.DeleteTask(logger, taskGuid)
+	err = bbsClient.DeleteTask(logger, traceID, taskGuid)
 	if err != nil {
 		return err
 	}

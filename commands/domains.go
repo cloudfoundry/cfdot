@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"code.cloudfoundry.org/bbs"
+	"code.cloudfoundry.org/bbs/trace"
 
 	"code.cloudfoundry.org/cfdot/commands/helpers"
 	"github.com/spf13/cobra"
@@ -49,10 +50,12 @@ func ValidateDomainsArguments(args []string) error {
 }
 
 func Domains(stdout, stderr io.Writer, bbsClient bbs.Client) error {
-	logger := globalLogger.Session("domains")
+	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("domains"), traceID)
 
 	encoder := json.NewEncoder(stdout)
-	domains, err := bbsClient.Domains(logger)
+
+	domains, err := bbsClient.Domains(logger, traceID)
 	if err != nil {
 		return err
 	}

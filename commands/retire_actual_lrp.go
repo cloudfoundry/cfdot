@@ -6,6 +6,7 @@ import (
 
 	"code.cloudfoundry.org/bbs"
 	"code.cloudfoundry.org/bbs/models"
+	"code.cloudfoundry.org/bbs/trace"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
 	"github.com/spf13/cobra"
 )
@@ -63,15 +64,16 @@ func ValidateRetireActualLRPArgs(args []string) (string, int, error) {
 }
 
 func RetireActualLRP(stdout, stderr io.Writer, bbsClient bbs.Client, processGuid string, index int32) error {
-	logger := globalLogger.Session("retire-actual-lrp")
+	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("retire-actual-lrp"), traceID)
 
-	desiredLRP, err := bbsClient.DesiredLRPByProcessGuid(logger, processGuid)
+	desiredLRP, err := bbsClient.DesiredLRPByProcessGuid(logger, traceID, processGuid)
 	if err != nil {
 		return err
 	}
 
 	actualLRPKey := models.ActualLRPKey{ProcessGuid: processGuid, Index: index, Domain: desiredLRP.Domain}
-	err = bbsClient.RetireActualLRP(logger, &actualLRPKey)
+	err = bbsClient.RetireActualLRP(logger, traceID, &actualLRPKey)
 	if err != nil {
 		return err
 	}

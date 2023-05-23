@@ -62,9 +62,13 @@ var _ = Describe("CellState", func() {
 		})
 
 		It("returns the cell presence", func() {
-			receivedPresence, err := commands.FetchCellRegistration(fakeBBSClient, cellId)
+			traceID := "some-trace-id"
+			receivedPresence, err := commands.FetchCellRegistration(fakeBBSClient, traceID, cellId)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeBBSClient.CellsCallCount()).To(Equal(1))
+
+			_, actualTraceID := fakeBBSClient.CellsArgsForCall(0)
+			Expect(actualTraceID).To(Equal(traceID))
 
 			Expect(receivedPresence).To(Equal(presence))
 		})
@@ -75,14 +79,14 @@ var _ = Describe("CellState", func() {
 			})
 
 			It("returns the error", func() {
-				_, err := commands.FetchCellRegistration(fakeBBSClient, cellId)
+				_, err := commands.FetchCellRegistration(fakeBBSClient, "some-trace-id", cellId)
 				Expect(err).To(HaveOccurred())
 			})
 		})
 
 		Context("when the cell doesn't exist", func() {
 			It("returns an error", func() {
-				_, err := commands.FetchCellRegistration(fakeBBSClient, "non-existent")
+				_, err := commands.FetchCellRegistration(fakeBBSClient, "some-trace-id", "non-existent")
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -123,9 +127,11 @@ var _ = Describe("CellState", func() {
 		})
 
 		It("outputs the cell state to stdout", func() {
-			err := commands.FetchCellState(stdout, stderr, fakeRepClientFactory, registration)
+			err := commands.FetchCellState(stdout, stderr, fakeRepClientFactory, registration, "some-trace-id")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeRepClient.StateCallCount()).To(Equal(1))
+			_, _, actualTraceID := fakeRepClientFactory.CreateClientArgsForCall(0)
+			Expect(actualTraceID).To(Equal("some-trace-id"))
 
 			var receivedState rep.CellState
 			err = json.Unmarshal(stdout.Contents(), &receivedState)
@@ -139,7 +145,7 @@ var _ = Describe("CellState", func() {
 			})
 
 			It("returns an error", func() {
-				err := commands.FetchCellState(stdout, stderr, fakeRepClientFactory, registration)
+				err := commands.FetchCellState(stdout, stderr, fakeRepClientFactory, registration, "some-trace-id")
 				Expect(err).To(HaveOccurred())
 				Expect(fakeRepClient.StateCallCount()).To(Equal(1))
 			})

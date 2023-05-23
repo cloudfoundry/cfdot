@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"code.cloudfoundry.org/bbs"
+	"code.cloudfoundry.org/bbs/trace"
 
 	"code.cloudfoundry.org/cfdot/commands/helpers"
 	"github.com/spf13/cobra"
@@ -80,11 +81,12 @@ func ValidateActualLRPGroupsForGuidArgs(args []string, indexFlag string) (string
 }
 
 func ActualLRPGroupsForGuid(stdout, stderr io.Writer, bbsClient bbs.Client, processGuid string, index int) error {
-	logger := globalLogger.Session("actual-lrp-groups-for-guid")
+	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("actual-lrp-groups-for-guid"), traceID)
 
 	encoder := json.NewEncoder(stdout)
 	if index < 0 {
-		actualLRPGroups, err := bbsClient.ActualLRPGroupsByProcessGuid(logger, processGuid)
+		actualLRPGroups, err := bbsClient.ActualLRPGroupsByProcessGuid(logger, traceID, processGuid)
 		if err != nil {
 			return err
 		}
@@ -98,7 +100,7 @@ func ActualLRPGroupsForGuid(stdout, stderr io.Writer, bbsClient bbs.Client, proc
 
 		return nil
 	} else {
-		actualLRPGroup, err := bbsClient.ActualLRPGroupByProcessGuidAndIndex(logger, processGuid, index)
+		actualLRPGroup, err := bbsClient.ActualLRPGroupByProcessGuidAndIndex(logger, traceID, processGuid, index)
 		if err != nil {
 			return err
 		}

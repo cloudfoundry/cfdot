@@ -6,6 +6,7 @@ import (
 
 	"code.cloudfoundry.org/bbs"
 	"code.cloudfoundry.org/bbs/models"
+	"code.cloudfoundry.org/bbs/trace"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
 	"github.com/spf13/cobra"
 )
@@ -60,7 +61,9 @@ func Tasks(stdout, _ io.Writer, bbsClient bbs.Client, domain, cellID string) err
 	var tasks []*models.Task
 	var err error
 
-	tasks, err = bbsClient.TasksWithFilter(globalLogger, models.TaskFilter{Domain: domain, CellID: cellID})
+	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("tasks"), traceID)
+	tasks, err = bbsClient.TasksWithFilter(logger, traceID, models.TaskFilter{Domain: domain, CellID: cellID})
 	if err != nil {
 		return err
 	}

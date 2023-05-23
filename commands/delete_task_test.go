@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"github.com/openzipkin/zipkin-go/model"
 )
 
 var _ = Describe("DeleteTask", func() {
@@ -31,12 +32,16 @@ var _ = Describe("DeleteTask", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeBBSClient.ResolvingTaskCallCount()).To(Equal(1))
-		_, task := fakeBBSClient.ResolvingTaskArgsForCall(0)
-		Expect(task).To(Equal(taskGuid))
+		_, traceID, task := fakeBBSClient.ResolvingTaskArgsForCall(0)
 
-		Expect(fakeBBSClient.DeleteTaskCallCount()).To(Equal(1))
-		_, task = fakeBBSClient.DeleteTaskArgsForCall(0)
+		_, err = model.TraceIDFromHex(traceID)
+		Expect(err).NotTo(HaveOccurred())
+
 		Expect(task).To(Equal(taskGuid))
+		Expect(fakeBBSClient.DeleteTaskCallCount()).To(Equal(1))
+		_, traceID2, task := fakeBBSClient.DeleteTaskArgsForCall(0)
+		Expect(task).To(Equal(taskGuid))
+		Expect(traceID2).To(Equal(traceID))
 	})
 
 	Context("when the bbs errors", func() {

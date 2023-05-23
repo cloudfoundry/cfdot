@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"code.cloudfoundry.org/bbs"
+	"code.cloudfoundry.org/bbs/trace"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
 
 	"github.com/spf13/cobra"
@@ -59,11 +60,12 @@ func ValidateCellArguments(args []string) error {
 }
 
 func Cell(stdout, stderr io.Writer, bbsClient bbs.Client, cellId string) error {
-	logger := globalLogger.Session("cell-presence")
+	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("cell-presence"), traceID)
 
 	encoder := json.NewEncoder(stdout)
 
-	cells, err := bbsClient.Cells(logger)
+	cells, err := bbsClient.Cells(logger, traceID)
 	if err != nil {
 		return err
 	}

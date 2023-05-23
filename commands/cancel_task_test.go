@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"github.com/openzipkin/zipkin-go/model"
 )
 
 var _ = Describe("CancelTask", func() {
@@ -31,8 +32,10 @@ var _ = Describe("CancelTask", func() {
 
 			Expect(fakeBBSClient.CancelTaskCallCount()).To(Equal(1))
 
-			_, guid := fakeBBSClient.CancelTaskArgsForCall(0)
+			_, traceID, guid := fakeBBSClient.CancelTaskArgsForCall(0)
 			Expect(guid).To(Equal(taskGuid))
+			_, err = model.TraceIDFromHex(traceID)
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		Context("when the bbs client errors", func() {

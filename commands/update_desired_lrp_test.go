@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"github.com/openzipkin/zipkin-go/model"
 )
 
 var _ = Describe("UpdateDesiredLRP", func() {
@@ -53,7 +54,10 @@ var _ = Describe("UpdateDesiredLRP", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeBBSClient.UpdateDesiredLRPCallCount()).To(Equal(1))
-		_, guid, lrp := fakeBBSClient.UpdateDesiredLRPArgsForCall(0)
+		_, traceID, guid, lrp := fakeBBSClient.UpdateDesiredLRPArgsForCall(0)
+
+		_, err = model.TraceIDFromHex(traceID)
+		Expect(err).NotTo(HaveOccurred())
 		Expect(lrp).To(Equal(updatedDesiredLRP))
 		Expect(guid).To(Equal(processGuid))
 	})

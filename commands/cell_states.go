@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/bbs"
+	"code.cloudfoundry.org/bbs/trace"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
 	cfhttp "code.cloudfoundry.org/cfhttp/v2"
 	"code.cloudfoundry.org/rep"
@@ -64,14 +65,16 @@ func ValidateCellStatesArguments(args []string) error {
 }
 
 func FetchCellStates(cmd *cobra.Command, stdout, stderr io.Writer, clientFactory rep.ClientFactory, bbsClient bbs.Client) error {
-	logger := globalLogger.Session("cell-states")
-	registrations, err := bbsClient.Cells(logger)
+	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("cell-states"), traceID)
+
+	registrations, err := bbsClient.Cells(logger, traceID)
 	if err != nil {
 		return NewCFDotComponentError(cmd, fmt.Errorf("BBS error: Failed to get cell registrations from BBS: %s", err))
 	}
 	errs := ""
 	for _, registration := range registrations {
-		err := FetchCellState(stdout, stderr, clientFactory, registration)
+		err := FetchCellState(stdout, stderr, clientFactory, registration, traceID)
 		if err != nil {
 			errs += fmt.Sprintf("Rep error: Failed to get cell state for cell %s: %s\n", registration.CellId, err)
 		}

@@ -58,7 +58,8 @@ func NewBBSClient(cmd *cobra.Command, bbsClientConfig TLSConfig) (bbs.Client, er
 }
 
 func NewRepClient(clientFactory rep.ClientFactory, address, url string) (rep.Client, error) {
-	return clientFactory.CreateClient(address, url)
+	traceID := ""
+	return clientFactory.CreateClient(address, traceID, url)
 }
 
 func NewLocketClient(logger lager.Logger, cmd *cobra.Command, locketClientConfig TLSConfig) (locketmodels.LocketClient, error) {

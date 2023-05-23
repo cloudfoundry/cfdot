@@ -11,6 +11,7 @@ import (
 
 	"code.cloudfoundry.org/bbs"
 	"code.cloudfoundry.org/bbs/models"
+	"code.cloudfoundry.org/bbs/trace"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
 	"github.com/spf13/cobra"
 )
@@ -78,14 +79,16 @@ func ValidateUpdateDesiredLRPArguments(args []string) (string, []byte, error) {
 }
 
 func UpdateDesiredLRP(stdout, stderr io.Writer, bbsClient bbs.Client, processGuid string, spec []byte) error {
-	logger := globalLogger.Session("update-desired-lrp")
+	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("update-desired-lrp"), traceID)
 
 	var desiredLRP *models.DesiredLRPUpdate
 	err := json.Unmarshal(spec, &desiredLRP)
 	if err != nil {
 		return err
 	}
-	err = bbsClient.UpdateDesiredLRP(logger, processGuid, desiredLRP)
+
+	err = bbsClient.UpdateDesiredLRP(logger, traceID, processGuid, desiredLRP)
 	if err != nil {
 		return err
 	}

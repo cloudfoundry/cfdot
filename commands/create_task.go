@@ -11,6 +11,7 @@ import (
 
 	"code.cloudfoundry.org/bbs"
 	"code.cloudfoundry.org/bbs/models"
+	"code.cloudfoundry.org/bbs/trace"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
 	"github.com/spf13/cobra"
 )
@@ -77,7 +78,8 @@ func ValidateCreateTaskArguments(args []string) ([]byte, error) {
 }
 
 func CreateTask(stdout, stderr io.Writer, bbsClient bbs.Client, spec []byte) error {
-	logger := globalLogger.Session("create-task")
+	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("create-task"), traceID)
 
 	var task *models.Task
 	err := json.Unmarshal(spec, &task)
@@ -85,7 +87,7 @@ func CreateTask(stdout, stderr io.Writer, bbsClient bbs.Client, spec []byte) err
 		return err
 	}
 
-	err = bbsClient.DesireTask(logger, task.TaskGuid, task.Domain, task.TaskDefinition)
+	err = bbsClient.DesireTask(logger, traceID, task.TaskGuid, task.Domain, task.TaskDefinition)
 	if err != nil {
 		return err
 	}

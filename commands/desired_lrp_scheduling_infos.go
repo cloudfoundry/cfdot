@@ -6,6 +6,7 @@ import (
 
 	"code.cloudfoundry.org/bbs"
 	"code.cloudfoundry.org/bbs/models"
+	"code.cloudfoundry.org/bbs/trace"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
 	"github.com/spf13/cobra"
 )
@@ -60,14 +61,15 @@ func ValidateDesiredLRPSchedulingInfosArguments(args []string) error {
 }
 
 func DesiredLRPSchedulingInfos(stdout, stderr io.Writer, bbsClient bbs.Client, domain string) error {
-	logger := globalLogger.Session("desired-lrp-scheduling-infos")
+	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("desired-lrp-scheduling-infos"), traceID)
 
 	encoder := json.NewEncoder(stdout)
 	desiredLRPFilter := models.DesiredLRPFilter{
 		Domain: domain,
 	}
 
-	desiredLRPSchedulingInfos, err := bbsClient.DesiredLRPSchedulingInfos(logger, desiredLRPFilter)
+	desiredLRPSchedulingInfos, err := bbsClient.DesiredLRPSchedulingInfos(logger, traceID, desiredLRPFilter)
 	if err != nil {
 		return err
 	}

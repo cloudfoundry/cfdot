@@ -6,6 +6,7 @@ import (
 
 	"code.cloudfoundry.org/bbs"
 	"code.cloudfoundry.org/bbs/models"
+	"code.cloudfoundry.org/bbs/trace"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
 	"github.com/spf13/cobra"
 )
@@ -74,7 +75,8 @@ func ValidateActualLRPsArguments(args []string) error {
 }
 
 func ActualLRPs(stdout, stderr io.Writer, bbsClient bbs.Client, domain, cellID, processGuid string, index *int32) error {
-	logger := globalLogger.Session("actual-lrps")
+	traceID := trace.GenerateTraceID()
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("actual-lrps"), traceID)
 
 	encoder := json.NewEncoder(stdout)
 
@@ -85,7 +87,7 @@ func ActualLRPs(stdout, stderr io.Writer, bbsClient bbs.Client, domain, cellID, 
 		Index:       index,
 	}
 
-	actualLRPs, err := bbsClient.ActualLRPs(logger, actualLRPFilter)
+	actualLRPs, err := bbsClient.ActualLRPs(logger, traceID, actualLRPFilter)
 	if err != nil {
 		return err
 	}

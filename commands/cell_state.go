@@ -9,6 +9,7 @@ import (
 
 	"code.cloudfoundry.org/bbs"
 	"code.cloudfoundry.org/bbs/models"
+	"code.cloudfoundry.org/bbs/trace"
 	"code.cloudfoundry.org/cfdot/commands/helpers"
 	cfhttp "code.cloudfoundry.org/cfhttp/v2"
 	"code.cloudfoundry.org/rep"
@@ -37,7 +38,9 @@ func cellState(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}
-	cellRegistration, err := FetchCellRegistration(bbsClient, args[0])
+
+	traceID := trace.GenerateTraceID()
+	cellRegistration, err := FetchCellRegistration(bbsClient, traceID, args[0])
 	if err != nil {
 		return NewCFDotError(cmd, err)
 	}
@@ -62,6 +65,7 @@ func cellState(cmd *cobra.Command, args []string) error {
 		cmd.OutOrStderr(),
 		repClientFactory,
 		cellRegistration,
+		traceID,
 	)
 	if err != nil {
 		return NewCFDotComponentError(cmd, fmt.Errorf("Rep error: Failed to get cell state for cell %s: %s", args[0], err.Error()))
@@ -81,10 +85,10 @@ func ValidateCellStateArguments(args []string) error {
 	}
 }
 
-func FetchCellRegistration(bbsClient bbs.Client, cellId string) (*models.CellPresence, error) {
-	logger := globalLogger.Session("fetch-cell-presence")
+func FetchCellRegistration(bbsClient bbs.Client, traceID string, cellId string) (*models.CellPresence, error) {
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("fetch-cell-presence"), traceID)
 
-	cells, err := bbsClient.Cells(logger)
+	cells, err := bbsClient.Cells(logger, traceID)
 	if err != nil {
 		return nil, err
 	}
@@ -98,13 +102,13 @@ func FetchCellRegistration(bbsClient bbs.Client, cellId string) (*models.CellPre
 	return nil, errors.New("Cell not found")
 }
 
-func FetchCellState(stdout, stderr io.Writer, clientFactory rep.ClientFactory, registration *models.CellPresence) error {
-	repClient, err := clientFactory.CreateClient(registration.RepAddress, registration.RepUrl)
+func FetchCellState(stdout, stderr io.Writer, clientFactory rep.ClientFactory, registration *models.CellPresence, traceID string) error {
+	repClient, err := clientFactory.CreateClient(registration.RepAddress, registration.RepUrl, traceID)
 	if err != nil {
 		return err
 	}
 
-	logger := globalLogger.Session("cell-state")
+	logger := trace.LoggerWithTraceInfo(globalLogger.Session("cell-state"), traceID)
 	encoder := json.NewEncoder(stdout)
 
 	state, err := repClient.State(logger)
