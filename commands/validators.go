@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
@@ -9,7 +8,7 @@ import (
 )
 
 func ValidateConflictingShortAndLongFlag(short string, long string, cmd *cobra.Command) error {
-	errorConflictingShortAndLongFlagPassed := errors.New(fmt.Sprintf("Only one of %s and %s should be passed", short, long))
+	errorConflictingShortAndLongFlagPassed := fmt.Errorf("Only one of %s and %s should be passed", short, long)
 
 	if contains(os.Args, short) && contains(os.Args, long) {
 		return NewCFDotValidationError(cmd, errorConflictingShortAndLongFlagPassed)

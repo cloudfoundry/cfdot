@@ -2,7 +2,6 @@ package commands
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -71,7 +70,7 @@ func ValidateCreateDesiredLRPArguments(args []string) ([]byte, error) {
 	}
 	err = json.Unmarshal([]byte(spec), &desiredLRP)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Invalid JSON: %s", err.Error()))
+		return nil, fmt.Errorf("Invalid JSON: %s", err.Error())
 	}
 	return spec, nil
 }
