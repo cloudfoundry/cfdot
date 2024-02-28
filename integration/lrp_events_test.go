@@ -73,6 +73,7 @@ var _ = Describe("lrp-events", func() {
 			actualLrp := model_helpers.NewValidActualLRP("some-process-guid", 0)
 			lrpCreatedEvent := models.NewActualLRPCreatedEvent(actualLrp.ToActualLRPGroup())
 			sseEvent, err := events.NewEventFromModelEvent(1, lrpCreatedEvent)
+			Expect(err).ToNot(HaveOccurred())
 			lrpInstanceCreatedEvent := models.NewActualLRPInstanceCreatedEvent(actualLrp, "some-trace-id")
 			sseInstanceEvent, err := events.NewEventFromModelEvent(1, lrpInstanceCreatedEvent)
 			Expect(err).ToNot(HaveOccurred())
