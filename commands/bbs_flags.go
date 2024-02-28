@@ -73,7 +73,6 @@ func setBBSFlags(cmd *cobra.Command, args []string) error {
 
 func validateReadableFile(cmd *cobra.Command, filename, filetype string) error {
 	file, err := os.Open(filename)
-	defer file.Close()
 	if err != nil {
 
 		return NewCFDotValidationError(
@@ -81,6 +80,7 @@ func validateReadableFile(cmd *cobra.Command, filename, filetype string) error {
 			fmt.Errorf("%s file '%s' doesn't exist or is not readable: %s", filetype, filename, err.Error()),
 		)
 	}
+	defer file.Close()
 
 	return nil
 }
