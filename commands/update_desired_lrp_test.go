@@ -2,7 +2,6 @@ package commands_test
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 
 	"code.cloudfoundry.org/bbs/fake_bbs"
@@ -66,7 +65,7 @@ var _ = Describe("UpdateDesiredLRP", func() {
 		var filename string
 
 		BeforeEach(func() {
-			f, err := ioutil.TempFile(os.TempDir(), "spec_file")
+			f, err := os.CreateTemp(os.TempDir(), "spec_file")
 			Expect(err).NotTo(HaveOccurred())
 			defer f.Close()
 			_, err = f.Write(spec)
