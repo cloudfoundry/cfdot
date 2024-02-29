@@ -2,7 +2,6 @@ package integration_test
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -98,7 +97,7 @@ var _ = Describe("update-desired-lrp", func() {
 			var lrpArg string
 
 			BeforeEach(func() {
-				f, err := ioutil.TempFile(os.TempDir(), "update_lrp_spec")
+				f, err := os.CreateTemp(os.TempDir(), "update_lrp_spec")
 				Expect(err).NotTo(HaveOccurred())
 				defer f.Close()
 				Expect(json.NewEncoder(f).Encode(lrpUpdate)).To(Succeed())

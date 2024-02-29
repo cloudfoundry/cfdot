@@ -3,7 +3,7 @@ package integration_test
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -54,7 +54,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 	return []byte(bytes)
 }, func(data []byte) {
-	grpclog.SetLogger(log.New(ioutil.Discard, "", 0))
+	grpclog.SetLogger(log.New(io.Discard, "", 0))
 	paths := []string{}
 	err := json.Unmarshal(data, &paths)
 	Expect(err).NotTo(HaveOccurred())

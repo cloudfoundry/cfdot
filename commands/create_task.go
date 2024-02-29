@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -61,7 +60,7 @@ func ValidateCreateTaskArguments(args []string) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		spec, err = ioutil.ReadFile(argValue[1:])
+		spec, err = os.ReadFile(argValue[1:])
 		if err != nil {
 			return nil, err
 		}

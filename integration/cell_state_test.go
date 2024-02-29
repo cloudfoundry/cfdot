@@ -3,7 +3,7 @@ package integration_test
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -169,7 +169,7 @@ var _ = Describe("cell-state", func() {
 					sess := RunCFDot("cell-states")
 					Eventually(sess).Should(gexec.Exit(0))
 
-					decoder := json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(sess.Out.Contents())))
+					decoder := json.NewDecoder(io.NopCloser(bytes.NewBuffer(sess.Out.Contents())))
 					var receivedState rep.CellState
 
 					err := decoder.Decode(&receivedState)
@@ -222,7 +222,7 @@ var _ = Describe("cell-state", func() {
 
 					It("should succeed", func() {
 						Eventually(sess).Should(gexec.Exit(0))
-						decoder := json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(sess.Out.Contents())))
+						decoder := json.NewDecoder(io.NopCloser(bytes.NewBuffer(sess.Out.Contents())))
 						var receivedState rep.CellState
 
 						err := decoder.Decode(&receivedState)

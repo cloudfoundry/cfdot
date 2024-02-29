@@ -2,7 +2,6 @@ package integration_test
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -105,7 +104,7 @@ var _ = Describe("create-task", func() {
 			var taskArg string
 
 			BeforeEach(func() {
-				f, err := ioutil.TempFile(os.TempDir(), "desired_task_spec")
+				f, err := os.CreateTemp(os.TempDir(), "desired_task_spec")
 				Expect(err).NotTo(HaveOccurred())
 				defer f.Close()
 				Expect(json.NewEncoder(f).Encode(task)).To(Succeed())
