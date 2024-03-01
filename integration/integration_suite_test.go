@@ -54,7 +54,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 	return []byte(bytes)
 }, func(data []byte) {
-	grpclog.SetLogger(log.New(io.Discard, "", 0))
+	grpclog.SetLoggerV2(grpclog.NewLoggerV2(io.Discard, io.Discard, io.Discard))
 	paths := []string{}
 	err := json.Unmarshal(data, &paths)
 	Expect(err).NotTo(HaveOccurred())
