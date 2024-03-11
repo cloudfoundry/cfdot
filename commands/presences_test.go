@@ -33,10 +33,10 @@ var _ = Describe("Presences", func() {
 			resources = &models.FetchAllResponse{
 				Resources: []*models.Resource{
 					&models.Resource{
-						Key:   "key",
-						Owner: "owner",
-						Value: "value",
-						Type:  "type",
+						Key:      "key",
+						Owner:    "owner",
+						Value:    "value",
+						TypeCode: models.PRESENCE,
 					},
 				},
 			}

@@ -51,10 +51,10 @@ var _ = Describe("Locket commands", func() {
 		BeforeEach(func() {
 			req := &models.LockRequest{
 				Resource: &models.Resource{
-					Key:   "test-key",
-					Owner: "test-owner",
-					Value: "test-value",
-					Type:  "lock",
+					Key:      "test-key",
+					Owner:    "test-owner",
+					Value:    "test-value",
+					TypeCode: models.LOCK,
 				},
 				TtlInSeconds: 10,
 			}
@@ -101,7 +101,6 @@ var _ = Describe("Locket commands", func() {
 			Expect(resp.GetResource()).To(Equal(&models.Resource{
 				Key:      "test-key",
 				Owner:    "test-owner",
-				Type:     "lock",
 				TypeCode: models.LOCK,
 			}))
 		})
@@ -137,10 +136,10 @@ var _ = Describe("Locket commands", func() {
 			BeforeEach(func() {
 				req := &models.LockRequest{
 					Resource: &models.Resource{
-						Key:   "key",
-						Owner: "owner",
-						Value: "value",
-						Type:  "lock",
+						Key:      "key",
+						Owner:    "owner",
+						Value:    "value",
+						TypeCode: models.LOCK,
 					},
 					TtlInSeconds: 10,
 				}
