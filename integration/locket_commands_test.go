@@ -101,6 +101,7 @@ var _ = Describe("Locket commands", func() {
 			Expect(resp.GetResource()).To(Equal(&models.Resource{
 				Key:      "test-key",
 				Owner:    "test-owner",
+				Type:     "lock",
 				TypeCode: models.LOCK,
 			}))
 		})
