@@ -15,7 +15,9 @@ import (
 
 var _ = Describe("ActualLRPGroups", func() {
 	var (
-		fakeBBSClient   *fake_bbs.FakeClient
+		fakeBBSClient *fake_bbs.FakeClient
+
+		//lint:ignore SA1019 - deprecated model used for testing deprecated functionality
 		actualLRPGroups []*models.ActualLRPGroup
 		returnedError   error
 		stdout, stderr  *gbytes.Buffer
@@ -35,6 +37,7 @@ var _ = Describe("ActualLRPGroups", func() {
 
 	Context("when the bbs responds with actual lrp groups", func() {
 		BeforeEach(func() {
+			//lint:ignore SA1019 - deprecated model used for testing deprecated functionality
 			actualLRPGroups = []*models.ActualLRPGroup{
 				{
 					Instance: &models.ActualLRP{

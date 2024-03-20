@@ -71,6 +71,7 @@ var _ = Describe("lrp-events", func() {
 	Context("when the server responds with events", func() {
 		BeforeEach(func() {
 			actualLrp := model_helpers.NewValidActualLRP("some-process-guid", 0)
+			//lint:ignore SA1019 - cfdot needs to process deprecated ActualLRP data until it is removed from BBS
 			lrpCreatedEvent := models.NewActualLRPCreatedEvent(actualLrp.ToActualLRPGroup())
 			sseEvent, err := events.NewEventFromModelEvent(1, lrpCreatedEvent)
 			Expect(err).ToNot(HaveOccurred())
@@ -94,6 +95,7 @@ var _ = Describe("lrp-events", func() {
 			sess := RunCFDot("lrp-events")
 			Eventually(sess).Should(gexec.Exit(0))
 			stdOut := string(sess.Out.Contents())
+			//lint:ignore SA1019 - cfdot needs to process deprecated ActualLRP data until it is removed from BBS
 			Expect(stdOut).To(ContainSubstring(models.EventTypeActualLRPCreated))
 			Expect(stdOut).To(ContainSubstring(models.EventTypeActualLRPInstanceCreated))
 		})
@@ -146,6 +148,7 @@ var _ = Describe("lrp-events", func() {
 	Context("when both an ActualLRP Instance event and an ActualLRPGroup event are reported by the instance event stream and legacy event stream respectively", func() {
 		BeforeEach(func() {
 			actualLRP := model_helpers.NewValidActualLRP("some-process-guid", 0)
+			//lint:ignore SA1019 - cfdot needs to process deprecated ActualLRP data until it is removed from BBS
 			actualLRPEvent1 := models.NewActualLRPCreatedEvent(actualLRP.ToActualLRPGroup())
 			actualLRPEvent2 := models.NewActualLRPInstanceCreatedEvent(actualLRP, "some-trace-id")
 			sseEvent1, err := events.NewEventFromModelEvent(1, actualLRPEvent1)

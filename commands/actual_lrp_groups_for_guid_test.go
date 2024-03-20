@@ -74,8 +74,9 @@ var _ = Describe("ActualLRPGroupsForGuid", func() {
 
 	Context("ActualLRPGroupsForGuid", func() {
 		var (
-			stdout, stderr  *gbytes.Buffer
-			fakeBBSClient   *fake_bbs.FakeClient
+			stdout, stderr *gbytes.Buffer
+			fakeBBSClient  *fake_bbs.FakeClient
+			//lint:ignore SA1019 - deprecated model used for testing deprecated functionality
 			actualLRPGroups []*models.ActualLRPGroup
 		)
 
@@ -84,6 +85,7 @@ var _ = Describe("ActualLRPGroupsForGuid", func() {
 			stdout = gbytes.NewBuffer()
 			stderr = gbytes.NewBuffer()
 
+			//lint:ignore SA1019 - deprecated model used for testing deprecated functionality
 			actualLRPGroups = []*models.ActualLRPGroup{
 				{
 					Instance: &models.ActualLRP{
@@ -134,9 +136,11 @@ var _ = Describe("ActualLRPGroupsForGuid", func() {
 		})
 
 		Context("when an index is specified", func() {
+			//lint:ignore SA1019 - deprecated model used for testing deprecated functionality
 			var actualLRPGroup *models.ActualLRPGroup
 
 			BeforeEach(func() {
+				//lint:ignore SA1019 - deprecated model used for testing deprecated functionality
 				actualLRPGroup = &models.ActualLRPGroup{
 					Instance: &models.ActualLRP{
 						CrashCount:  15,
