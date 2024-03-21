@@ -42,8 +42,10 @@ var _ = Describe("LRP Events", func() {
 			desiredCounter += 1
 			switch desiredCounter {
 			case 1:
+				//lint:ignore SA1019 - cfdot needs to process deprecated ActualLRP data until it is removed from BBS
 				return models.NewActualLRPCreatedEvent(actualLRP.ToActualLRPGroup()), nil
 			case 2:
+				//lint:ignore SA1019 - cfdot needs to process deprecated ActualLRP data until it is removed from BBS
 				return models.NewActualLRPRemovedEvent(actualLRP.ToActualLRPGroup()), nil
 			default:
 				return nil, io.EOF
@@ -76,7 +78,9 @@ var _ = Describe("LRP Events", func() {
 
 	It("prints a JSON object for each event that occurred", func() {
 		expectedEvents := []string{
+			//lint:ignore SA1019 - cfdot needs to process deprecated ActualLRP data until it is removed from BBS
 			eventString(models.NewActualLRPCreatedEvent(actualLRP.ToActualLRPGroup())),
+			//lint:ignore SA1019 - cfdot needs to process deprecated ActualLRP data until it is removed from BBS
 			eventString(models.NewActualLRPRemovedEvent(actualLRP.ToActualLRPGroup())),
 			eventString(models.NewActualLRPInstanceCreatedEvent(actualLRP, "some-trace-id")),
 			eventString(models.NewActualLRPInstanceRemovedEvent(actualLRP, "some-trace-id")),

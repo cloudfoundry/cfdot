@@ -93,6 +93,7 @@ func LRPEvents(stdout, stderr io.Writer, bbsClient bbs.Client, cellID string, ex
 	eventStreamCount := 1
 
 	if !excludeActualLRPGroups {
+		//lint:ignore SA1019 - if this flag is set, we're intentionally using this deprecated behavior in conjunction with the new behavior
 		oldES, err := bbsClient.SubscribeToEventsByCellID(logger, cellID)
 		if err != nil {
 			return models.ConvertError(err)
@@ -120,6 +121,7 @@ func LRPEvents(stdout, stderr io.Writer, bbsClient bbs.Client, cellID string, ex
 		select {
 		case e := <-oldEventStream:
 			switch e.EventType() {
+			//lint:ignore SA1019 - cfdot needs to process deprecated ActualLRP data until it is removed from BBS
 			case models.EventTypeActualLRPCreated, models.EventTypeActualLRPChanged, models.EventTypeActualLRPRemoved:
 				event = e
 			default:

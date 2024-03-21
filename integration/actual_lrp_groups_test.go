@@ -33,7 +33,9 @@ var _ = Describe("actual-lrp-groups", func() {
 					func(w http.ResponseWriter, req *http.Request) {
 						time.Sleep(time.Duration(serverTimeout) * time.Second)
 					},
+					//lint:ignore SA1019 - calling deprecated model while unit testing deprecated method
 					ghttp.RespondWithProto(200, &models.ActualLRPGroupsResponse{
+						//lint:ignore SA1019 - calling deprecated model while unit testing deprecated method
 						ActualLrpGroups: []*models.ActualLRPGroup{
 							{
 								Instance: &models.ActualLRP{
@@ -80,11 +82,14 @@ var _ = Describe("actual-lrp-groups", func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/v1/actual_lrp_groups/list"),
+					//lint:ignore SA1019 - calling deprecated model while unit testing deprecated method
 					ghttp.VerifyProtoRepresenting(&models.ActualLRPGroupsRequest{
 						Domain: "cf-apps",
 						CellId: "cell_z1-0",
 					}),
+					//lint:ignore SA1019 - calling deprecated model while unit testing deprecated method
 					ghttp.RespondWithProto(200, &models.ActualLRPGroupsResponse{
+						//lint:ignore SA1019 - calling deprecated model while unit testing deprecated method
 						ActualLrpGroups: []*models.ActualLRPGroup{
 							{
 								Instance: &models.ActualLRP{

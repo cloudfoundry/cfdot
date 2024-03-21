@@ -31,10 +31,13 @@ var _ = Describe("actual-lrp-groups-for-guid", func() {
 						func(w http.ResponseWriter, req *http.Request) {
 							time.Sleep(time.Duration(serverTimeout) * time.Second)
 						},
+						//lint:ignore SA1019 - deprecated model used for testing deprecated functionality
 						ghttp.VerifyProtoRepresenting(&models.ActualLRPGroupsByProcessGuidRequest{
 							ProcessGuid: "random-guid",
 						}),
+						//lint:ignore SA1019 - deprecated model used for testing deprecated functionality
 						ghttp.RespondWithProto(200, &models.ActualLRPGroupsResponse{
+							//lint:ignore SA1019 - deprecated model used for testing deprecated functionality
 							ActualLrpGroups: []*models.ActualLRPGroup{
 								{
 									Instance: &models.ActualLRP{
@@ -112,11 +115,14 @@ var _ = Describe("actual-lrp-groups-for-guid", func() {
 			bbsServer.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/v1/actual_lrp_groups/get_by_process_guid_and_index"),
+					//lint:ignore SA1019 - deprecated model used for testing deprecated functionality
 					ghttp.VerifyProtoRepresenting(&models.ActualLRPGroupByProcessGuidAndIndexRequest{
 						ProcessGuid: "test-process-guid",
 						Index:       1,
 					}),
+					//lint:ignore SA1019 - deprecated model used for testing deprecated functionality
 					ghttp.RespondWithProto(200, &models.ActualLRPGroupsResponse{
+						//lint:ignore SA1019 - deprecated model used for testing deprecated functionality
 						ActualLrpGroups: []*models.ActualLRPGroup{
 							{
 								Instance: &models.ActualLRP{
