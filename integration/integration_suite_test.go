@@ -11,7 +11,7 @@ import (
 
 	"code.cloudfoundry.org/bbs/test_helpers"
 	"code.cloudfoundry.org/bbs/test_helpers/sqlrunner"
-	"code.cloudfoundry.org/inigo/helpers/portauthority"
+	"code.cloudfoundry.org/cf-networking-helpers/portauthority"
 	"code.cloudfoundry.org/locket/cmd/locket/config"
 	"code.cloudfoundry.org/locket/cmd/locket/testrunner"
 	"code.cloudfoundry.org/tlsconfig"
