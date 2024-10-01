@@ -7,9 +7,8 @@ tags: [diego-release, cfdot]
 ## Running from a BOSH-deployed VM
 
 `cfdot` is most useful in the context of a running Diego deployment.  If you
-use the [`generate-deployment-manifest`](https://github.com/cloudfoundry/diego-release/blob/master/scripts/generate-deployment-manifest)
-script in diego-release to generate your Diego manifest, `cfdot` is already
-available on the BOSH-deployed Diego VMs. To use it:
+use [cf-deployment](https://github.com/cloudfoundry/cf-deployment/tree/main) ,
+`cfdot` is already available on the BOSH-deployed Diego VMs. To use it:
 
 ```bash
 bosh ssh <DIEGO_JOB>/<INDEX>
